@@ -1,11 +1,10 @@
 //+------------------------------------------------------------------+
 //|                                                 RiskManager.mqh  |
-//|                    Omni-B3 EA v1.0 — Gestão de Risco e Capital   |
-//|       Equity Stop, Drawdown Diário, Kill-Switch e Proteções      |
+//|                Omni-B3 EA v1.1 — Gestão de Risco (B3/BRL)        |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
-#property link      "https://github.com/seu-usuario/Stocks"
-#property version   "1.00"
+#property link      "https://github.com/helveciopereira/Stocks"
+#property version   "1.10"
 #property strict
 
 #include "Defines.mqh"
@@ -13,32 +12,22 @@
 #include <Trade/Trade.mqh>
 
 //+------------------------------------------------------------------+
-//| Classe de Gestão de Risco do EA                                  |
-//|                                                                   |
-//| Implementa múltiplas camadas de proteção de capital:             |
-//|  - Equity Stop: fecha tudo se equity cair abaixo de X%          |
-//|  - Max Drawdown Diário: limita perda por dia                     |
-//|  - Max Posições: limite global de ordens simultâneas             |
-//|  - Kill-Switch: botão de pânico que desliga o EA                 |
-//|  - Margem livre: verifica se há margem para novas ordens         |
+//| Gestão de Risco com múltiplas camadas de proteção                |
 //+------------------------------------------------------------------+
 class CRiskManager {
 private:
-    int      m_magic_number;            // Magic number do EA
-    double   m_equity_stop_percent;     // % de equity para shutdown (ex: 70%)
-    double   m_max_daily_dd_percent;    // % máximo de DD diário (ex: 5%)
-    int      m_max_total_positions;     // Máximo de posições simultâneas
+    int      m_magic_number;
+    double   m_equity_stop_percent;     // Equity mínima em % do saldo
+    double   m_max_daily_dd_percent;    // DD diário máximo em %
+    int      m_max_total_positions;     // Máx posições/níveis simultâneos
     double   m_min_margin_percent;      // Margem livre mínima em %
-    bool     m_kill_switch;             // Flag global de pânico
-    bool     m_daily_locked;            // Flag de bloqueio diário
+    bool     m_kill_switch;
+    bool     m_daily_locked;
     double   m_initial_balance;         // Saldo no início do dia
-    double   m_account_initial_equity;  // Equity base para cálculo de DD
-    int      m_last_day;                // Dia anterior (para reset diário)
-    CLogger *m_logger;                  // Sistema de logging
+    int      m_last_day;
+    CLogger *m_logger;
 
-    //+--------------------------------------------------------------+
-    //| Reseta contadores diários se mudou o dia                     |
-    //+--------------------------------------------------------------+
+    // Reseta contadores se mudou o dia
     void CheckDayReset() {
         MqlDateTime now;
         TimeCurrent(now);
@@ -47,162 +36,130 @@ private:
             m_daily_locked = false;
             m_initial_balance = AccountInfoDouble(ACCOUNT_BALANCE);
             m_logger.Info("RiskManager",
-                StringFormat("🔄 Novo dia — Saldo base=%.2f | DD diário resetado",
-                             m_initial_balance));
+                StringFormat("🔄 Novo dia — Saldo base=R$%.2f", m_initial_balance));
         }
     }
 
-public:
-    //+--------------------------------------------------------------+
-    //| Construtor com parâmetros de proteção                        |
-    //+--------------------------------------------------------------+
-    CRiskManager(int magic_number,
-                 double equity_stop_percent,
-                 double max_daily_dd_percent,
-                 int max_total_positions,
-                 double min_margin_percent,
-                 CLogger *logger) {
+    // Detecta filling mode para contra-ordens de emergência
+    ENUM_ORDER_TYPE_FILLING DetectFilling(string symbol) {
+        long filling = SymbolInfoInteger(symbol, SYMBOL_FILLING_MODE);
+        if((filling & SYMBOL_FILLING_IOC) != 0) return ORDER_FILLING_IOC;
+        if((filling & SYMBOL_FILLING_FOK) != 0) return ORDER_FILLING_FOK;
+        return ORDER_FILLING_RETURN;
+    }
 
-        m_magic_number          = magic_number;
-        m_equity_stop_percent   = equity_stop_percent;
-        m_max_daily_dd_percent  = max_daily_dd_percent;
-        m_max_total_positions   = max_total_positions;
-        m_min_margin_percent    = min_margin_percent;
-        m_kill_switch           = false;
-        m_daily_locked          = false;
-        m_logger                = logger;
-        m_initial_balance       = AccountInfoDouble(ACCOUNT_BALANCE);
-        m_account_initial_equity = AccountInfoDouble(ACCOUNT_EQUITY);
+public:
+    CRiskManager(int magic_number, double equity_stop_pct, double max_daily_dd_pct,
+                 int max_positions, double min_margin_pct, CLogger *logger) {
+
+        m_magic_number        = magic_number;
+        m_equity_stop_percent = equity_stop_pct;
+        m_max_daily_dd_percent = max_daily_dd_pct;
+        m_max_total_positions = max_positions;
+        m_min_margin_percent  = min_margin_pct;
+        m_kill_switch         = false;
+        m_daily_locked        = false;
+        m_logger              = logger;
+        m_initial_balance     = AccountInfoDouble(ACCOUNT_BALANCE);
 
         MqlDateTime now;
         TimeCurrent(now);
         m_last_day = now.day;
 
         m_logger.Info("RiskManager",
-            StringFormat("Inicializado: EquityStop=%.1f%% | DDDiário=%.1f%% | MaxPos=%d | MargemMin=%.1f%%",
+            StringFormat("Init: EquityStop=%.0f%% | DDDiário=%.1f%% | MaxPos=%d | MargemMin=%.0f%%",
                          m_equity_stop_percent, m_max_daily_dd_percent,
                          m_max_total_positions, m_min_margin_percent));
     }
 
     //+--------------------------------------------------------------+
     //| Verifica se é seguro abrir novas posições                   |
-    //| Retorna: true se TODAS as condições de segurança estão OK   |
+    //| Parâmetro: current_levels — níveis virtuais da grade         |
     //+--------------------------------------------------------------+
-    bool IsSafeToTrade() {
-        // Reset diário de contadores
+    bool IsSafeToTrade(int current_levels) {
         CheckDayReset();
 
-        // VERIFICAÇÃO 1: Kill-Switch ativado?
-        if(m_kill_switch) {
-            return false; // EA desligado por pânico
-        }
+        // 1. Kill-Switch
+        if(m_kill_switch) return false;
 
-        // VERIFICAÇÃO 2: Bloqueio diário ativo?
-        if(m_daily_locked) {
-            return false; // DD diário excedido
-        }
+        // 2. Bloqueio diário
+        if(m_daily_locked) return false;
 
-        // VERIFICAÇÃO 3: Equity Stop
+        // 3. Equity Stop
         double equity  = AccountInfoDouble(ACCOUNT_EQUITY);
         double balance = AccountInfoDouble(ACCOUNT_BALANCE);
         if(balance > 0 && (equity / balance * 100.0) < m_equity_stop_percent) {
             m_logger.Critical("RiskManager",
-                StringFormat("🚨 EQUITY STOP! Equity=%.2f (%.1f%% do saldo)",
+                StringFormat("🚨 EQUITY STOP! Equity=R$%.2f (%.1f%%)",
                              equity, equity / balance * 100.0));
             ActivateKillSwitch();
             return false;
         }
 
-        // VERIFICAÇÃO 4: Drawdown Diário
+        // 4. DD Diário
         if(m_initial_balance > 0) {
-            double daily_loss = m_initial_balance - balance;
-            double daily_dd_pct = (daily_loss / m_initial_balance) * 100.0;
-            if(daily_dd_pct > m_max_daily_dd_percent) {
+            double daily_loss = m_initial_balance - equity;
+            double daily_dd = (daily_loss / m_initial_balance) * 100.0;
+            if(daily_dd > m_max_daily_dd_percent) {
                 m_logger.Warning("RiskManager",
-                    StringFormat("⚠️ DD Diário excedido: %.2f%% (máx: %.2f%%)",
-                                 daily_dd_pct, m_max_daily_dd_percent));
+                    StringFormat("⚠️ DD Diário: %.2f%% (máx: %.2f%%)",
+                                 daily_dd, m_max_daily_dd_percent));
                 m_daily_locked = true;
                 return false;
             }
         }
 
-        // VERIFICAÇÃO 5: Máximo de posições
-        int total_positions = 0;
-        for(int i = PositionsTotal() - 1; i >= 0; i--) {
-            ulong ticket = PositionGetTicket(i);
-            if(ticket > 0 && PositionGetInteger(POSITION_MAGIC) == m_magic_number) {
-                total_positions++;
-            }
-        }
-        if(total_positions >= m_max_total_positions) {
-            m_logger.Debug("RiskManager",
-                StringFormat("Limite de posições atingido: %d/%d",
-                             total_positions, m_max_total_positions));
-            return false;
-        }
+        // 5. Máximo de posições/níveis
+        if(current_levels >= m_max_total_positions) return false;
 
-        // VERIFICAÇÃO 6: Margem Livre
+        // 6. Margem livre
         double free_margin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
-        double total_margin = AccountInfoDouble(ACCOUNT_MARGIN);
-        if(total_margin > 0) {
-            double margin_level = (free_margin / (free_margin + total_margin)) * 100.0;
+        double used_margin = AccountInfoDouble(ACCOUNT_MARGIN);
+        if(used_margin > 0) {
+            double margin_level = (free_margin / (free_margin + used_margin)) * 100.0;
             if(margin_level < m_min_margin_percent) {
                 m_logger.Warning("RiskManager",
-                    StringFormat("Margem livre baixa: %.1f%% (mín: %.1f%%)",
-                                 margin_level, m_min_margin_percent));
+                    StringFormat("Margem baixa: %.1f%%", margin_level));
                 return false;
             }
         }
 
-        return true; // Todas as verificações passaram
+        return true;
     }
 
     //+--------------------------------------------------------------+
-    //| Ativa o Kill-Switch: fecha TODAS as posições e desliga o EA  |
-    //| Este é o botão de pânico — ação irreversível até reinício    |
+    //| Kill-Switch: fecha tudo e desliga                             |
     //+--------------------------------------------------------------+
     void ActivateKillSwitch() {
         m_kill_switch = true;
-        m_logger.Critical("RiskManager", "🔴 KILL-SWITCH ATIVADO! Fechando todas as posições...");
+        m_logger.Critical("RiskManager", "🔴 KILL-SWITCH! Fechando tudo...");
 
         CTrade trade;
         trade.SetExpertMagicNumber(m_magic_number);
 
-        // Fecha todas as posições deste magic number
-        int closed = 0;
+        // Em NETTING: fecha todas as posições do magic number
         for(int i = PositionsTotal() - 1; i >= 0; i--) {
             ulong ticket = PositionGetTicket(i);
             if(ticket == 0) continue;
             if(PositionGetInteger(POSITION_MAGIC) == m_magic_number) {
-                if(trade.PositionClose(ticket)) {
-                    closed++;
-                }
+                string sym = PositionGetString(POSITION_SYMBOL);
+                trade.SetTypeFilling(DetectFilling(sym));
+                trade.PositionClose(ticket);
             }
         }
 
-        m_logger.Critical("RiskManager",
-            StringFormat("🔴 Kill-Switch: %d posições fechadas. EA DESLIGADO.", closed));
+        m_logger.Critical("RiskManager", "🔴 Kill-Switch executado. EA DESLIGADO.");
     }
 
-    //+--------------------------------------------------------------+
-    //| Desativa o Kill-Switch (para reset manual)                   |
-    //+--------------------------------------------------------------+
     void ResetKillSwitch() {
         m_kill_switch = false;
         m_daily_locked = false;
         m_initial_balance = AccountInfoDouble(ACCOUNT_BALANCE);
-        m_logger.Info("RiskManager", "🟢 Kill-Switch resetado. EA reativado.");
+        m_logger.Info("RiskManager", "🟢 Kill-Switch resetado.");
     }
 
-    //+--------------------------------------------------------------+
-    //| Retorna status do Kill-Switch                                |
-    //+--------------------------------------------------------------+
     bool IsKillSwitchActive() { return m_kill_switch; }
-
-    //+--------------------------------------------------------------+
-    //| Retorna status do bloqueio diário                            |
-    //+--------------------------------------------------------------+
-    bool IsDailyLocked() { return m_daily_locked; }
+    bool IsDailyLocked()      { return m_daily_locked; }
 };
 
 //+------------------------------------------------------------------+

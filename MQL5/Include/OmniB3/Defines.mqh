@@ -1,156 +1,133 @@
 //+------------------------------------------------------------------+
 //|                                                     Defines.mqh  |
-//|                         Omni-B3 EA v1.0 — Definições Centrais    |
-//|          Enumerações, Estruturas e Constantes do Ecossistema      |
+//|                         Omni-B3 EA v1.1 — Definições Centrais    |
+//|          Adaptado para B3 (NETTING) — Minicontratos WIN/WDO      |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
-#property link      "https://github.com/seu-usuario/Stocks"
-#property version   "1.00"
+#property link      "https://github.com/helveciopereira/Stocks"
+#property version   "1.10"
 #property strict
 
 //+------------------------------------------------------------------+
 //| CONSTANTES GLOBAIS DO SISTEMA                                    |
 //+------------------------------------------------------------------+
-
-// Versão do EA para rastreabilidade em logs e comentários de ordens
-#define OMNIB3_VERSION        "1.0.0"
-
-// Prefixo usado nos comentários das ordens para identificação
+#define OMNIB3_VERSION        "1.1.0"
 #define OMNIB3_COMMENT_PREFIX "OmniB3"
 
-// Limite físico absoluto de níveis de grade (trava de segurança final)
-// Mesmo que o usuário configure mais, este é o teto inviolável
+// Limite absoluto de níveis de grade (trava inviolável)
 #define GRID_MAX_ABSOLUTE     10
 
-// Número máximo de símbolos que o EA pode gerenciar simultaneamente
+// Máximo de símbolos simultâneos
 #define MAX_SYMBOLS           6
 
 // Cooldown em segundos entre execuções do Smart Close
-// Evita loops de fechamento em ticks consecutivos
 #define SMART_CLOSE_COOLDOWN  5
 
-// Margem de segurança padrão em pontos para o gatilho do Smart Close
-// Representa o "colchão" extra além do breakeven para garantir lucro
-#define SMART_CLOSE_MARGIN_POINTS 3.0
+// Margem de segurança padrão em ticks para o Smart Close
+// Para WIN: 1 tick = 5 pontos = R$1,00 por contrato
+#define SMART_CLOSE_MARGIN_TICKS 3.0
 
-// Spread máximo permitido (em pontos) para abrir novas ordens
-// Protege contra abertura em momentos de spread muito alto
-#define MAX_SPREAD_POINTS     50
+// Spread máximo em pontos para abrir ordens
+// WIN costuma ter spread de 5-15 pontos
+#define MAX_SPREAD_POINTS     30
 
 //+------------------------------------------------------------------+
-//| ENUMERAÇÕES — Tipos de Grade                                     |
+//| ENUMERAÇÕES                                                      |
 //+------------------------------------------------------------------+
 
-// Define como o espaçamento entre os níveis da grade é calculado
+// Tipo de espaçamento da grade
 enum ENUM_GRID_TYPE {
     GRID_FIXED,         // Grade Fixa — espaçamento constante em pontos
     GRID_DYNAMIC_ATR    // Grade Dinâmica — espaçamento baseado no ATR
 };
 
-//+------------------------------------------------------------------+
-//| ENUMERAÇÕES — Direção da Grade                                   |
-//+------------------------------------------------------------------+
-
-// Define em qual direção o EA pode abrir ordens de grade
+// Direção da grade (NETTING: sem bi-direcional simultâneo)
 enum ENUM_GRID_DIRECTION {
-    GRID_BUY_ONLY,      // Apenas Compra — grade unidirecional de compra
-    GRID_SELL_ONLY,      // Apenas Venda — grade unidirecional de venda
-    GRID_BIDIRECTIONAL   // Bi-direcional — compra E venda simultâneas
+    GRID_BUY_ONLY,      // Apenas Compra — grade de compra (média para baixo)
+    GRID_SELL_ONLY       // Apenas Venda — grade de venda (média para cima)
 };
 
-//+------------------------------------------------------------------+
-//| ENUMERAÇÕES — Modo de Gerenciamento de Lotes                     |
-//+------------------------------------------------------------------+
-
-// Define como o tamanho do lote evolui a cada nível da grade
+// Modo de gerenciamento de lotes (volume em contratos inteiros)
 enum ENUM_LOT_MODE {
-    LOT_FIXED,           // Lote Fixo — mesmo volume em todos os níveis
-    LOT_MULTIPLIER       // Multiplicador — Lote_n = Lote₀ × Mult^(n-1)
+    LOT_FIXED,           // Fixo — mesmo volume em todos os níveis
+    LOT_MULTIPLIER       // Multiplicador — Vol_n = Vol₀ × Mult^(n-1)
 };
 
-//+------------------------------------------------------------------+
-//| ENUMERAÇÕES — Modo de Seleção do Smart Close                     |
-//+------------------------------------------------------------------+
-
-// Define qual posição perdedora será alvo do fechamento inteligente
+// Alvo do Smart Close
 enum ENUM_CLOSE_TARGET {
-    CLOSE_WORST,         // Pior Posição — maior prejuízo absoluto
-    CLOSE_OLDEST         // Mais Antiga — primeira ordem da grade (FIFO)
+    CLOSE_WORST,         // Pior Nível — maior prejuízo virtual
+    CLOSE_OLDEST         // Mais Antigo — primeiro nível da grade
 };
 
-//+------------------------------------------------------------------+
-//| ENUMERAÇÕES — Perfil de Risco (Presets)                          |
-//+------------------------------------------------------------------+
-
-// Perfis pré-configurados inspirados nos sinais do Daniel Moraes
+// Perfis de risco pré-configurados para B3
 enum ENUM_RISK_PROFILE {
-    PROFILE_NOPAIN,      // NoPain — Conservador (~3%/mês, DD ~20%)
-    PROFILE_UPFUJI,      // UpFuji — Agressivo (~5.5%/mês, DD ~31%)
+    PROFILE_CONSERVADOR, // Conservador — poucos níveis, sem multiplicador
+    PROFILE_MODERADO,    // Moderado — mais níveis, multiplicador leve
     PROFILE_CUSTOM       // Personalizado — usuário define tudo
 };
 
-//+------------------------------------------------------------------+
-//| ENUMERAÇÕES — Níveis de Log                                      |
-//+------------------------------------------------------------------+
-
-// Define a verbosidade do sistema de logging
+// Níveis de log
 enum ENUM_LOG_LEVEL {
-    LOG_DEBUG,           // Debug — mensagens detalhadas de depuração
-    LOG_INFO,            // Info — informações operacionais normais
-    LOG_WARNING,         // Aviso — situações anormais mas não críticas
-    LOG_ERROR,           // Erro — falhas que impedem uma operação
-    LOG_CRITICAL         // Crítico — falhas que exigem intervenção imediata
+    LOG_DEBUG,
+    LOG_INFO,
+    LOG_WARNING,
+    LOG_ERROR,
+    LOG_CRITICAL
 };
 
 //+------------------------------------------------------------------+
-//| ESTRUTURA — Dados de um Nível da Grade                           |
+//| ESTRUTURA — Nível Virtual da Grade                               |
+//|                                                                   |
+//| Em contas NETTING existe apenas 1 posição por símbolo. Para      |
+//| rastrear cada nível da grade individualmente, mantemos um array  |
+//| interno de "níveis virtuais" com preço de entrada e volume.      |
+//| O P&L de cada nível é calculado em tempo real.                   |
 //+------------------------------------------------------------------+
+struct SVirtualLevel {
+    double   entry_price;    // Preço de entrada deste nível
+    double   volume;         // Volume em contratos
+    int      direction;      // +1 = compra, -1 = venda
+    int      level_index;    // Índice do nível (0, 1, 2, ...)
+    datetime open_time;      // Data/hora de abertura
+    bool     is_active;      // Se está ativo
 
-// Armazena todas as informações de uma posição individual na grade
-struct SGridLevel {
-    ulong             ticket;        // Ticket da posição no MT5
-    int               level;         // Número do nível (0, 1, 2, ...)
-    ENUM_POSITION_TYPE type;         // Tipo: POSITION_TYPE_BUY ou SELL
-    double            lot;           // Volume da posição
-    double            open_price;    // Preço de abertura
-    double            profit;        // Lucro/Prejuízo atual em USD
-    double            profit_points; // Lucro/Prejuízo em pontos
-    datetime          open_time;     // Data/hora de abertura
-    bool              is_active;     // Se a posição ainda está aberta
-
-    // Construtor padrão — inicializa tudo zerado
+    // Inicializa zerado
     void Reset() {
-        ticket      = 0;
-        level       = 0;
-        type        = POSITION_TYPE_BUY;
-        lot         = 0.0;
-        open_price  = 0.0;
-        profit      = 0.0;
-        profit_points = 0.0;
+        entry_price = 0.0;
+        volume      = 0.0;
+        direction   = 0;
+        level_index = 0;
         open_time   = 0;
         is_active   = false;
+    }
+
+    // Calcula P&L virtual deste nível em moeda da conta (BRL)
+    // current_price: preço atual (bid para compra, ask para venda)
+    // tick_size: SYMBOL_TRADE_TICK_SIZE (ex: 5 para WIN)
+    // tick_value: SYMBOL_TRADE_TICK_VALUE (ex: 1.00 para WIN)
+    double CalculateProfit(double current_price, double tick_size, double tick_value) {
+        if(!is_active || tick_size <= 0.0) return 0.0;
+        double price_diff = direction * (current_price - entry_price);
+        return (price_diff / tick_size) * tick_value * volume;
     }
 };
 
 //+------------------------------------------------------------------+
-//| ESTRUTURA — Estado Geral de uma Grade (por símbolo e direção)    |
+//| ESTRUTURA — Estado Consolidado da Grade                          |
 //+------------------------------------------------------------------+
-
-// Consolida o estado completo de todas as posições de uma grade
 struct SGridState {
-    string  symbol;              // Símbolo do ativo (ex: AUDCAD)
-    int     total_levels;        // Quantidade de níveis abertos
-    double  total_volume;        // Volume total (soma de todos os lotes)
-    double  total_profit;        // P&L total aberto em USD
-    double  avg_price;           // Preço médio ponderado por volume
-    double  worst_profit;        // Pior prejuízo individual em USD
-    ulong   worst_ticket;        // Ticket da posição com pior prejuízo
-    double  worst_lot;           // Volume da posição com pior prejuízo
-    double  best_profit;         // Melhor lucro individual em USD
-    ulong   best_ticket;         // Ticket da posição com melhor lucro
-    double  positive_profit_sum; // Soma dos lucros das posições positivas
+    string  symbol;
+    int     total_levels;        // Níveis virtuais ativos
+    double  total_volume;        // Volume total em contratos
+    double  total_profit;        // P&L total virtual em BRL
+    double  avg_price;           // Preço médio ponderado
+    double  worst_profit;        // Pior P&L individual
+    int     worst_index;         // Índice do pior nível no array
+    double  worst_volume;        // Volume do pior nível
+    double  best_profit;         // Melhor P&L individual
+    int     best_index;          // Índice do melhor nível
+    double  positive_profit_sum; // Soma dos P&L positivos
 
-    // Construtor padrão — inicializa tudo zerado
     void Reset() {
         symbol              = "";
         total_levels        = 0;
@@ -158,39 +135,11 @@ struct SGridState {
         total_profit        = 0.0;
         avg_price           = 0.0;
         worst_profit        = 0.0;
-        worst_ticket        = 0;
-        worst_lot           = 0.0;
+        worst_index         = -1;
+        worst_volume        = 0.0;
         best_profit         = 0.0;
-        best_ticket         = 0;
+        best_index          = -1;
         positive_profit_sum = 0.0;
-    }
-};
-
-//+------------------------------------------------------------------+
-//| ESTRUTURA — Configuração de um Símbolo para Multi-Symbol         |
-//+------------------------------------------------------------------+
-
-// Cada símbolo operado tem sua própria configuração independente
-struct SSymbolConfig {
-    string symbol;               // Nome do símbolo (ex: "AUDCAD")
-    bool   enabled;              // Se está habilitado para operação
-    double initial_lot;          // Lote inicial para este símbolo
-    double lot_multiplier;       // Multiplicador de lote
-    int    max_levels;           // Máximo de níveis da grade
-    int    fixed_spacing;        // Espaçamento fixo (se GRID_FIXED)
-    double atr_multiplier;       // Multiplicador do ATR (se GRID_DYNAMIC)
-    int    magic_number;         // Magic number único para este símbolo
-
-    // Inicializa com valores padrão seguros
-    void SetDefaults(string sym, int magic) {
-        symbol         = sym;
-        enabled        = true;
-        initial_lot    = 0.01;
-        lot_multiplier = 1.0;
-        max_levels     = 5;
-        fixed_spacing  = 100;
-        atr_multiplier = 1.5;
-        magic_number   = magic;
     }
 };
 
