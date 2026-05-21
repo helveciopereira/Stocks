@@ -1,12 +1,12 @@
 //+------------------------------------------------------------------+
 //|                                                   SingleOrder.mqh |
-//|                     Omni-B3 EA v2.15 — Modo de Ordem Única        |
+//|                     Omni-B3 EA v2.25 — Modo de Ordem Única        |
 //|  Gerenciamento de Trades Individuais com Martingale Sequencial   |
 //|  TP, SL, BreakEven independentes e controle de sinal contrário  |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version     "2.15"
+#property version     "2.25"
 #property strict
 
 #include <OmniB3/Defines.mqh>

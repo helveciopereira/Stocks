@@ -1,11 +1,11 @@
 //+------------------------------------------------------------------+
 //|                                                  SmartClose.mqh  |
-//|              Omni-B3 EA v2.15 — Smart Close para B3/NETTING       |
+//|              Omni-B3 EA v2.25 — Smart Close para B3/NETTING       |
 //|   12+ modos de fechamento inspirados no ToTheMoon v3.5          |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.15"
+#property version   "2.25"
 #property strict
 
 #include "Defines.mqh"
@@ -526,6 +526,20 @@ public:
 
         ENUM_CLOSE_MODE mode = (override_mode != (ENUM_CLOSE_MODE)-1)
                                ? override_mode : m_close_mode;
+
+        // Salvaguarda TP de Segurança: Se o lucro total líquido da grade atingir o Take Profit Total
+        // configurado (effective_tp), fechamos toda a grade imediatamente, independente do modo de fechamento!
+        // Isso evita que posições altamente lucrativas fiquem presas em modos clássicos como CMODE_SMART_WORST/OLDEST.
+        if(state.total_levels >= 1 && (mode == CMODE_SMART_WORST || mode == CMODE_SMART_OLDEST)) {
+            double effective_tp = CalculateEffectiveTP(state);
+            if(effective_tp > 0.0 || m_tp_acceptable < 0.0) {
+                if(state.total_profit >= effective_tp) {
+                    m_logger.Info("SmartClose",
+                        StringFormat("🛡️ Salvaguarda TP Total atingida! P&L=R$%.2f | TP=R$%.2f. Fechando toda a grade por segurança.", state.total_profit, effective_tp));
+                    return ExecuteCloseAll(state);
+                }
+            }
+        }
 
         // Se houver apenas 1 nível ativo, os modos Smart Close clássicos (worst/oldest)
         // não conseguem realizar fechamentos parciais/combinados por exigirem >= 2 níveis.

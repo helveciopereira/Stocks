@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                                  OmniB3_EA.mq5   |
-//|                  Omni-B3 EA v2.15 — Minicontratos B3             |
+//|                  Omni-B3 EA v2.25 — Minicontratos B3             |
 //|                                                                   |
 //|  Grid Trading Avançado para WIN/WDO (contas NETTING)             |
 //|  12+ modos de fechamento | 12+ indicadores | Recovery Mode      |
@@ -11,13 +11,13 @@
 //+------------------------------------------------------------------+
 #property copyright   "Projeto Omni-B3"
 #property link        "https://github.com/helveciopereira/Stocks"
-#property version     "2.15"
+#property version     "2.25"
 #property description "Grid Trading Avançado para Minicontratos B3 (WIN/WDO)"
 #property description "12+ modos de fechamento | 12+ indicadores técnicos"
 #property description "Persistência de estado | Recovery | Money Management"
-#property description "NOVO v2.15: Take Profit para nivel inicial (L0) sob Smart Close"
+#property description "NOVO v2.25: Take Profit de salvaguarda e Day Trade por servidor"
 #property description "Adaptado para contas NETTING em Real (BRL)"
-#property description "Versão 2.15 com correção de fechamento em lucro de nivel unico"
+#property description "Versão 2.25 com proteção Day Trade estrito e TP de salvaguarda"
 
 //+------------------------------------------------------------------+
 //| INCLUDES                                                          |
@@ -250,6 +250,7 @@ input int              InpFridayEndHour = 17;        // Hora Fim na Sexta
 input ENUM_TIME_CLOSE_MODE InpTimeCloseMode = TCLOSE_NONE;  // Modo Fechamento no Horário
 input int              InpReduceMinutes = 60;        // Minutos antes do Fim p/ Reduzir TP
 input ENUM_TIME_REDUCE_TYPE InpReduceType = TIME_REDUCE_NONE;  // O que Reduzir?
+input bool             InpUseServerTime = true;      // Usar Hora do Servidor (Recomendado B3)
 
 input string           InpSepDays = "---- Dias Permitidos ----";  // ────────────────
 input bool             InpAllowMonday    = true;     // Operar Segunda?
@@ -437,7 +438,7 @@ int OnInit() {
     TFilter = new CTimeFilter(InpStartHour, InpStartMinute,
                               InpEndHour, InpEndMinute,
                               InpFridayEarly, InpFridayEndHour,
-                              false, Logger);
+                              InpUseServerTime, Logger);
 
     TFilter.SetAllowedDays(false, InpAllowMonday, InpAllowTuesday,
                            InpAllowWednesday, InpAllowThursday,
@@ -586,6 +587,41 @@ void OnTick() {
         }
     }
 
+    // Salvaguarda Estrita de Day Trade B3: Se o robô opera em modo Day Trade (TCLOSE_IMMEDIATE)
+    // e existem posições ativas cujas aberturas ocorreram em datas passadas (dias anteriores),
+    // nós liquidamos tudo a mercado imediatamente no primeiro tick do dia para evitar Swing Trade involuntário!
+    if(levels > 0 && InpTimeCloseMode == TCLOSE_IMMEDIATE) {
+        SGridState state = PosManager.GetGridState();
+        if(state.oldest_level_time > 0) {
+            MqlDateTime oldest_dt, current_dt;
+            TimeToStruct(state.oldest_level_time, oldest_dt);
+            TimeToStruct(TimeCurrent(), current_dt);
+            
+            // Se o dia da abertura da posição foi anterior ao dia atual do servidor
+            if(oldest_dt.year < current_dt.year || 
+               (oldest_dt.year == current_dt.year && oldest_dt.mon < current_dt.mon) || 
+               (oldest_dt.year == current_dt.year && oldest_dt.mon == current_dt.mon && oldest_dt.day < current_dt.day)) {
+                
+                Logger.Warning("EA", StringFormat("🛡️ Salvaguarda Day Trade acionada! Detectada posição antiga de %04d.%02d.%02d. Liquidando toda a grade a mercado.", 
+                                                   oldest_dt.year, oldest_dt.mon, oldest_dt.day));
+                
+                // Limpa os níveis virtuais
+                PosManager.ClearAllLevels();
+                
+                // E liquida a posição real física no MT5
+                if(PositionSelect(_Symbol) && PositionGetInteger(POSITION_MAGIC) == InpMagicNumber) {
+                    ulong ticket = PositionGetInteger(POSITION_TICKET);
+                    CTrade trade;
+                    trade.SetExpertMagicNumber(InpMagicNumber);
+                    trade.PositionClose(ticket);
+                }
+                
+                g_status_msg = "Resgate Day Trade Executado";
+                return;
+            }
+        }
+    }
+
     // 5. Filtro de Horário B3
     if(!TFilter.IsTradeAllowed()) {
         g_status_msg = "Fora de Horário";
@@ -696,12 +732,30 @@ void OnChartEvent(const int id, const long &lparam,
                 Logger.Critical("EA", "🚨 BOTÃO PÂNICO PREVENTIVO ACIONADO VIA DASHBOARD!");
                 Risk.ActivateKillSwitch();
                 PosManager.ClearAllLevels();
+                
+                // Fecha a posição real física no MT5
+                if(PositionSelect(_Symbol) && PositionGetInteger(POSITION_MAGIC) == InpMagicNumber) {
+                    ulong ticket = PositionGetInteger(POSITION_TICKET);
+                    CTrade trade;
+                    trade.SetExpertMagicNumber(InpMagicNumber);
+                    trade.PositionClose(ticket);
+                }
+                
                 if(Recovery != NULL) Recovery.Reset();
                 g_status_msg = "PANICO - BLOQUEADO";
             }
             else if(action == "CloseAll") {
                 Logger.Warning("EA", "❌ Fechando todas as ordens e niveis via Painel.");
                 PosManager.ClearAllLevels();
+                
+                // Fecha a posição real física no MT5
+                if(PositionSelect(_Symbol) && PositionGetInteger(POSITION_MAGIC) == InpMagicNumber) {
+                    ulong ticket = PositionGetInteger(POSITION_TICKET);
+                    CTrade trade;
+                    trade.SetExpertMagicNumber(InpMagicNumber);
+                    trade.PositionClose(ticket);
+                }
+                
                 g_status_msg = "Zerar via Painel";
             }
             else if(action == "Pause") {
@@ -728,6 +782,15 @@ void OnChartEvent(const int id, const long &lparam,
             Logger.Critical("EA", "🔴 PÂNICO clássico pressionado!");
             Risk.ActivateKillSwitch();
             if(PosManager != NULL) PosManager.ClearAllLevels();
+            
+            // Fecha a posição real física no MT5
+            if(PositionSelect(_Symbol) && PositionGetInteger(POSITION_MAGIC) == InpMagicNumber) {
+                ulong ticket = PositionGetInteger(POSITION_TICKET);
+                CTrade trade;
+                trade.SetExpertMagicNumber(InpMagicNumber);
+                trade.PositionClose(ticket);
+            }
+            
             if(Recovery != NULL) Recovery.Reset();
         }
         if(sparam == "btn_reset") {

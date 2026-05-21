@@ -1,12 +1,12 @@
 //+------------------------------------------------------------------+
 //|                                                    Dashboard.mqh |
-//|                       Omni-B3 EA v2.15 — Painel Gráfico Visual    |
+//|                       Omni-B3 EA v2.25 — Painel Gráfico Visual    |
 //|        Exibição de Estatísticas em Tempo Real e Botões de Ação   |
 //|  Criado com design premium néon, suporte a temas e micro-painéis|
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version     "2.15"
+#property version     "2.25"
 #property strict
 
 #include <OmniB3/Defines.mqh>

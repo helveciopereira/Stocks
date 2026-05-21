@@ -1,11 +1,11 @@
 //+------------------------------------------------------------------+
 //|                                                 RiskManager.mqh  |
-//|                Omni-B3 EA v2.15 — Gestão de Risco (B3/BRL)        |
+//|                Omni-B3 EA v2.25 — Gestão de Risco (B3/BRL)        |
 //|         Limites expandidos: diário, total, por DD, por conta     |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.15"
+#property version   "2.25"
 #property strict
 
 #include "Defines.mqh"
