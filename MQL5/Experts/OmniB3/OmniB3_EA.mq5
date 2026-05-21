@@ -11,13 +11,13 @@
 //+------------------------------------------------------------------+
 #property copyright   "Projeto Omni-B3"
 #property link        "https://github.com/helveciopereira/Stocks"
-#property version     "2.12"
+#property version     "2.13"
 #property description "Grid Trading Avançado para Minicontratos B3 (WIN/WDO)"
 #property description "12+ modos de fechamento | 12+ indicadores técnicos"
 #property description "Persistência de estado | Recovery | Money Management"
-#property description "NOVO v2.12: Dashboard | Modo Ordem Única | Filtro Notícias"
+#property description "NOVO v2.13: Dashboard | Modo Ordem Única | Filtro Notícias | Sanitização de Inputs"
 #property description "Adaptado para contas NETTING em Real (BRL)"
-#property description "Versão 2.12 corrigida para livre compilação MQL5"
+#property description "Versão 2.13 com sanitização de inputs e logs verbosos de risco"
 
 //+------------------------------------------------------------------+
 //| INCLUDES                                                          |
@@ -384,8 +384,15 @@ int OnInit() {
     PosManager.SyncOnStartup();
 
     // ═══ 7. Grid Engine ═══
+    // Sanitização e validação estrita de InpDirection (evita presets inválidos fora do enumerador)
+    ENUM_GRID_DIRECTION verified_direction = InpDirection;
+    if(InpDirection != GRID_BUY_ONLY && InpDirection != GRID_SELL_ONLY) {
+        Logger.Warning("EA", StringFormat("[AVISO] Direção de grade inválida (%d) detectada! Normalizando para GRID_BUY_ONLY (0).", (int)InpDirection));
+        verified_direction = GRID_BUY_ONLY;
+    }
+
     Grid = new CGridEngine(_Symbol, InpMagicNumber,
-                           InpGridType, InpDirection,
+                           InpGridType, verified_direction,
                            LOT_FIXED, InpInitialLot, InpNextLotFactor,
                            InpMaxLevels, InpFixedSpacing,
                            InpATRPeriod, InpATRTimeframe, InpATRMult,

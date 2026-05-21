@@ -1,11 +1,11 @@
 //+------------------------------------------------------------------+
 //|                                                 RiskManager.mqh  |
-//|                Omni-B3 EA v2.0 — Gestão de Risco (B3/BRL)        |
+//|                Omni-B3 EA v2.13 — Gestão de Risco (B3/BRL)        |
 //|         Limites expandidos: diário, total, por DD, por conta     |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.00"
+#property version   "2.13"
 #property strict
 
 #include "Defines.mqh"
@@ -13,7 +13,7 @@
 #include <Trade/Trade.mqh>
 
 //+------------------------------------------------------------------+
-//| Gestão de Risco com múltiplas camadas de proteção — v2.0          |
+//| Gestão de Risco com múltiplas camadas de proteção — v2.13        |
 //|                                                                   |
 //| Inspirado nos "LIMITS" do ToTheMoon v3.5:                         |
 //| - Limites por lucro/prejuízo atual, diário e total               |
@@ -217,46 +217,59 @@ public:
     bool IsSafeToTrade(int current_levels) {
         CheckDayReset();
 
-        // 1. Kill-Switch (trava absoluta)
-        if(m_kill_switch) return false;
+        // 1. Kill-Switch (trava absoluta de emergência)
+        if(m_kill_switch) {
+            m_logger.Warning("RiskManager", "[BLOQUEIO] Operação bloqueada pelo Kill-Switch ativo (EA desativado).");
+            return false;
+        }
 
         // 2. Bloqueio diário
-        if(m_daily_locked) return false;
+        if(m_daily_locked) {
+            m_logger.Warning("RiskManager", "[BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.");
+            return false;
+        }
 
-        // 3. Bloqueio por limite atual
+        // 3. Bloqueio por limite atual (ciclo ativo)
         if(m_limit_locked) {
-            if(m_stop_after_limit) return false;
-            // Verifica se tempo de espera expirou
-            if(m_wait_after_limit > 0 &&
-               (TimeCurrent() - m_limit_lock_time) < m_wait_after_limit)
+            if(m_stop_after_limit) {
+                m_logger.Warning("RiskManager", "[BLOQUEIO] Parada permanente ativada após atingir limite de perda/lucro configurado.");
                 return false;
+            }
+            // Verifica se tempo de espera expirou
+            int elapsed = (int)(TimeCurrent() - m_limit_lock_time);
+            if(m_wait_after_limit > 0 && elapsed < m_wait_after_limit) {
+                m_logger.Warning("RiskManager", StringFormat("[BLOQUEIO] Cooldown ativo. Aguardando tempo regulamentar de %d segundos após limite (%d segundos restantes).",
+                                 m_wait_after_limit, m_wait_after_limit - elapsed));
+                return false;
+            }
             m_limit_locked = false;  // Tempo expirou, libera
         }
 
         double equity  = AccountInfoDouble(ACCOUNT_EQUITY);
         double balance = AccountInfoDouble(ACCOUNT_BALANCE);
 
-        // 4. Equity Stop
+        // 4. Equity Stop (Bloqueio crítico de liquidez)
         if(balance > 0 && (equity / balance * 100.0) < m_equity_stop_percent) {
             m_logger.Critical("RiskManager",
-                StringFormat("🚨 EQUITY STOP! Equity=R$%.2f (%.1f%%)",
-                             equity, equity / balance * 100.0));
+                StringFormat("🚨 EQUITY STOP! Capital Líquido (R$%.2f) caiu abaixo do limite de %.1f%% do Saldo (R$%.2f) — Atual: %.1f%%. Ativando Kill-Switch!",
+                             equity, m_equity_stop_percent, balance, equity / balance * 100.0));
             ActivateKillSwitch();
             return false;
         }
 
-        // 5. DD Diário
+        // 5. Drawdown Diário e Limites Diários
         if(m_initial_balance > 0) {
             double daily_loss = m_initial_balance - equity;
             double daily_dd = (daily_loss > 0) ? (daily_loss / m_initial_balance) * 100.0 : 0.0;
             
-            // Atualiza drawdown diário máximo
+            // Atualiza drawdown diário máximo registrado
             if(daily_dd > m_daily_max_dd) m_daily_max_dd = daily_dd;
 
+            // Drawdown Diário Máximo (%)
             if(m_max_daily_dd_percent > 0 && daily_dd > m_max_daily_dd_percent) {
                 m_logger.Warning("RiskManager",
-                    StringFormat("⚠️ DD Diário: %.2f%% (máx: %.2f%%)",
-                                 daily_dd, m_max_daily_dd_percent));
+                    StringFormat("⚠️ DD Diário Atingido: %.2f%% de drawdown (Limite Máximo: %.2f%%). Bloqueando operações diárias para preservar capital inicial de R$%.2f.",
+                                 daily_dd, m_max_daily_dd_percent, m_initial_balance));
                 m_daily_locked = true;
                 return false;
             }
@@ -264,7 +277,7 @@ public:
             // Limite diário de perda em R$
             if(m_limit_loss_daily > 0.0 && daily_loss >= m_limit_loss_daily) {
                 m_logger.Warning("RiskManager",
-                    StringFormat("⚠️ Perda diária: R$%.2f (máx: R$%.2f)",
+                    StringFormat("⚠️ Perda diária limite atingida: R$%.2f de perda flutuante/realizada (Limite Máximo: R$%.2f). Operações bloqueadas hoje.",
                                  daily_loss, m_limit_loss_daily));
                 m_daily_locked = true;
                 return false;
@@ -273,38 +286,53 @@ public:
             // Limite diário de lucro em R$
             if(m_limit_profit_daily > 0.0 && (equity - m_initial_balance) >= m_limit_profit_daily) {
                 m_logger.Info("RiskManager",
-                    StringFormat("✅ Meta diária atingida! Lucro=R$%.2f",
-                                 equity - m_initial_balance));
+                    StringFormat("✅ Meta diária de lucro atingida! Lucro acumulado hoje: R$%.2f (Meta: R$%.2f). Operações encerradas hoje.",
+                                 equity - m_initial_balance, m_limit_profit_daily));
                 m_daily_locked = true;
                 return false;
             }
         }
 
-        // 6. Limite de ordens diárias
+        // 6. Limite de ordens diárias (Overtrading)
         if(m_limit_orders_daily > 0 && m_daily_order_count >= m_limit_orders_daily) {
+            m_logger.Warning("RiskManager",
+                StringFormat("⚠️ Limite diário de ordens atingido: %d ordens executadas hoje (Limite Máximo: %d). Bloqueando novas entradas.",
+                             m_daily_order_count, m_limit_orders_daily));
             m_daily_locked = true;
             return false;
         }
         if(m_limit_wins_daily > 0 && m_daily_wins >= m_limit_wins_daily) {
+            m_logger.Warning("RiskManager",
+                StringFormat("⚠️ Limite diário de vitórias (trades vencedores) atingido: %d vitórias (Limite Máximo: %d). Bloqueando novas entradas.",
+                             m_daily_wins, m_limit_wins_daily));
             m_daily_locked = true;
             return false;
         }
         if(m_limit_losses_daily > 0 && m_daily_losses >= m_limit_losses_daily) {
+            m_logger.Warning("RiskManager",
+                StringFormat("⚠️ Limite diário de perdas (trades perdedores) atingido: %d perdas (Limite Máximo: %d). Bloqueando novas entradas.",
+                             m_daily_losses, m_limit_losses_daily));
             m_daily_locked = true;
             return false;
         }
 
-        // 7. Máximo de posições/níveis
-        if(current_levels >= m_max_total_positions) return false;
+        // 7. Máximo de posições/níveis simultâneos da grade
+        if(current_levels >= m_max_total_positions) {
+            m_logger.Warning("RiskManager",
+                StringFormat("[BLOQUEIO] Limite de níveis simultâneos alcançado: %d níveis ativos (Limite Máximo: %d). Aguardando fechamento de níveis.",
+                             current_levels, m_max_total_positions));
+            return false;
+        }
 
-        // 8. Margem livre
+        // 8. Margem livre da corretora (Margem Livre / Margem Exigida)
         double free_margin = AccountInfoDouble(ACCOUNT_MARGIN_FREE);
         double used_margin = AccountInfoDouble(ACCOUNT_MARGIN);
         if(used_margin > 0) {
             double margin_level = (free_margin / (free_margin + used_margin)) * 100.0;
             if(margin_level < m_min_margin_percent) {
                 m_logger.Warning("RiskManager",
-                    StringFormat("Margem baixa: %.1f%%", margin_level));
+                    StringFormat("🚨 Margem Livre Insuficiente na Corretora! Margem livre calculada em %.1f%% do capital garantido, inferior ao limite de segurança configurado de %.1f%%. Novas entradas bloqueadas para evitar Stop Out compulsório pela corretora.", 
+                                 margin_level, m_min_margin_percent));
                 return false;
             }
         }
