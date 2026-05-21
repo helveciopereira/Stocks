@@ -1,11 +1,11 @@
 //+------------------------------------------------------------------+
 //|                                                  TimeFilter.mqh  |
-//|               Omni-B3 EA v2.0 — Filtro de Horário (B3)           |
+//|               Omni-B3 EA v2.14 — Filtro de Horário (B3)          |
 //|       Dias permitidos, redução por tempo, criação de pendentes   |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.00"
+#property version   "2.14"
 #property strict
 
 #include "Defines.mqh"
@@ -191,14 +191,14 @@ public:
 
         bool is_inside = (current_minutes >= start_minutes && current_minutes < end_minutes);
 
-        // Detecta transição de dentro → fora (para fechamento)
-        if(m_was_inside && !is_inside && !m_close_executed) {
-            m_close_executed = true;
+        // Detecta transição de dentro → fora (apenas log)
+        if(m_was_inside && !is_inside) {
             m_logger.Info("TimeFilter", "⏰ Fim do horário de operação");
         }
-        // Reseta flag quando volta para dentro do horário
+        // Reseta flag quando volta para dentro do horário (no dia seguinte ou ao reativar)
         if(is_inside && !m_was_inside) {
             m_close_executed = false;
+            m_logger.Info("TimeFilter", "⏰ Início do horário de operação. Resetando controle de fechamento.");
         }
 
         m_was_inside = is_inside;
@@ -222,7 +222,12 @@ public:
             end_minutes = m_friday_end_hour * 60;
 
         // Chegou no horário de fechar?
-        return (current_minutes >= end_minutes && !m_close_executed);
+        if(current_minutes >= end_minutes && !m_close_executed) {
+            m_close_executed = true; // Define como executado imediatamente para evitar múltiplos fechamentos no mesmo dia
+            m_logger.Info("TimeFilter", "⏰ Horário limite atingido. Disparando fechamento forçado.");
+            return true;
+        }
+        return false;
     }
 
     //+--------------------------------------------------------------+

@@ -5,13 +5,13 @@
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version     "2.13"
+#property version     "2.14"
 #property strict
 
 //+------------------------------------------------------------------+
 //| CONSTANTES GLOBAIS DO SISTEMA                                    |
 //+------------------------------------------------------------------+
-#define OMNIB3_VERSION        "2.13"
+#define OMNIB3_VERSION        "2.14"
 #define OMNIB3_COMMENT_PREFIX "OmniB3"
 
 // Limite absoluto de níveis de grade (trava inviolável de segurança)
