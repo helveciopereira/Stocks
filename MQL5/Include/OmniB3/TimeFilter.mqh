@@ -1,11 +1,11 @@
 //+------------------------------------------------------------------+
 //|                                                  TimeFilter.mqh  |
-//|               Omni-B3 EA v2.14 — Filtro de Horário (B3)          |
+//|               Omni-B3 EA v2.15 — Filtro de Horário (B3)          |
 //|       Dias permitidos, redução por tempo, criação de pendentes   |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.14"
+#property version   "2.15"
 #property strict
 
 #include "Defines.mqh"

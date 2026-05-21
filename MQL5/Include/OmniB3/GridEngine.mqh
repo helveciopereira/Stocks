@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.14"
+#property version   "2.15"
 #property strict
 
 #include "Defines.mqh"

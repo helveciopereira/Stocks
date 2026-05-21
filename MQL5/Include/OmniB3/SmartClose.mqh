@@ -1,11 +1,11 @@
 //+------------------------------------------------------------------+
 //|                                                  SmartClose.mqh  |
-//|              Omni-B3 EA v2.0 — Smart Close para B3/NETTING       |
+//|              Omni-B3 EA v2.15 — Smart Close para B3/NETTING       |
 //|   12+ modos de fechamento inspirados no ToTheMoon v3.5          |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.12"
+#property version   "2.15"
 #property strict
 
 #include "Defines.mqh"
@@ -526,6 +526,14 @@ public:
 
         ENUM_CLOSE_MODE mode = (override_mode != (ENUM_CLOSE_MODE)-1)
                                ? override_mode : m_close_mode;
+
+        // Se houver apenas 1 nível ativo, os modos Smart Close clássicos (worst/oldest)
+        // não conseguem realizar fechamentos parciais/combinados por exigirem >= 2 níveis.
+        // Logo, para evitar que a ordem inicial corra indefinidamente no lucro ou prejuízo,
+        // forçamos a validação de saída baseada no Take Profit Total configurado.
+        if(state.total_levels == 1 && (mode == CMODE_SMART_WORST || mode == CMODE_SMART_OLDEST)) {
+            return CheckTPTotal(state);
+        }
 
         // Executa verificação baseada no modo ativo
         switch(mode) {
