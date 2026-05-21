@@ -5,13 +5,13 @@
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version     "2.10"
+#property version     "2.11"
 #property strict
 
 //+------------------------------------------------------------------+
 //| CONSTANTES GLOBAIS DO SISTEMA                                    |
 //+------------------------------------------------------------------+
-#define OMNIB3_VERSION        "2.1.0"
+#define OMNIB3_VERSION        "2.1.1"
 #define OMNIB3_COMMENT_PREFIX "OmniB3"
 
 // Limite absoluto de níveis de grade (trava inviolável de segurança)
@@ -50,19 +50,19 @@
 // Indicadores de sinal de entrada disponíveis
 // Cada indicador retorna: +1 (compra), -1 (venda), 0 (neutro)
 enum ENUM_INDICATOR_SIGNAL {
-    IND_NONE,               // Nenhum — abre sem indicador
-    IND_RSI,                // RSI — Sobrecompra/Sobrevenda
-    IND_CCI,                // CCI — Commodity Channel Index
-    IND_BOLLINGER,          // Bollinger Bands — Toque nas bandas
-    IND_ENVELOPES,          // Envelopes — Desvio percentual da média
-    IND_MOVING_AVERAGES,    // Médias Móveis — Cruzamento rápida/lenta
-    IND_VWAP,               // VWAP — Volume Weighted Average Price
-    IND_HILO,               // HILO — High-Low Activator
-    IND_PIVOT_POINT,        // Pivot Point — Suporte e Resistência
-    IND_ATR_SIGNAL,         // ATR — Sinal por volatilidade
-    IND_ADX_SIGNAL,         // ADX — Força da tendência
-    IND_CANDLE_SEQUENCE,    // Sequência de Candles — Padrão direcional
-    IND_PRICE_GAP           // GAP no Preço — Diferença entre candles
+    OB3_IND_NONE,               // Nenhum — abre sem indicador
+    OB3_IND_RSI,                // RSI — Sobrecompra/Sobrevenda
+    OB3_IND_CCI,                // CCI — Commodity Channel Index
+    OB3_IND_BOLLINGER,          // Bollinger Bands — Toque nas bandas
+    OB3_IND_ENVELOPES,          // Envelopes — Desvio percentual da média
+    OB3_IND_MOVING_AVERAGES,    // Médias Móveis — Cruzamento rápida/lenta
+    OB3_IND_VWAP,               // VWAP — Volume Weighted Average Price
+    OB3_IND_HILO,               // HILO — High-Low Activator
+    OB3_IND_PIVOT_POINT,        // Pivot Point — Suporte e Resistência
+    OB3_IND_ATR_SIGNAL,         // ATR — Sinal por volatilidade
+    OB3_IND_ADX_SIGNAL,         // ADX — Força da tendência
+    OB3_IND_CANDLE_SEQUENCE,    // Sequência de Candles — Padrão direcional
+    OB3_IND_PRICE_GAP           // GAP no Preço — Diferença entre candles
 };
 
 // Estratégia de compra/venda para cada indicador
@@ -329,7 +329,7 @@ struct SIndicatorConfig {
     double                  param3;     // Parâmetro extra 3 (ex: desvio)
 
     void Reset() {
-        type      = IND_NONE;
+        type      = OB3_IND_NONE;
         strategy  = STRAT_DISABLED;
         period    = 14;
         timeframe = PERIOD_CURRENT;
@@ -418,6 +418,15 @@ struct SNewsState {
     int      importance;    // Nível de importância (1, 2, 3)
     int      seconds_to;    // Segundos para o evento (negativo se já passou)
     bool     is_active;     // Se está ativo no momento
+
+    void Clear() {
+        event_name = "";
+        event_time = 0;
+        currency = "";
+        importance = 0;
+        seconds_to = 0;
+        is_active = false;
+    }
 };
 
 //+------------------------------------------------------------------+

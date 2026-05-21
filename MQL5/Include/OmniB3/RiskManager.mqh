@@ -69,6 +69,7 @@ private:
     int      m_daily_wins;              // Ganhos do dia
     int      m_daily_losses;            // Perdas do dia
     double   m_daily_profit;            // Lucro acumulado do dia
+    double   m_daily_max_dd;            // Drawdown diário máximo registrado
     datetime m_limit_lock_time;         // Quando foi travado por limite
 
     CLogger *m_logger;
@@ -89,6 +90,7 @@ private:
             m_daily_wins = 0;
             m_daily_losses = 0;
             m_daily_profit = 0.0;
+            m_daily_max_dd = 0.0;
             m_logger.Info("RiskManager",
                 StringFormat("🔄 Novo dia — Saldo=R$%.2f | Equity=R$%.2f",
                              m_initial_balance, m_initial_equity));
@@ -152,6 +154,7 @@ public:
         m_daily_wins           = 0;
         m_daily_losses         = 0;
         m_daily_profit         = 0.0;
+        m_daily_max_dd         = 0.0;
         m_limit_lock_time      = 0;
 
         MqlDateTime now;
@@ -245,7 +248,10 @@ public:
         // 5. DD Diário
         if(m_initial_balance > 0) {
             double daily_loss = m_initial_balance - equity;
-            double daily_dd = (daily_loss / m_initial_balance) * 100.0;
+            double daily_dd = (daily_loss > 0) ? (daily_loss / m_initial_balance) * 100.0 : 0.0;
+            
+            // Atualiza drawdown diário máximo
+            if(daily_dd > m_daily_max_dd) m_daily_max_dd = daily_dd;
 
             if(m_max_daily_dd_percent > 0 && daily_dd > m_max_daily_dd_percent) {
                 m_logger.Warning("RiskManager",
@@ -380,6 +386,7 @@ public:
     bool   IsLimitLocked()      { return m_limit_locked; }
     double GetDailyProfit()     { return m_daily_profit; }
     int    GetDailyOrderCount() { return m_daily_order_count; }
+    double GetDailyMaxDrawdown() { return m_daily_max_dd; }
 
     //+--------------------------------------------------------------+
     //| Status para dashboard                                         |

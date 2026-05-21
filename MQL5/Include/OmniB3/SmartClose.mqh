@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.00"
+#property version   "2.11"
 #property strict
 
 #include "Defines.mqh"
@@ -325,13 +325,13 @@ private:
 
         if(result) {
             m_logger.Info("SmartClose",
-                StringFormat("✅ Fechamento TOTAL! Vol=%.0f | P&L=R$%.2f | %d níveis",
+                StringFormat("[OK] Fechamento TOTAL! Vol=%.0f | P&L=R$%.2f | %d niveis",
                              state.total_volume, state.total_profit, state.total_levels));
             m_pos_manager.ClearAllLevels();
             m_last_close_time = TimeCurrent();
         } else {
             m_logger.Error("SmartClose",
-                StringFormat("❌ Falha fechamento total: Erro=%d | %s",
+                StringFormat("[ERRO] Falha fechamento total: Erro=%d | %s",
                              GetLastError(), m_trade.ResultComment()));
         }
         return result;
@@ -369,7 +369,7 @@ private:
 
         if(result) {
             m_logger.Info("SmartClose",
-                StringFormat("✅ Fechados %.0f contratos | %d níveis | P&L≈R$%.2f",
+                StringFormat("[OK] Fechados %.0f contratos | %d niveis | P&L~R$%.2f",
                              volume_to_close, remove_count, accumulated_profit));
 
             m_pos_manager.RemoveLevelsByIndices(indices_to_remove, remove_count);
@@ -381,7 +381,7 @@ private:
             m_last_close_time = TimeCurrent();
         } else {
             m_logger.Error("SmartClose",
-                StringFormat("❌ Falha: Erro=%d | %s", GetLastError(), m_trade.ResultComment()));
+                StringFormat("[ERRO] Falha: Erro=%d | %s", GetLastError(), m_trade.ResultComment()));
         }
         return result;
     }
@@ -540,7 +540,7 @@ public:
                 // Verifica TP monetário direto
                 if(m_tp_monetary > 0.0 && state.total_profit >= m_tp_monetary * m_tp_multiplier) {
                     m_logger.Info("SmartClose",
-                        StringFormat("🎯 TP Monetário! P&L=R$%.2f | TP=R$%.2f",
+                        StringFormat("[TP] TP Monetario! P&L=R$%.2f | TP=R$%.2f",
                                      state.total_profit, m_tp_monetary * m_tp_multiplier));
                     return ExecuteCloseAll(state);
                 }
@@ -562,7 +562,7 @@ public:
             case CMODE_HALF_CLOSE:
                 // Fecha metade dos lucrativos
                 if(state.positive_count >= 2 && state.total_profit > 0) {
-                    m_logger.Info("SmartClose", "🎯 Fechando metade dos lucrativos");
+                    m_logger.Info("SmartClose", "[TP] Fechando metade dos lucrativos");
                     return CheckSmartClose(state);
                 }
                 return false;
@@ -591,7 +591,7 @@ public:
         if(m_tp_monetary > 0.0) {
             if(state.total_profit >= m_tp_monetary * m_tp_multiplier) {
                 m_logger.Info("SmartClose",
-                    StringFormat("🎯 TP Monetário! R$%.2f", state.total_profit));
+                    StringFormat("[TP] TP Monetario! R$%.2f", state.total_profit));
                 return ExecuteCloseAll(state);
             }
         }

@@ -1,22 +1,23 @@
 //+------------------------------------------------------------------+
 //|                                                  OmniB3_EA.mq5   |
-//|                  Omni-B3 EA v2.10 — Minicontratos B3             |
+//|                  Omni-B3 EA v2.11 — Minicontratos B3             |
 //|                                                                   |
 //|  Grid Trading Avançado para WIN/WDO (contas NETTING)             |
 //|  12+ modos de fechamento | 12+ indicadores | Recovery Mode      |
 //|  Persistência de estado | Money Management | Filtros avançados   |
-//|  NOVO v2.10: Dashboard Gráfico | Ordem Única | Filtro Notícias   |
+//|  NOVO v2.11: Dashboard Gráfico | Ordem Única | Filtro Notícias   |
 //|  Inspirado na metodologia Daniel Moraes (ToTheMoon v3.5)         |
 //|  Adaptado para Real Brasileiro e minicontratos da Bovespa        |
 //+------------------------------------------------------------------+
 #property copyright   "Projeto Omni-B3"
 #property link        "https://github.com/helveciopereira/Stocks"
-#property version     "2.10"
+#property version     "2.11"
 #property description "Grid Trading Avançado para Minicontratos B3 (WIN/WDO)"
 #property description "12+ modos de fechamento | 12+ indicadores técnicos"
 #property description "Persistência de estado | Recovery | Money Management"
-#property description "NOVO v2.10: Dashboard | Modo Ordem Única | Filtro Notícias"
+#property description "NOVO v2.11: Dashboard | Modo Ordem Única | Filtro Notícias"
 #property description "Adaptado para contas NETTING em Real (BRL)"
+#property description "Versão 2.11 corrigida para livre compilação MQL5"
 
 //+------------------------------------------------------------------+
 //| INCLUDES                                                          |
@@ -73,15 +74,15 @@ input ENUM_RISK_PROFILE InpRiskProfile = PROFILE_CUSTOM;  // Perfil de Risco
 input ENUM_GRID_DIRECTION InpDirection = GRID_BUY_ONLY;   // Direção (Compra ou Venda)
 
 input string           InpSepIndicator = "---- Indicador de Sinal ----";  // ────────────────
-input ENUM_INDICATOR_SIGNAL InpSignalInd = IND_RSI;            // Indicador Principal
+input ENUM_INDICATOR_SIGNAL InpSignalInd = OB3_IND_RSI;            // Indicador Principal
 input ENUM_INDICATOR_STRATEGY InpSignalStrat = STRAT_STANDARD;  // Estratégia do Sinal
-input ENUM_INDICATOR_SIGNAL InpConfirm1 = IND_NONE;             // Confirmação 1
+input ENUM_INDICATOR_SIGNAL InpConfirm1 = OB3_IND_NONE;             // Confirmação 1
 input ENUM_INDICATOR_STRATEGY InpConfStrat1 = STRAT_DISABLED;   // Estratégia Confirm. 1
-input ENUM_INDICATOR_SIGNAL InpConfirm2 = IND_NONE;             // Confirmação 2
+input ENUM_INDICATOR_SIGNAL InpConfirm2 = OB3_IND_NONE;             // Confirmação 2
 input ENUM_INDICATOR_STRATEGY InpConfStrat2 = STRAT_DISABLED;   // Estratégia Confirm. 2
-input ENUM_INDICATOR_SIGNAL InpConfirm3 = IND_NONE;             // Confirmação 3
+input ENUM_INDICATOR_SIGNAL InpConfirm3 = OB3_IND_NONE;             // Confirmação 3
 input ENUM_INDICATOR_STRATEGY InpConfStrat3 = STRAT_DISABLED;   // Estratégia Confirm. 3
-input ENUM_INDICATOR_SIGNAL InpConfirm4 = IND_NONE;             // Confirmação 4
+input ENUM_INDICATOR_SIGNAL InpConfirm4 = OB3_IND_NONE;             // Confirmação 4
 input ENUM_INDICATOR_STRATEGY InpConfStrat4 = STRAT_DISABLED;   // Estratégia Confirm. 4
 input bool             InpUseIndInitial = true;     // Usar Indicador na Ordem Inicial?
 input bool             InpUseIndGrid    = false;    // Usar Indicador nas Ordens da Grid?
@@ -344,7 +345,7 @@ int OnInit() {
     int sig_count = 0;
 
     // Adiciona indicador principal
-    if(InpSignalInd != IND_NONE) {
+    if(InpSignalInd != OB3_IND_NONE) {
         sig_count++;
         ArrayResize(active_signals, sig_count);
         active_signals[sig_count - 1] = InpSignalInd;
@@ -352,7 +353,7 @@ int OnInit() {
     // Adiciona confirmações
     ENUM_INDICATOR_SIGNAL confirms[4] = {InpConfirm1, InpConfirm2, InpConfirm3, InpConfirm4};
     for(int i = 0; i < 4; i++) {
-        if(confirms[i] != IND_NONE) {
+        if(confirms[i] != OB3_IND_NONE) {
             sig_count++;
             ArrayResize(active_signals, sig_count);
             active_signals[sig_count - 1] = confirms[i];
@@ -439,18 +440,18 @@ int OnInit() {
 
     // ═══ 11. FASE 2: Single Order Módulo ═══
     Single = new CSingleOrder();
-    Single.Init(InpMagicNumber, InpSingleOrderMode, InpSingleSLPoints, InpSingleTPPoints,
+    Single.Init(Logger, InpMagicNumber, InpSingleOrderMode, InpSingleSLPoints, InpSingleTPPoints,
                 InpSingleBEActivation, InpSingleBEMargin, InpSingleMartMode, InpSingleMartMultiplier,
                 InpSingleMartSteps, InpSingleWaitLoss, InpSingleWaitWin, InpSingleCloseOpposite);
 
     // ═══ 12. FASE 2: News Filter Módulo ═══
     News = new CNewsFilter();
-    News.Init(InpNewsEnabled, InpNewsMinImportance, InpNewsAction, InpNewsBefore, InpNewsAfter, InpNewsCurrency);
+    News.Init(Logger, InpNewsEnabled, InpNewsMinImportance, InpNewsAction, InpNewsBefore, InpNewsAfter, InpNewsCurrency);
 
     // ═══ 13. FASE 2: Dashboard Visual ═══
     Dash = new CDashboard();
     if(InpUseDashboard) {
-        Dash.Init(InpDashboardTheme, InpDashboardX, InpDashboardY);
+        Dash.Init(Logger, InpDashboardTheme, InpDashboardX, InpDashboardY);
     }
 
     // Timer periódico de persistência e redesenho
@@ -513,8 +514,9 @@ void OnTick() {
     datetime current_time = TimeCurrent();
 
     // FASE 2: FILTRO DE NOTÍCIAS
-    ENUM_NEWS_ACTION news_act = NEWS_ACTION_NONE;
-    bool has_news_block = News.CheckNewsBlock(current_time, news_act);
+    int news_act_val = (int)NEWS_ACTION_NONE;
+    bool has_news_block = News.CheckNewsBlock(current_time, news_act_val);
+    ENUM_NEWS_ACTION news_act = (ENUM_NEWS_ACTION)news_act_val;
 
     if(has_news_block) {
         if(news_act == NEWS_ACTION_CLOSE_ALL) {
@@ -592,7 +594,7 @@ void OnTick() {
 
     // 6. Indicadores — obtém sinal composto
     int signal = 0;
-    if(InpSignalInd != IND_NONE) {
+    if(InpSignalInd != OB3_IND_NONE) {
         ENUM_INDICATOR_SIGNAL conf_arr[4];
         ENUM_INDICATOR_STRATEGY conf_strat_arr[4];
         conf_arr[0] = InpConfirm1;  conf_strat_arr[0] = InpConfStrat1;
@@ -637,7 +639,7 @@ void OnTick() {
                 if(Single.OpenOrder(_Symbol, signal, lot, OMNIB3_COMMENT_PREFIX + "_Single")) {
                     // Adiciona o nível virtual no PositionManager para rastreamento centralizado
                     double price = (signal == 1) ? SymbolInfoDouble(_Symbol, SYMBOL_ASK) : SymbolInfoDouble(_Symbol, SYMBOL_BID);
-                    PosManager.AddLevelVirtual(price, lot, signal);
+                    PosManager.RegisterLevel(price, lot, signal);
                     g_status_msg = "Ordem Única Aberta";
                 }
             }

@@ -24,6 +24,7 @@ private:
     ENUM_DASHBOARD_THEME m_theme;           // Tema de cores ativo
     bool                 m_is_visible;      // Visibilidade do painel
     bool                 m_is_paused;       // Estado do botão de pausa do EA
+    CLogger             *m_logger;          // Ponteiro para o Logger centralizado
     
     // Cores de acordo com o tema
     color                m_color_bg;        // Cor de fundo principal
@@ -54,7 +55,7 @@ public:
                         ~CDashboard();
 
     // Inicialização do Painel
-    bool                 Init(ENUM_DASHBOARD_THEME theme=THEME_DARK_MODERN, int x=20, int y=40);
+    bool                 Init(CLogger *logger, ENUM_DASHBOARD_THEME theme=THEME_DARK_MODERN, int x=20, int y=40);
     // Destrói todos os objetos gráficos do painel
     void                 Deinit();
 
@@ -91,6 +92,7 @@ CDashboard::CDashboard() {
     m_y_offset   = 40;
     m_width      = 320;
     m_height     = 420;
+    m_logger     = NULL;
 }
 
 //+------------------------------------------------------------------+
@@ -103,7 +105,8 @@ CDashboard::~CDashboard() {
 //+------------------------------------------------------------------+
 //| Inicialização do Dashboard                                       |
 //+------------------------------------------------------------------+
-bool CDashboard::Init(ENUM_DASHBOARD_THEME theme, int x, int y) {
+bool CDashboard::Init(CLogger *logger, ENUM_DASHBOARD_THEME theme, int x, int y) {
+    m_logger     = logger;
     m_chart_id   = ChartID();
     m_sub_window = 0;
     m_theme      = theme;
@@ -309,7 +312,7 @@ string CDashboard::OnChartEvent(const int id, const long &lparam, const double &
     if(StringFind(sparam, m_prefix) != 0) return "";
 
     string btn_name = StringSubstr(sparam, StringLen(m_prefix));
-    Logger::Info("Dashboard: Botão clicado: " + btn_name);
+    if(m_logger != NULL) m_logger.Info("Dashboard", "Botão clicado: " + btn_name);
 
     // Redefine o estado do botão para "não pressionado"
     ObjectSetInteger(m_chart_id, sparam, OBJPROP_STATE, false);

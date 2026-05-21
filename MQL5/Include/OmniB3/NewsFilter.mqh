@@ -1,12 +1,12 @@
 //+------------------------------------------------------------------+
 //|                                                   NewsFilter.mqh |
-//|                     Omni-B3 EA v2.10 — Filtro de Notícias Nativo  |
+//|                     Omni-B3 EA v2.12 — Filtro de Notícias Nativo  |
 //|  Proteção contra Alta Volatilidade de Calendário Econômico do MT5 |
 //|  Verifica eventos próximos e bloqueia abertura/execução do EA    |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version     "2.10"
+#property version     "2.12"
 #property strict
 
 #include <OmniB3/Defines.mqh>
@@ -32,6 +32,8 @@ private:
 
     // Estrutura para guardar a próxima notícia mais próxima
     SNewsState           m_next_news;
+    
+    CLogger             *m_logger;           // Ponteiro para o Logger centralizado
 
     // Auxiliares internos de filtragem
     bool                 IsEventRelevant(const MqlCalendarValue &value, const MqlCalendarEvent &event, const MqlCalendarCountry &country);
@@ -41,7 +43,8 @@ public:
                         ~CNewsFilter();
 
     // Inicialização
-    void                 Init(bool enabled, 
+    void                 Init(CLogger *logger,
+                              bool enabled, 
                               ENUM_NEWS_IMPORTANCE min_imp, 
                               ENUM_NEWS_ACTION action, 
                               int min_before, 
@@ -53,10 +56,10 @@ public:
 
     // Verifica se o robô está em período de bloqueio por notícia
     // Retorna true se houver bloqueio ativo e preenche a ação correspondente
-    bool                 CheckNewsBlock(datetime current_time, ENUM_NEWS_ACTION &out_action);
+    bool                 CheckNewsBlock(datetime current_time, int &out_action);
 
     // Retorna a struct de estado da próxima notícia mais próxima
-    const SNewsState&    GetNextNewsState() const { return m_next_news; }
+    SNewsState           GetNextNewsState() const { return m_next_news; }
 };
 
 //+------------------------------------------------------------------+
@@ -71,7 +74,8 @@ CNewsFilter::CNewsFilter() {
     m_currency_filter  = "BRL";
     m_total_events     = 0;
     m_last_update_date = 0;
-    m_next_news.Reset();
+    m_logger           = NULL;
+    m_next_news.Clear();
 }
 
 //+------------------------------------------------------------------+
@@ -83,12 +87,14 @@ CNewsFilter::~CNewsFilter() {
 //+------------------------------------------------------------------+
 //| Inicialização                                                    |
 //+------------------------------------------------------------------+
-void CNewsFilter::Init(bool enabled, 
+void CNewsFilter::Init(CLogger *logger,
+                        bool enabled, 
                         ENUM_NEWS_IMPORTANCE min_imp, 
                         ENUM_NEWS_ACTION action, 
                         int min_before, 
                         int min_after, 
                         string currency) {
+    m_logger          = logger;
     m_enabled         = enabled;
     m_min_importance  = min_imp;
     m_action          = action;
@@ -99,11 +105,13 @@ void CNewsFilter::Init(bool enabled,
     // Deixa em maiúsculo para comparação segura
     StringToUpper(m_currency_filter);
     
-    m_next_news.Reset();
+    m_next_news.Clear();
 
     if(m_enabled) {
-        Logger::Info(StringFormat("Filtro de Noticias Inicializado: Moeda=%s, Importancia Minima=%d, Bloqueio=%dmin antes e %dmin depois.", 
-                                  m_currency_filter, m_min_importance, m_minutes_before, m_minutes_after));
+        if(m_logger != NULL) {
+            m_logger.Info("NewsFilter", StringFormat("Filtro de Noticias Inicializado: Moeda=%s, Importancia Minima=%d, Bloqueio=%dmin antes e %dmin depois.", 
+                                      m_currency_filter, m_min_importance, m_minutes_before, m_minutes_after));
+        }
         UpdateCalendarData();
     }
 }
@@ -136,10 +144,14 @@ bool CNewsFilter::UpdateCalendarData() {
     
     if(m_total_events > 0) {
         m_last_update_date = start_of_day;
-        Logger::Info(StringFormat("Filtro de Noticias: Carregados %d eventos do dia de hoje.", m_total_events));
+        if(m_logger != NULL) {
+            m_logger.Info("NewsFilter", StringFormat("Carregados %d eventos do dia de hoje.", m_total_events));
+        }
         return true;
     } else {
-        Logger::Warning("Filtro de Noticias: Nenhum evento carregado do calendario do MT5. Verifique a conexao do terminal ou se a aba Calendario esta ativa.");
+        if(m_logger != NULL) {
+            m_logger.Warning("NewsFilter", "Nenhum evento carregado do calendario do MT5. Verifique a conexao do terminal ou se a aba Calendario esta ativa.");
+        }
         return false;
     }
 }
@@ -171,7 +183,7 @@ bool CNewsFilter::IsEventRelevant(const MqlCalendarValue &value, const MqlCalend
         if(imp != CALENDAR_IMPORTANCE_HIGH) return false;
     }
     else if(m_min_importance == NEWS_IMPORTANCE_MEDIUM) {
-        if(imp != CALENDAR_IMPORTANCE_MEDIUM && imp != CALENDAR_IMPORTANCE_HIGH) return false;
+        if(imp != CALENDAR_IMPORTANCE_MODERATE && imp != CALENDAR_IMPORTANCE_HIGH) return false;
     }
     else if(m_min_importance == NEWS_IMPORTANCE_LOW) {
         if(imp == CALENDAR_IMPORTANCE_NONE) return false;
@@ -186,8 +198,8 @@ bool CNewsFilter::IsEventRelevant(const MqlCalendarValue &value, const MqlCalend
 //+------------------------------------------------------------------+
 //| Executa a varredura e verifica se há bloqueio ativo              |
 //+------------------------------------------------------------------+
-bool CNewsFilter::CheckNewsBlock(datetime current_time, ENUM_NEWS_ACTION &out_action) {
-    out_action = NEWS_ACTION_NONE;
+bool CNewsFilter::CheckNewsBlock(datetime current_time, int &out_action) {
+    out_action = (int)NEWS_ACTION_NONE;
     if(!m_enabled) return false;
 
     // Atualiza o calendário se virou o dia
@@ -196,7 +208,7 @@ bool CNewsFilter::CheckNewsBlock(datetime current_time, ENUM_NEWS_ACTION &out_ac
     if(m_total_events <= 0) return false;
 
     bool is_blocked = false;
-    m_next_news.Reset();
+    m_next_news.Clear();
     int closest_seconds_to = 9999999; // Valor muito alto inicial
 
     // Varre todas as notícias do dia carregadas
@@ -227,7 +239,7 @@ bool CNewsFilter::CheckNewsBlock(datetime current_time, ENUM_NEWS_ACTION &out_ac
         // [Horário_Notícia - m_minutes_before] até [Horário_Notícia + m_minutes_after]
         if(seconds_to >= -block_after_sec && seconds_to <= block_before_sec) {
             is_blocked = true;
-            out_action = m_action;
+            out_action = (int)m_action;
 
             // Se for o evento ativo ou mais próximo no futuro, salva os dados
             if(seconds_to >= 0 && seconds_to < closest_seconds_to) {
@@ -255,8 +267,10 @@ bool CNewsFilter::CheckNewsBlock(datetime current_time, ENUM_NEWS_ACTION &out_ac
     }
 
     if(is_blocked) {
-        Logger::Warning(StringFormat("Filtro de Noticias: Bloqueio ATIVO devido a noticia proxima: %s em %d min. Acao: %d", 
-                                     m_next_news.event_name, m_next_news.seconds_to / 60, m_action));
+        if(m_logger != NULL) {
+            m_logger.Warning("NewsFilter", StringFormat("Bloqueio ATIVO devido a noticia proxima: %s em %d min. Acao: %d", 
+                                         m_next_news.event_name, m_next_news.seconds_to / 60, m_action));
+        }
     }
 
     return is_blocked;

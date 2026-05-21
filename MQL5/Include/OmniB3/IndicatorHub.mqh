@@ -318,52 +318,52 @@ public:
 
         for(int i = 0; i < count; i++) {
             switch(active_signals[i]) {
-                case IND_RSI:
+                case OB3_IND_RSI:
                     m_h_rsi = iRSI(m_symbol, m_rsi_tf, m_rsi_period, PRICE_CLOSE);
                     if(m_h_rsi == INVALID_HANDLE) { ok = false; m_logger.Error("IndHub", "Falha RSI"); }
                     else m_logger.Info("IndHub", StringFormat("RSI: P=%d TF=%s Sup=%.0f Inf=%.0f", m_rsi_period, EnumToString(m_rsi_tf), m_rsi_upper, m_rsi_lower));
                     break;
 
-                case IND_CCI:
+                case OB3_IND_CCI:
                     m_h_cci = iCCI(m_symbol, m_cci_tf, m_cci_period, PRICE_CLOSE);
                     if(m_h_cci == INVALID_HANDLE) { ok = false; m_logger.Error("IndHub", "Falha CCI"); }
                     else m_logger.Info("IndHub", StringFormat("CCI: P=%d Sup=%.0f Inf=%.0f", m_cci_period, m_cci_upper, m_cci_lower));
                     break;
 
-                case IND_BOLLINGER:
+                case OB3_IND_BOLLINGER:
                     m_h_bb = iBands(m_symbol, m_bb_tf, m_bb_period, 0, m_bb_deviation, PRICE_CLOSE);
                     if(m_h_bb == INVALID_HANDLE) { ok = false; m_logger.Error("IndHub", "Falha BB"); }
                     else m_logger.Info("IndHub", StringFormat("Bollinger: P=%d Dev=%.1f", m_bb_period, m_bb_deviation));
                     break;
 
-                case IND_ENVELOPES:
+                case OB3_IND_ENVELOPES:
                     m_h_envelopes = iEnvelopes(m_symbol, m_env_tf, m_env_period, 0, MODE_SMA, PRICE_CLOSE, m_env_deviation);
                     if(m_h_envelopes == INVALID_HANDLE) { ok = false; m_logger.Error("IndHub", "Falha Envelopes"); }
                     else m_logger.Info("IndHub", StringFormat("Envelopes: P=%d Dev=%.2f", m_env_period, m_env_deviation));
                     break;
 
-                case IND_MOVING_AVERAGES:
+                case OB3_IND_MOVING_AVERAGES:
                     m_h_ma_fast = iMA(m_symbol, m_ma_tf, m_ma_fast_period, 0, m_ma_method, PRICE_CLOSE);
                     m_h_ma_slow = iMA(m_symbol, m_ma_tf, m_ma_slow_period, 0, m_ma_method, PRICE_CLOSE);
                     if(m_h_ma_fast == INVALID_HANDLE || m_h_ma_slow == INVALID_HANDLE) { ok = false; m_logger.Error("IndHub", "Falha MAs"); }
                     else m_logger.Info("IndHub", StringFormat("MAs: Rápida=%d Lenta=%d", m_ma_fast_period, m_ma_slow_period));
                     break;
 
-                case IND_HILO:
+                case OB3_IND_HILO:
                     // HILO simulado com MA sobre preço mediano (high+low)/2
                     m_h_hilo = iMA(m_symbol, m_hilo_tf, m_hilo_period, 0, MODE_SMA, PRICE_MEDIAN);
                     if(m_h_hilo == INVALID_HANDLE) { ok = false; m_logger.Error("IndHub", "Falha HILO"); }
                     else m_logger.Info("IndHub", StringFormat("HILO: P=%d", m_hilo_period));
                     break;
 
-                case IND_ATR_SIGNAL:
+                case OB3_IND_ATR_SIGNAL:
                     if(m_h_atr == INVALID_HANDLE) {
                         m_h_atr = iATR(m_symbol, m_atr_tf, m_atr_period);
                         if(m_h_atr == INVALID_HANDLE) { ok = false; m_logger.Error("IndHub", "Falha ATR"); }
                     }
                     break;
 
-                case IND_ADX_SIGNAL:
+                case OB3_IND_ADX_SIGNAL:
                     m_h_adx = iADX(m_symbol, m_adx_tf, m_adx_period);
                     if(m_h_adx == INVALID_HANDLE) { ok = false; m_logger.Error("IndHub", "Falha ADX"); }
                     else m_logger.Info("IndHub", StringFormat("ADX: P=%d Min=%.0f", m_adx_period, m_adx_min));
@@ -396,15 +396,15 @@ public:
         int raw_signal = 0;
 
         switch(indicator) {
-            case IND_RSI:             raw_signal = GetRSISignal();        break;
-            case IND_CCI:             raw_signal = GetCCISignal();        break;
-            case IND_BOLLINGER:       raw_signal = GetBollingerSignal();  break;
-            case IND_ENVELOPES:       raw_signal = GetEnvelopesSignal();  break;
-            case IND_MOVING_AVERAGES: raw_signal = GetMASignal();         break;
-            case IND_HILO:            raw_signal = GetHILOSignal();       break;
-            case IND_ADX_SIGNAL:      raw_signal = GetADXSignal();        break;
-            case IND_NONE:            return 0;
-            default:                  return 0;
+            case OB3_IND_RSI:             raw_signal = GetRSISignal();        break;
+            case OB3_IND_CCI:             raw_signal = GetCCISignal();        break;
+            case OB3_IND_BOLLINGER:       raw_signal = GetBollingerSignal();  break;
+            case OB3_IND_ENVELOPES:       raw_signal = GetEnvelopesSignal();  break;
+            case OB3_IND_MOVING_AVERAGES: raw_signal = GetMASignal();         break;
+            case OB3_IND_HILO:            raw_signal = GetHILOSignal();       break;
+            case OB3_IND_ADX_SIGNAL:      raw_signal = GetADXSignal();        break;
+            case OB3_IND_NONE:            return 0;
+            default:                      return 0;
         }
 
         // Aplica estratégia
@@ -433,7 +433,7 @@ public:
 
         // Verifica confirmações (se ativas)
         for(int i = 0; i < confirm_count && i < MAX_CONFIRMATIONS; i++) {
-            if(confirms[i] == IND_NONE || confirm_strats[i] == STRAT_DISABLED)
+            if(confirms[i] == OB3_IND_NONE || confirm_strats[i] == STRAT_DISABLED)
                 continue;
 
             int conf_signal = GetSignal(confirms[i], confirm_strats[i]);

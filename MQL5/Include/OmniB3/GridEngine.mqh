@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.00"
+#property version   "2.11"
 #property strict
 
 #include "Defines.mqh"
@@ -114,7 +114,7 @@ private:
         if(candle_size >= size_points) {
             m_last_giant_candle_time = TimeCurrent();
             m_logger.Warning("GridEngine",
-                StringFormat("🕯️ Candle Gigante: %.0f pts (limite: %d)", candle_size, size_points));
+                StringFormat("[CANDLE GIGANTE] %.0f pts (limite: %d)", candle_size, size_points));
             return true;
         }
         return false;
@@ -209,11 +209,11 @@ private:
             m_pos_manager.RegisterLevel(ask, lot, 1, is_recovery);
             m_last_order_time = TimeCurrent();
             m_logger.Info("GridEngine",
-                StringFormat("🟢 COMPRA: Nível=%d | %.0f contratos @ %.2f%s",
+                StringFormat("[COMPRA] Nivel=%d | %.0f contratos @ %.2f%s",
                              level, lot, ask, is_recovery ? " [RECOVERY]" : ""));
         } else {
             m_logger.Error("GridEngine",
-                StringFormat("❌ Falha COMPRA: Nível=%d | Erro=%d | %s",
+                StringFormat("[ERRO COMPRA] Nivel=%d | Erro=%d | %s",
                              level, GetLastError(), m_trade.ResultComment()));
         }
         return result;
@@ -236,11 +236,11 @@ private:
             m_pos_manager.RegisterLevel(bid, lot, -1, is_recovery);
             m_last_order_time = TimeCurrent();
             m_logger.Info("GridEngine",
-                StringFormat("🔴 VENDA: Nível=%d | %.0f contratos @ %.2f%s",
+                StringFormat("[VENDA] Nivel=%d | %.0f contratos @ %.2f%s",
                              level, lot, bid, is_recovery ? " [RECOVERY]" : ""));
         } else {
             m_logger.Error("GridEngine",
-                StringFormat("❌ Falha VENDA: Nível=%d | Erro=%d | %s",
+                StringFormat("[ERRO VENDA] Nivel=%d | Erro=%d | %s",
                              level, GetLastError(), m_trade.ResultComment()));
         }
         return result;

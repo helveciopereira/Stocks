@@ -46,6 +46,7 @@ private:
     // Auxiliares internos
     bool                m_be_applied;       // Sinalizador de BreakEven aplicado
     bool                m_close_on_opposite;// Fechar posição se houver sinal contrário?
+    CLogger            *m_logger;           // Ponteiro para o Logger centralizado
 
     // Rastreia o histórico para saber o resultado do último trade do Magic Number
     void                UpdateHistoryStats();
@@ -55,7 +56,8 @@ public:
                        ~CSingleOrder();
 
     // Inicialização
-    void                Init(ulong magic, 
+    void                Init(CLogger *logger,
+                             ulong magic, 
                              ENUM_SINGLE_ORDER_MODE mode,
                              double sl_pts, double tp_pts,
                              double be_act, double be_marg,
@@ -110,6 +112,7 @@ CSingleOrder::CSingleOrder() {
     m_last_trade_profit  = 0.0;
     m_be_applied         = false;
     m_close_on_opposite  = false;
+    m_logger             = NULL;
 }
 
 //+------------------------------------------------------------------+
@@ -121,7 +124,8 @@ CSingleOrder::~CSingleOrder() {
 //+------------------------------------------------------------------+
 //| Inicialização das Configurações                                  |
 //+------------------------------------------------------------------+
-void CSingleOrder::Init(ulong magic, 
+void CSingleOrder::Init(CLogger *logger,
+                         ulong magic, 
                          ENUM_SINGLE_ORDER_MODE mode,
                          double sl_pts, double tp_pts,
                          double be_act, double be_marg,
@@ -129,6 +133,7 @@ void CSingleOrder::Init(ulong magic,
                          double mart_mult, int mart_max_steps,
                          int wait_loss, int wait_win,
                          bool close_opposite) {
+    m_logger            = logger;
     m_magic             = magic;
     m_mode              = mode;
     m_sl_points         = sl_pts;
@@ -157,7 +162,7 @@ void CSingleOrder::UpdateHistoryStats() {
 
     // Solicita o histórico de negociação da conta
     if(!HistorySelect(0, TimeCurrent())) {
-        Logger::Warning("SingleOrder: Falha ao carregar o historico de trades.");
+        if(m_logger != NULL) m_logger.Warning("SingleOrder", "Falha ao carregar o historico de trades.");
         return;
     }
 
@@ -223,8 +228,10 @@ void CSingleOrder::UpdateHistoryStats() {
         m_current_multiplier = MathPow(m_mart_multiplier, steps);
     }
     
-    Logger::Info(StringFormat("SingleOrder Stats: Ultimo Lucro: R$%.2f, Perdas Seguidas: %d, Ganhos Seguidos: %d, Multiplicador Atual: x%.2f",
-                              m_last_trade_profit, m_consecutive_losses, m_consecutive_wins, m_current_multiplier));
+    if(m_logger != NULL) {
+        m_logger.Info("SingleOrder", StringFormat("Stats: Ultimo Lucro: R$%.2f, Perdas Seguidas: %d, Ganhos Seguidos: %d, Multiplicador Atual: x%.2f",
+                                  m_last_trade_profit, m_consecutive_losses, m_consecutive_wins, m_current_multiplier));
+    }
 }
 
 //+------------------------------------------------------------------+
@@ -240,7 +247,7 @@ bool CSingleOrder::CanOpenNewOrder(datetime current_time) {
     if(m_last_trade_profit < 0.0 && m_wait_after_loss > 0) {
         if(elapsed < m_wait_after_loss) {
             int remaining = m_wait_after_loss - elapsed;
-            Logger::Debug(StringFormat("SingleOrder: Aguardando cooldown de perda (%d segundos restantes).", remaining));
+            if(m_logger != NULL) m_logger.Debug("SingleOrder", StringFormat("Aguardando cooldown de perda (%d segundos restantes).", remaining));
             return false;
         }
     }
@@ -248,7 +255,7 @@ bool CSingleOrder::CanOpenNewOrder(datetime current_time) {
     else if(m_last_trade_profit > 0.0 && m_wait_after_win > 0) {
         if(elapsed < m_wait_after_win) {
             int remaining = m_wait_after_win - elapsed;
-            Logger::Debug(StringFormat("SingleOrder: Aguardando cooldown de ganho (%d segundos restantes).", remaining));
+            if(m_logger != NULL) m_logger.Debug("SingleOrder", StringFormat("Aguardando cooldown de ganho (%d segundos restantes).", remaining));
             return false;
         }
     }
@@ -283,7 +290,7 @@ bool CSingleOrder::OpenOrder(string symbol, int direction, double volume, string
     if(PositionSelect(symbol)) {
         long pos_magic = PositionGetInteger(POSITION_MAGIC);
         if(pos_magic == m_magic) {
-            Logger::Warning("SingleOrder: Impossivel abrir ordem. Ja existe posicao ativa.");
+            if(m_logger != NULL) m_logger.Warning("SingleOrder", "Impossivel abrir ordem. Ja existe posicao ativa.");
             return false;
         }
     }
@@ -311,11 +318,15 @@ bool CSingleOrder::OpenOrder(string symbol, int direction, double volume, string
 
     uint ret_code = m_trade.ResultRetcode();
     if(ret_code == TRADE_RETCODE_DONE || ret_code == TRADE_RETCODE_PLACED) {
-        Logger::Info(StringFormat("SingleOrder: Posição aberta com sucesso. Lote: %.0f, Preço: %.2f, SL: %.2f, TP: %.2f", 
-                                  volume, price, sl, tp));
+        if(m_logger != NULL) {
+            m_logger.Info("SingleOrder", StringFormat("Posição aberta com sucesso. Lote: %.0f, Preço: %.2f, SL: %.2f, TP: %.2f", 
+                                      volume, price, sl, tp));
+        }
         return true;
     } else {
-        Logger::Error(StringFormat("SingleOrder: Falha ao abrir ordem. Código de retorno: %d", ret_code));
+        if(m_logger != NULL) {
+            m_logger.Error("SingleOrder", StringFormat("Falha ao abrir ordem. Código de retorno: %d", ret_code));
+        }
         return false;
     }
 }
@@ -343,7 +354,7 @@ void CSingleOrder::ManageBreakEven(string symbol, double current_bid, double cur
             if(current_sl < new_sl) {
                 m_trade.PositionModify(symbol, new_sl, PositionGetDouble(POSITION_TP));
                 m_be_applied = true;
-                Logger::Info(StringFormat("SingleOrder BE: BreakEven aplicado na COMPRA. SL ajustado para: %.2f", new_sl));
+                if(m_logger != NULL) m_logger.Info("SingleOrder", StringFormat("BreakEven aplicado na COMPRA. SL ajustado para: %.2f", new_sl));
             }
         }
     } 
@@ -356,7 +367,7 @@ void CSingleOrder::ManageBreakEven(string symbol, double current_bid, double cur
             if(current_sl > new_sl || current_sl == 0.0) {
                 m_trade.PositionModify(symbol, new_sl, PositionGetDouble(POSITION_TP));
                 m_be_applied = true;
-                Logger::Info(StringFormat("SingleOrder BE: BreakEven aplicado na VENDA. SL ajustado para: %.2f", new_sl));
+                if(m_logger != NULL) m_logger.Info("SingleOrder", StringFormat("BreakEven aplicado na VENDA. SL ajustado para: %.2f", new_sl));
             }
         }
     }
@@ -385,7 +396,7 @@ bool CSingleOrder::CheckOppositeSignalClose(string symbol, int opposite_signal) 
     }
 
     if(should_close) {
-        Logger::Info("SingleOrder: Fechando posicao ativa devido a SINAL CONTRARIO detectado.");
+        if(m_logger != NULL) m_logger.Info("SingleOrder", "Fechando posicao ativa devido a SINAL CONTRARIO detectado.");
         m_trade.PositionClose(symbol);
         
         // Zera o estado do BreakEven
@@ -406,5 +417,5 @@ void CSingleOrder::ResetMartingale() {
     m_consecutive_losses = 0;
     m_consecutive_wins   = 0;
     m_current_multiplier = 1.0;
-    Logger::Info("SingleOrder: Multiplicadores do Martingale resetados manualmente.");
+    if(m_logger != NULL) m_logger.Info("SingleOrder", "Multiplicadores do Martingale resetados manualmente.");
 }
