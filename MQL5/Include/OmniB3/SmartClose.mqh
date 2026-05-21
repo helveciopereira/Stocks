@@ -1,11 +1,11 @@
 //+------------------------------------------------------------------+
 //|                                                  SmartClose.mqh  |
-//|              Omni-B3 EA v1.1 — Smart Close para B3/NETTING       |
-//|   Usa lucro virtual de níveis para fechar posição parcialmente   |
+//|              Omni-B3 EA v2.0 — Smart Close para B3/NETTING       |
+//|   12+ modos de fechamento inspirados no ToTheMoon v3.5          |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "1.10"
+#property version   "2.00"
 #property strict
 
 #include "Defines.mqh"
@@ -14,22 +14,65 @@
 #include <Trade/Trade.mqh>
 
 //+------------------------------------------------------------------+
-//| Smart Close para contas NETTING                                  |
+//| Smart Close para contas NETTING — v2.0                            |
 //|                                                                   |
 //| Em NETTING, não podemos fechar posições individuais por ticket.  |
 //| Em vez disso:                                                     |
 //| 1. Calculamos P&L virtual de cada nível da grade                 |
-//| 2. Quando Σ lucros >= |pior prejuízo| + margem:                 |
-//|    a) Calculamos volume total a reduzir (pior + lucrativos)      |
-//|    b) Enviamos UMA contra-ordem para reduzir a posição           |
-//|    c) Removemos os níveis virtuais fechados                      |
+//| 2. Dependendo do modo de fechamento, decidimos o que fechar      |
+//| 3. Enviamos UMA contra-ordem para reduzir a posição              |
+//| 4. Removemos os níveis virtuais correspondentes                  |
+//|                                                                   |
+//| 12+ modos de fechamento inspirados no ToTheMoon v3.5:            |
+//| - Smart Close (pior/mais antigo)                                 |
+//| - TakeProfit (total, monetário, aceitável)                       |
+//| - BreakEven (estático, trailing)                                 |
+//| - Por quantidade de ordens/lotes                                  |
+//| - Aceitar prejuízo (quando DD baixo e muitos lotes)              |
 //+------------------------------------------------------------------+
 class CSmartClose {
 private:
     string             m_symbol;
     int                m_magic_number;
-    ENUM_CLOSE_TARGET  m_close_target;
-    double             m_margin_ticks;    // Margem em ticks
+    ENUM_CLOSE_MODE    m_close_mode;       // Modo de fechamento ativo
+    ENUM_CLOSE_TARGET  m_close_target;     // Alvo (pior/mais antigo)
+    double             m_margin_ticks;     // Margem de segurança em ticks
+
+    // TakeProfit configurável
+    ENUM_TP_MODE       m_tp_mode;          // Modo do TP (pontos, ATR, monetário)
+    double             m_tp_points;        // TP em pontos
+    double             m_tp_monetary;      // TP monetário (BRL)
+    double             m_tp_acceptable;    // TP aceitável (pode ser negativo!)
+    double             m_tp_monetary_acceptable; // TP monetário aceitável
+    double             m_tp_multiplier;    // Multiplicador do TP
+
+    // Redução do TP com o tempo
+    ENUM_TP_REDUCE_TYPE m_tp_reduce_type;
+    double             m_tp_reduce_dd;     // DD% para começar a reduzir
+    double             m_tp_reduce_search; // Distância para buscar preço
+    int                m_tp_reduce_time;   // Minutos para redução
+    bool               m_reduce_last;      // Reduzir na última ordem?
+
+    // BreakEven
+    ENUM_BE_MODE       m_be_mode;
+    double             m_be_points;        // BreakEven em pontos
+    double             m_be_acceptable;    // BreakEven aceitável
+    ENUM_BE_TYPE       m_be_type;          // Estático ou trailing
+    double             m_be_trail_factor;  // Fator do trailing (0-1)
+
+    // Limites para fechamento por quantidade
+    double             m_lot_sum_total;    // Fecha se soma lotes > este valor
+    double             m_lot_sum_half;     // Fecha metade se lotes > este valor
+    double             m_lot_avg_total;    // Fecha se média lotes > este valor
+    int                m_order_count_total;// Fecha se qtde ordens > este valor
+    int                m_order_count_half; // Fecha metade se qtde > este valor
+    double             m_lot_on_close;     // Lote para usar no fechamento
+    double             m_min_profit;       // Lucro mínimo para fechar (pode ser negativo)
+
+    // Aceitar prejuízo
+    double             m_dd_accept_loss;   // DD% abaixo do qual aceitar perda
+    double             m_accept_loss_value;// Valor de perda aceitável (BRL)
+
     CTrade             m_trade;
     CPositionManager  *m_pos_manager;
     CLogger           *m_logger;
@@ -37,7 +80,6 @@ private:
 
     //+--------------------------------------------------------------+
     //| Calcula custo da margem de segurança em BRL                  |
-    //| margem_ticks × tick_value × volume                           |
     //+--------------------------------------------------------------+
     double CalculateMarginCost(double volume) {
         double tick_value = SymbolInfoDouble(m_symbol, SYMBOL_TRADE_TICK_VALUE);
@@ -61,75 +103,175 @@ private:
         return ORDER_FILLING_RETURN;
     }
 
-public:
     //+--------------------------------------------------------------+
-    //| Construtor                                                    |
+    //| Calcula o TakeProfit efetivo considerando reduções            |
+    //| Retorna valor em BRL que deve ser alcançado para fechar      |
     //+--------------------------------------------------------------+
-    CSmartClose(string symbol, int magic_number,
-                ENUM_CLOSE_TARGET close_target, double margin_ticks,
-                CPositionManager *pos_manager, CLogger *logger) {
+    double CalculateEffectiveTP(SGridState &state) {
+        double tp = 0.0;
 
-        m_symbol         = symbol;
-        m_magic_number   = magic_number;
-        m_close_target   = close_target;
-        m_margin_ticks   = margin_ticks;
-        m_pos_manager    = pos_manager;
-        m_logger         = logger;
-        m_last_close_time = 0;
+        // Cálculo base do TP
+        switch(m_tp_mode) {
+            case TP_FIXED_POINTS: {
+                double tick_size  = SymbolInfoDouble(m_symbol, SYMBOL_TRADE_TICK_SIZE);
+                double tick_value = SymbolInfoDouble(m_symbol, SYMBOL_TRADE_TICK_VALUE);
+                double point = SymbolInfoDouble(m_symbol, SYMBOL_POINT);
+                tp = (m_tp_points * point / tick_size) * tick_value * state.total_volume;
+                tp *= m_tp_multiplier;
+                break;
+            }
+            case TP_MONETARY:
+                tp = m_tp_monetary * m_tp_multiplier;
+                break;
+            default:
+                tp = m_tp_points; // Fallback
+        }
 
-        m_trade.SetExpertMagicNumber(m_magic_number);
-        m_trade.SetDeviationInPoints(10);
-        m_trade.SetTypeFilling(DetectFillingMode());
+        // Aplica redução por tempo
+        if(m_tp_reduce_type == TP_REDUCE_BY_TIME && m_tp_reduce_time > 0) {
+            int elapsed_min = (int)((TimeCurrent() - state.oldest_level_time) / 60);
+            if(elapsed_min > m_tp_reduce_time) {
+                double reduce_factor = 1.0 - ((double)(elapsed_min - m_tp_reduce_time) /
+                                               (double)m_tp_reduce_time);
+                if(reduce_factor < 0.1) reduce_factor = 0.1; // Mínimo 10%
+                tp *= reduce_factor;
+                m_logger.Debug("SmartClose",
+                    StringFormat("TP reduzido por tempo: fator=%.2f (%dmin)", reduce_factor, elapsed_min));
+            }
+        }
 
-        m_logger.Info("SmartClose",
-            StringFormat("Init: %s | Alvo=%s | Margem=%.1f ticks",
-                         m_symbol, EnumToString(m_close_target), m_margin_ticks));
+        // Aplica redução por DD
+        if(m_tp_reduce_type == TP_REDUCE_BY_DD && m_tp_reduce_dd > 0.0) {
+            if(state.max_drawdown_pct >= m_tp_reduce_dd) {
+                double dd_factor = m_tp_reduce_dd / state.max_drawdown_pct;
+                if(dd_factor < 0.1) dd_factor = 0.1;
+                tp *= dd_factor;
+                m_logger.Debug("SmartClose",
+                    StringFormat("TP reduzido por DD: fator=%.2f (DD=%.1f%%)", dd_factor, state.max_drawdown_pct));
+            }
+        }
+
+        // TP aceitável (piso — pode ser negativo para aceitar perda)
+        double acceptable = (m_tp_mode == TP_MONETARY)
+                            ? m_tp_monetary_acceptable
+                            : m_tp_acceptable;
+        if(acceptable != 0.0 && tp < acceptable) {
+            // Não reduz abaixo do aceitável (a menos que aceitável seja negativo)
+        }
+
+        return tp;
     }
 
     //+--------------------------------------------------------------+
-    //| Método principal: verifica e executa Smart Close              |
-    //| Retorna: true se fechamento foi executado                    |
+    //| Verifica Smart Close clássico (pior nível com lucro)         |
     //+--------------------------------------------------------------+
-    bool CheckAndExecute() {
-        if(!IsCooldownExpired()) return false;
-
-        // Obtém estado da grade virtual
-        SGridState state = m_pos_manager.GetGridState();
-
+    bool CheckSmartClose(SGridState &state) {
         // Mínimo 2 níveis para Smart Close funcionar
         if(state.total_levels < 2) return false;
-
-        // Precisa ter nível perdedor E níveis lucrativos
         if(state.worst_index < 0 || state.worst_profit >= 0.0) return false;
         if(state.positive_profit_sum <= 0.0) return false;
 
-        // Calcula margem de segurança em BRL
+        // Margem de segurança
         double margin = CalculateMarginCost(state.worst_volume);
-
-        // ═══ GATILHO DO SMART CLOSE ═══
         double required = MathAbs(state.worst_profit) + margin;
 
         if(state.positive_profit_sum >= required) {
             m_logger.Info("SmartClose",
-                StringFormat("🎯 GATILHO! Lucros=R$%.2f | Necessário=R$%.2f | Pior=R$%.2f",
+                StringFormat("🎯 Smart Close! Lucros=R$%.2f | Necessário=R$%.2f | Pior=R$%.2f",
                              state.positive_profit_sum, required, state.worst_profit));
             return ExecuteSmartClose(state);
+        }
+        return false;
+    }
+
+    //+--------------------------------------------------------------+
+    //| Verifica TakeProfit Total (fecha tudo se P&L > TP)           |
+    //+--------------------------------------------------------------+
+    bool CheckTPTotal(SGridState &state) {
+        double effective_tp = CalculateEffectiveTP(state);
+        if(effective_tp <= 0.0 && m_tp_acceptable >= 0.0) return false;
+
+        if(state.total_profit >= effective_tp) {
+            m_logger.Info("SmartClose",
+                StringFormat("🎯 TP Total! P&L=R$%.2f | TP=R$%.2f", state.total_profit, effective_tp));
+            return ExecuteCloseAll(state);
+        }
+        return false;
+    }
+
+    //+--------------------------------------------------------------+
+    //| Verifica BreakEven (fecha quando preço atinge média)         |
+    //+--------------------------------------------------------------+
+    bool CheckBreakEven(SGridState &state) {
+        if(m_be_mode == BE_DISABLED) return false;
+        if(state.total_levels < 2) return false;
+
+        double acceptable = m_be_acceptable;
+        // Converte aceitável para valor monetário
+        double tick_size  = SymbolInfoDouble(m_symbol, SYMBOL_TRADE_TICK_SIZE);
+        double tick_value = SymbolInfoDouble(m_symbol, SYMBOL_TRADE_TICK_VALUE);
+        double acceptable_money = (acceptable * SymbolInfoDouble(m_symbol, SYMBOL_POINT)
+                                   / tick_size) * tick_value * state.total_volume;
+
+        if(state.total_profit >= acceptable_money) {
+            m_logger.Info("SmartClose",
+                StringFormat("🎯 BreakEven! P&L=R$%.2f | Aceitável=R$%.2f",
+                             state.total_profit, acceptable_money));
+            return ExecuteCloseAll(state);
+        }
+        return false;
+    }
+
+    //+--------------------------------------------------------------+
+    //| Verifica fechamento por quantidade de ordens/lotes            |
+    //+--------------------------------------------------------------+
+    bool CheckQuantityClose(SGridState &state) {
+        // Fechar tudo por soma de lotes
+        if(m_lot_sum_total > 0.0 && state.total_volume >= m_lot_sum_total) {
+            if(state.total_profit >= m_min_profit) {
+                m_logger.Info("SmartClose",
+                    StringFormat("🎯 Lote Total! Vol=%.0f (máx=%.0f)", state.total_volume, m_lot_sum_total));
+                return ExecuteCloseAll(state);
+            }
+        }
+
+        // Fechar tudo por quantidade de ordens
+        if(m_order_count_total > 0 && state.total_levels >= m_order_count_total) {
+            if(state.total_profit >= m_min_profit) {
+                m_logger.Info("SmartClose",
+                    StringFormat("🎯 Qtde Total! Ordens=%d (máx=%d)", state.total_levels, m_order_count_total));
+                return ExecuteCloseAll(state);
+            }
         }
 
         return false;
     }
 
-private:
     //+--------------------------------------------------------------+
-    //| Executa o abate parcial em NETTING                           |
-    //|                                                               |
-    //| 1. Identifica volume a fechar (pior + lucrativos suficientes)|
-    //| 2. Envia UMA contra-ordem para reduzir posição               |
-    //| 3. Remove níveis virtuais correspondentes                    |
+    //| Verifica aceitar prejuízo (quando DD baixo e muitos lotes)   |
+    //+--------------------------------------------------------------+
+    bool CheckAcceptLoss(SGridState &state) {
+        if(m_accept_loss_value >= 0.0) return false;  // Precisa ser negativo
+        if(state.total_levels < 2) return false;
+
+        // Verifica se DD está abaixo do limiar
+        if(m_dd_accept_loss > 0.0 && state.max_drawdown_pct > m_dd_accept_loss)
+            return false;  // DD ainda alto demais
+
+        // Verifica se perda está dentro do aceitável
+        if(state.total_profit >= m_accept_loss_value) {
+            m_logger.Info("SmartClose",
+                StringFormat("🎯 Aceitar Perda! P&L=R$%.2f | Aceitável=R$%.2f | DD=%.1f%%",
+                             state.total_profit, m_accept_loss_value, state.max_drawdown_pct));
+            return ExecuteCloseAll(state);
+        }
+        return false;
+    }
+
+    //+--------------------------------------------------------------+
+    //| Executa Smart Close parcial (fecha pior + lucrativos)         |
     //+--------------------------------------------------------------+
     bool ExecuteSmartClose(SGridState &state) {
-        // Determina direção da posição atual
-        // Se estamos comprando, fechamos vendendo (e vice-versa)
         if(!PositionSelect(m_symbol)) {
             m_logger.Error("SmartClose", "Posição real não encontrada!");
             return false;
@@ -144,16 +286,16 @@ private:
                                profitable_indices, profitable_profits);
 
         // Calcula volume e índices a fechar
-        double volume_to_close = state.worst_volume; // Começa com o pior
-        double accumulated_profit = state.worst_profit; // Negativo
+        double volume_to_close = state.worst_volume;
+        double accumulated_profit = state.worst_profit;
         int    indices_to_remove[];
         int    remove_count = 1;
         ArrayResize(indices_to_remove, 1);
         indices_to_remove[0] = state.worst_index;
 
-        // Adiciona níveis lucrativos até cobrir o débito
+        // Adiciona lucrativos até cobrir o débito + margem
         for(int i = 0; i < profit_count; i++) {
-            if(accumulated_profit >= 0.0) break; // Já cobriu
+            if(accumulated_profit >= 0.0) break;
 
             double level_vol = m_pos_manager.GetLevelVolume(profitable_indices[i]);
             volume_to_close += level_vol;
@@ -164,10 +306,46 @@ private:
             indices_to_remove[remove_count - 1] = profitable_indices[i];
         }
 
-        // Segurança: não fechar mais que a posição real
-        if(volume_to_close > real_volume) {
-            volume_to_close = real_volume;
+        return ExecutePartialClose(pos_type, real_volume, volume_to_close,
+                                    indices_to_remove, remove_count, accumulated_profit);
+    }
+
+    //+--------------------------------------------------------------+
+    //| Executa fechamento total (toda a posição)                     |
+    //+--------------------------------------------------------------+
+    bool ExecuteCloseAll(SGridState &state) {
+        if(!PositionSelect(m_symbol)) {
+            m_logger.Error("SmartClose", "Posição real não encontrada!");
+            return false;
         }
+
+        ulong ticket = PositionGetInteger(POSITION_TICKET);
+        m_trade.SetTypeFilling(DetectFillingMode());
+        bool result = m_trade.PositionClose(ticket);
+
+        if(result) {
+            m_logger.Info("SmartClose",
+                StringFormat("✅ Fechamento TOTAL! Vol=%.0f | P&L=R$%.2f | %d níveis",
+                             state.total_volume, state.total_profit, state.total_levels));
+            m_pos_manager.ClearAllLevels();
+            m_last_close_time = TimeCurrent();
+        } else {
+            m_logger.Error("SmartClose",
+                StringFormat("❌ Falha fechamento total: Erro=%d | %s",
+                             GetLastError(), m_trade.ResultComment()));
+        }
+        return result;
+    }
+
+    //+--------------------------------------------------------------+
+    //| Executa fechamento parcial via contra-ordem em NETTING       |
+    //+--------------------------------------------------------------+
+    bool ExecutePartialClose(ENUM_POSITION_TYPE pos_type, double real_volume,
+                              double volume_to_close, int &indices_to_remove[],
+                              int remove_count, double accumulated_profit) {
+        // Segurança: não fechar mais que a posição real
+        if(volume_to_close > real_volume)
+            volume_to_close = real_volume;
 
         // Normaliza volume
         double step = SymbolInfoDouble(m_symbol, SYMBOL_VOLUME_STEP);
@@ -177,42 +355,260 @@ private:
             return false;
         }
 
-        // Envia contra-ordem para reduzir posição
+        // Envia contra-ordem
         bool result = false;
         string comment = StringFormat("%s_SC", OMNIB3_COMMENT_PREFIX);
 
         if(pos_type == POSITION_TYPE_BUY) {
-            // Posição é compra → vende para reduzir
             double bid = SymbolInfoDouble(m_symbol, SYMBOL_BID);
             result = m_trade.Sell(volume_to_close, m_symbol, bid, 0, 0, comment);
         } else {
-            // Posição é venda → compra para reduzir
             double ask = SymbolInfoDouble(m_symbol, SYMBOL_ASK);
             result = m_trade.Buy(volume_to_close, m_symbol, ask, 0, 0, comment);
         }
 
         if(result) {
             m_logger.Info("SmartClose",
-                StringFormat("✅ Fechados %.0f contratos | %d níveis | P&L estimado=R$%.2f",
+                StringFormat("✅ Fechados %.0f contratos | %d níveis | P&L≈R$%.2f",
                              volume_to_close, remove_count, accumulated_profit));
 
-            // Remove níveis virtuais fechados
             m_pos_manager.RemoveLevelsByIndices(indices_to_remove, remove_count);
 
             // Se fechou tudo, limpa
-            if(volume_to_close >= real_volume) {
+            if(volume_to_close >= real_volume)
                 m_pos_manager.ClearAllLevels();
-                m_logger.Info("SmartClose", "Posição totalmente fechada — grade limpa");
-            }
 
             m_last_close_time = TimeCurrent();
         } else {
             m_logger.Error("SmartClose",
-                StringFormat("❌ Falha ao fechar: Erro=%d | %s",
-                             GetLastError(), m_trade.ResultComment()));
+                StringFormat("❌ Falha: Erro=%d | %s", GetLastError(), m_trade.ResultComment()));
+        }
+        return result;
+    }
+
+public:
+    //+--------------------------------------------------------------+
+    //| Construtor                                                    |
+    //+--------------------------------------------------------------+
+    CSmartClose(string symbol, int magic_number,
+                ENUM_CLOSE_MODE close_mode, double margin_ticks,
+                CPositionManager *pos_manager, CLogger *logger) {
+
+        m_symbol         = symbol;
+        m_magic_number   = magic_number;
+        m_close_mode     = close_mode;
+        m_close_target   = CLOSE_WORST;
+        m_margin_ticks   = margin_ticks;
+        m_pos_manager    = pos_manager;
+        m_logger         = logger;
+        m_last_close_time = 0;
+
+        // Defaults TakeProfit
+        m_tp_mode        = TP_FIXED_POINTS;
+        m_tp_points      = 100;
+        m_tp_monetary    = 0.0;
+        m_tp_acceptable  = 0.0;
+        m_tp_monetary_acceptable = 0.0;
+        m_tp_multiplier  = 1.0;
+        m_tp_reduce_type = TP_REDUCE_NONE;
+        m_tp_reduce_dd   = 100.0;
+        m_tp_reduce_search = 0.0;
+        m_tp_reduce_time = 0;
+        m_reduce_last    = true;
+
+        // Defaults BreakEven
+        m_be_mode        = BE_DISABLED;
+        m_be_points      = 0.0;
+        m_be_acceptable  = 0.0;
+        m_be_type        = BE_STATIC;
+        m_be_trail_factor = 1.0;
+
+        // Defaults Quantidade
+        m_lot_sum_total  = 0.0;
+        m_lot_sum_half   = 0.0;
+        m_lot_avg_total  = 0.0;
+        m_order_count_total = 0;
+        m_order_count_half  = 0;
+        m_lot_on_close   = 0.0;
+        m_min_profit     = 0.0;
+
+        // Defaults Aceitar Perda
+        m_dd_accept_loss = 0.0;
+        m_accept_loss_value = 0.0;
+
+        m_trade.SetExpertMagicNumber(m_magic_number);
+        m_trade.SetDeviationInPoints(10);
+        m_trade.SetTypeFilling(DetectFillingMode());
+
+        m_logger.Info("SmartClose",
+            StringFormat("Init: %s | Modo=%s | Margem=%.1f ticks",
+                         m_symbol, EnumToString(m_close_mode), m_margin_ticks));
+    }
+
+    //+--------------------------------------------------------------+
+    //| Configura TakeProfit                                          |
+    //+--------------------------------------------------------------+
+    void SetTakeProfit(ENUM_TP_MODE mode, double points, double monetary,
+                       double acceptable, double monetary_acceptable,
+                       double multiplier) {
+        m_tp_mode = mode;
+        m_tp_points = points;
+        m_tp_monetary = monetary;
+        m_tp_acceptable = acceptable;
+        m_tp_monetary_acceptable = monetary_acceptable;
+        m_tp_multiplier = multiplier;
+    }
+
+    //+--------------------------------------------------------------+
+    //| Configura redução do TP                                       |
+    //+--------------------------------------------------------------+
+    void SetTPReduction(ENUM_TP_REDUCE_TYPE type, double dd_pct,
+                        double search, int time_minutes, bool reduce_last) {
+        m_tp_reduce_type = type;
+        m_tp_reduce_dd = dd_pct;
+        m_tp_reduce_search = search;
+        m_tp_reduce_time = time_minutes;
+        m_reduce_last = reduce_last;
+    }
+
+    //+--------------------------------------------------------------+
+    //| Configura BreakEven                                           |
+    //+--------------------------------------------------------------+
+    void SetBreakEven(ENUM_BE_MODE mode, double points, double acceptable,
+                      ENUM_BE_TYPE type, double trail_factor) {
+        m_be_mode = mode;
+        m_be_points = points;
+        m_be_acceptable = acceptable;
+        m_be_type = type;
+        m_be_trail_factor = trail_factor;
+    }
+
+    //+--------------------------------------------------------------+
+    //| Configura fechamento por quantidade                           |
+    //+--------------------------------------------------------------+
+    void SetQuantityLimits(double lot_sum_total, double lot_sum_half,
+                           double lot_avg_total, int order_count_total,
+                           int order_count_half, double min_profit) {
+        m_lot_sum_total = lot_sum_total;
+        m_lot_sum_half = lot_sum_half;
+        m_lot_avg_total = lot_avg_total;
+        m_order_count_total = order_count_total;
+        m_order_count_half = order_count_half;
+        m_min_profit = min_profit;
+    }
+
+    //+--------------------------------------------------------------+
+    //| Configura aceitar prejuízo                                    |
+    //+--------------------------------------------------------------+
+    void SetAcceptLoss(double dd_threshold, double loss_value) {
+        m_dd_accept_loss = dd_threshold;
+        m_accept_loss_value = loss_value;
+    }
+
+    //+--------------------------------------------------------------+
+    //| Altera modo de fechamento (usado pelo RecoveryMode)          |
+    //+--------------------------------------------------------------+
+    void SetCloseMode(ENUM_CLOSE_MODE mode) {
+        m_close_mode = mode;
+        m_logger.Info("SmartClose",
+            StringFormat("Modo alterado para: %s", EnumToString(mode)));
+    }
+
+    //+--------------------------------------------------------------+
+    //| Método principal: verifica e executa fechamento               |
+    //| Retorna: true se fechamento foi executado                    |
+    //+--------------------------------------------------------------+
+    bool CheckAndExecute(ENUM_CLOSE_MODE override_mode = (ENUM_CLOSE_MODE)-1) {
+        if(!IsCooldownExpired()) return false;
+
+        SGridState state = m_pos_manager.GetGridState();
+        if(state.total_levels < 1) return false;
+
+        ENUM_CLOSE_MODE mode = (override_mode != (ENUM_CLOSE_MODE)-1)
+                               ? override_mode : m_close_mode;
+
+        // Executa verificação baseada no modo ativo
+        switch(mode) {
+            case CMODE_SMART_WORST:
+            case CMODE_SMART_OLDEST:
+                return CheckSmartClose(state);
+
+            case CMODE_TP_TOTAL:
+                return CheckTPTotal(state);
+
+            case CMODE_TP_MONETARY:
+                // Verifica TP monetário direto
+                if(m_tp_monetary > 0.0 && state.total_profit >= m_tp_monetary * m_tp_multiplier) {
+                    m_logger.Info("SmartClose",
+                        StringFormat("🎯 TP Monetário! P&L=R$%.2f | TP=R$%.2f",
+                                     state.total_profit, m_tp_monetary * m_tp_multiplier));
+                    return ExecuteCloseAll(state);
+                }
+                return false;
+
+            case CMODE_BREAKEVEN:
+                return CheckBreakEven(state);
+
+            case CMODE_LOT_SUM_TOTAL:
+            case CMODE_LOT_SUM_HALF:
+            case CMODE_LOT_AVG_TOTAL:
+            case CMODE_ORDER_COUNT:
+            case CMODE_ORDER_COUNT_HALF:
+                return CheckQuantityClose(state);
+
+            case CMODE_ACCEPT_LOSS:
+                return CheckAcceptLoss(state);
+
+            case CMODE_HALF_CLOSE:
+                // Fecha metade dos lucrativos
+                if(state.positive_count >= 2 && state.total_profit > 0) {
+                    m_logger.Info("SmartClose", "🎯 Fechando metade dos lucrativos");
+                    return CheckSmartClose(state);
+                }
+                return false;
+
+            default:
+                return CheckSmartClose(state);
+        }
+    }
+
+    //+--------------------------------------------------------------+
+    //| Verifica TODOS os modos de fechamento (cascata)              |
+    //| Útil quando múltiplas condições podem fechar                 |
+    //+--------------------------------------------------------------+
+    bool CheckAllModes() {
+        if(!IsCooldownExpired()) return false;
+
+        SGridState state = m_pos_manager.GetGridState();
+        if(state.total_levels < 1) return false;
+
+        // 1. TP Total (prioridade máxima)
+        if(m_tp_points > 0 || m_tp_monetary > 0) {
+            if(CheckTPTotal(state)) return true;
         }
 
-        return result;
+        // 2. TP Monetário
+        if(m_tp_monetary > 0.0) {
+            if(state.total_profit >= m_tp_monetary * m_tp_multiplier) {
+                m_logger.Info("SmartClose",
+                    StringFormat("🎯 TP Monetário! R$%.2f", state.total_profit));
+                return ExecuteCloseAll(state);
+            }
+        }
+
+        // 3. Quantidade (lotes/ordens)
+        if(CheckQuantityClose(state)) return true;
+
+        // 4. Smart Close (padrão)
+        if(CheckSmartClose(state)) return true;
+
+        // 5. BreakEven
+        if(CheckBreakEven(state)) return true;
+
+        // 6. Aceitar perda (última opção)
+        if(CheckAcceptLoss(state)) return true;
+
+        return false;
     }
 };
 

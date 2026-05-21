@@ -1,15 +1,17 @@
 //+------------------------------------------------------------------+
 //|                                              PositionManager.mqh |
-//|                 Omni-B3 EA v1.1 — Gerenciador de Posições        |
+//|                 Omni-B3 EA v2.0 — Gerenciador de Posições        |
 //|       Rastreamento virtual de níveis para contas NETTING (B3)    |
+//|       Com persistência de estado e integração com Recovery       |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "1.10"
+#property version   "2.00"
 #property strict
 
 #include "Defines.mqh"
 #include "Logger.mqh"
+#include "StatePersistence.mqh"
 
 //+------------------------------------------------------------------+
 //| Gerenciador de Posições para contas NETTING                      |
@@ -18,14 +20,17 @@
 //| Para implementar grid, rastreamos cada nível internamente        |
 //| usando um array de SVirtualLevel. O P&L de cada nível é          |
 //| calculado em tempo real com base no preço atual.                 |
+//|                                                                   |
+//| v2.0: Integra com StatePersistence para sobreviver restarts.     |
 //+------------------------------------------------------------------+
 class CPositionManager {
 private:
-    SVirtualLevel m_levels[];        // Array de níveis virtuais
-    int           m_level_count;     // Quantidade de níveis ativos
-    string        m_symbol;
-    int           m_magic_number;
-    CLogger      *m_logger;
+    SVirtualLevel      m_levels[];       // Array de níveis virtuais
+    int                m_level_count;    // Quantidade de níveis ativos
+    string             m_symbol;
+    int                m_magic_number;
+    CLogger           *m_logger;
+    CStatePersistence *m_persistence;    // Persistência de estado
 
 public:
     //+--------------------------------------------------------------+
@@ -36,15 +41,71 @@ public:
         m_magic_number = magic_number;
         m_logger       = logger;
         m_level_count  = 0;
+        m_persistence  = NULL;
         ArrayResize(m_levels, 0);
     }
 
     //+--------------------------------------------------------------+
-    //| Sincroniza com posição real ao iniciar o EA                  |
-    //| Se já existe posição aberta, cria um nível virtual para ela  |
+    //| Destrutor — salva estado antes de destruir                   |
+    //+--------------------------------------------------------------+
+    ~CPositionManager() {
+        // Salva estado final
+        if(m_persistence != NULL && m_level_count > 0)
+            m_persistence.SaveState(m_levels, m_level_count);
+    }
+
+    //+--------------------------------------------------------------+
+    //| Define o módulo de persistência                               |
+    //+--------------------------------------------------------------+
+    void SetPersistence(CStatePersistence *persistence) {
+        m_persistence = persistence;
+    }
+
+    //+--------------------------------------------------------------+
+    //| Sincroniza com posição real e estado salvo ao iniciar o EA   |
+    //| Prioridade: 1) Estado salvo, 2) Posição real, 3) Grade limpa |
     //+--------------------------------------------------------------+
     void SyncOnStartup() {
-        // Verifica se há posição real aberta para este símbolo
+        // 1. Tenta restaurar estado salvo
+        if(m_persistence != NULL) {
+            SVirtualLevel saved_levels[];
+            int saved_count = m_persistence.LoadState(saved_levels);
+
+            if(saved_count > 0) {
+                // Verifica se posição real ainda existe
+                if(PositionSelect(m_symbol)) {
+                    double real_volume = PositionGetDouble(POSITION_VOLUME);
+                    double virtual_volume = 0.0;
+                    for(int i = 0; i < saved_count; i++)
+                        if(saved_levels[i].is_active)
+                            virtual_volume += saved_levels[i].volume;
+
+                    // Validação: volume virtual deve ser compatível com real
+                    if(MathAbs(virtual_volume - real_volume) <= 1.0) {
+                        ArrayResize(m_levels, saved_count);
+                        for(int i = 0; i < saved_count; i++)
+                            m_levels[i] = saved_levels[i];
+                        m_level_count = saved_count;
+
+                        m_logger.Info("PosManager",
+                            StringFormat("Estado restaurado: %d níveis | Vol virtual=%.0f | Vol real=%.0f",
+                                         saved_count, virtual_volume, real_volume));
+                        return;
+                    } else {
+                        m_logger.Warning("PosManager",
+                            StringFormat("Volume incompatível: virtual=%.0f real=%.0f — recriando",
+                                         virtual_volume, real_volume));
+                    }
+                } else {
+                    // Posição não existe mais — estado salvo é inválido
+                    m_logger.Info("PosManager",
+                        "Posição real não existe — descartando estado salvo");
+                    m_persistence.DeleteState();
+                }
+            }
+        }
+
+        // 2. Tenta sincronizar com posição real existente
         if(!PositionSelect(m_symbol)) {
             m_logger.Info("PosManager", "Nenhuma posição existente — grade limpa");
             return;
@@ -57,7 +118,7 @@ public:
             return;
         }
 
-        // Cria nível virtual para a posição existente
+        // Cria nível virtual único para a posição existente
         double volume = PositionGetDouble(POSITION_VOLUME);
         double price  = PositionGetDouble(POSITION_PRICE_OPEN);
         ENUM_POSITION_TYPE type = (ENUM_POSITION_TYPE)PositionGetInteger(POSITION_TYPE);
@@ -79,12 +140,15 @@ public:
         m_logger.Info("PosManager",
             StringFormat("Posição existente sincronizada: %s %.0f contratos @ %.2f",
                          (dir > 0 ? "COMPRA" : "VENDA"), volume, price));
+
+        // Salva estado imediatamente
+        SaveStateNow();
     }
 
     //+--------------------------------------------------------------+
     //| Registra um novo nível virtual após abertura de ordem        |
     //+--------------------------------------------------------------+
-    void RegisterLevel(double price, double volume, int direction) {
+    void RegisterLevel(double price, double volume, int direction, bool is_recovery = false) {
         SVirtualLevel level;
         level.Reset();
         level.entry_price = price;
@@ -93,14 +157,19 @@ public:
         level.level_index = m_level_count;
         level.open_time   = TimeCurrent();
         level.is_active   = true;
+        level.is_recovery = is_recovery;
 
         m_level_count++;
         ArrayResize(m_levels, m_level_count);
         m_levels[m_level_count - 1] = level;
 
         m_logger.Debug("PosManager",
-            StringFormat("Nível %d registrado: %.0f contratos @ %.2f",
-                         level.level_index, volume, price));
+            StringFormat("Nível %d registrado: %.0f contratos @ %.2f%s",
+                         level.level_index, volume, price,
+                         is_recovery ? " [RECOVERY]" : ""));
+
+        // Marca para persistência
+        if(m_persistence != NULL) m_persistence.MarkDirty();
     }
 
     //+--------------------------------------------------------------+
@@ -115,6 +184,9 @@ public:
         }
         m_level_count--;
         ArrayResize(m_levels, MathMax(m_level_count, 0));
+
+        // Marca para persistência
+        if(m_persistence != NULL) m_persistence.MarkDirty();
     }
 
     //+--------------------------------------------------------------+
@@ -153,6 +225,19 @@ public:
     }
 
     //+--------------------------------------------------------------+
+    //| Retorna o tempo do nível mais antigo (para TakeProfit tempo) |
+    //+--------------------------------------------------------------+
+    datetime GetOldestLevelTime() {
+        if(m_level_count == 0) return 0;
+        datetime oldest = m_levels[0].open_time;
+        for(int i = 1; i < m_level_count; i++) {
+            if(m_levels[i].is_active && m_levels[i].open_time < oldest)
+                oldest = m_levels[i].open_time;
+        }
+        return oldest;
+    }
+
+    //+--------------------------------------------------------------+
     //| Monta o estado consolidado da grade com P&L virtual          |
     //| Calcula P&L de cada nível com base no preço atual            |
     //+--------------------------------------------------------------+
@@ -169,6 +254,7 @@ public:
         double bid        = SymbolInfoDouble(m_symbol, SYMBOL_BID);
         double ask        = SymbolInfoDouble(m_symbol, SYMBOL_ASK);
         double weighted_price_sum = 0.0;
+        state.oldest_level_time = TimeCurrent();
 
         for(int i = 0; i < m_level_count; i++) {
             if(!m_levels[i].is_active) continue;
@@ -197,15 +283,28 @@ public:
                 state.best_index  = i;
             }
 
-            // Soma lucros positivos
+            // Soma lucros positivos e conta categorias
             if(profit > 0.0) {
                 state.positive_profit_sum += profit;
+                state.positive_count++;
+            } else if(profit < 0.0) {
+                state.negative_count++;
             }
+
+            // Nível mais antigo
+            if(m_levels[i].open_time < state.oldest_level_time)
+                state.oldest_level_time = m_levels[i].open_time;
         }
 
         // Preço médio ponderado por volume
         if(state.total_volume > 0.0) {
             state.avg_price = weighted_price_sum / state.total_volume;
+        }
+
+        // Drawdown % da grade
+        double robot_balance = AccountInfoDouble(ACCOUNT_BALANCE);
+        if(robot_balance > 0.0 && state.total_profit < 0.0) {
+            state.max_drawdown_pct = (MathAbs(state.total_profit) / robot_balance) * 100.0;
         }
 
         return state;
@@ -280,6 +379,36 @@ public:
         m_level_count = 0;
         ArrayResize(m_levels, 0);
         m_logger.Info("PosManager", "Todos os níveis virtuais removidos");
+
+        // Remove arquivo de persistência
+        if(m_persistence != NULL)
+            m_persistence.DeleteState();
+    }
+
+    //+--------------------------------------------------------------+
+    //| Salva estado imediatamente (chamado após operações)          |
+    //+--------------------------------------------------------------+
+    void SaveStateNow() {
+        if(m_persistence != NULL && m_level_count > 0)
+            m_persistence.SaveState(m_levels, m_level_count);
+    }
+
+    //+--------------------------------------------------------------+
+    //| Auto-save periódico (chamado pelo OnTimer)                   |
+    //+--------------------------------------------------------------+
+    void AutoSave() {
+        if(m_persistence != NULL && m_persistence.ShouldAutoSave())
+            m_persistence.SaveState(m_levels, m_level_count);
+    }
+
+    //+--------------------------------------------------------------+
+    //| Retorna acesso direto ao array de níveis (para persistência) |
+    //+--------------------------------------------------------------+
+    int GetLevelsArray(SVirtualLevel &out_levels[]) {
+        ArrayResize(out_levels, m_level_count);
+        for(int i = 0; i < m_level_count; i++)
+            out_levels[i] = m_levels[i];
+        return m_level_count;
     }
 };
 

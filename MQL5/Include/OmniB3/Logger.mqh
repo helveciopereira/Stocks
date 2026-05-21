@@ -1,11 +1,11 @@
 //+------------------------------------------------------------------+
 //|                                                      Logger.mqh  |
-//|                         Omni-B3 EA v1.0 — Sistema de Logging     |
+//|                         Omni-B3 EA v2.0 — Sistema de Logging     |
 //|             Logging estruturado com níveis e saída formatada      |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
-#property link      "https://github.com/seu-usuario/Stocks"
-#property version   "1.00"
+#property link      "https://github.com/helveciopereira/Stocks"
+#property version   "2.00"
 #property strict
 
 #include "Defines.mqh"
@@ -21,9 +21,10 @@ private:
     bool           m_file_enabled;  // Se deve salvar logs em arquivo
     string         m_file_name;     // Nome do arquivo de log
     int            m_file_handle;   // Handle do arquivo aberto
+    int            m_message_count; // Contador de mensagens (para diagnóstico)
 
     //+--------------------------------------------------------------+
-    //| Converte o enum de nível para string legível                 |
+    //| Converte o enum de nível para string legível em PT-BR        |
     //+--------------------------------------------------------------+
     string LevelToString(ENUM_LOG_LEVEL level) {
         switch(level) {
@@ -56,7 +57,8 @@ private:
 
         // Abre o arquivo se ainda não estiver aberto
         if(m_file_handle == INVALID_HANDLE) {
-            m_file_handle = FileOpen(m_file_name, FILE_WRITE | FILE_READ | FILE_TXT | FILE_SHARE_READ | FILE_ANSI);
+            m_file_handle = FileOpen(m_file_name,
+                FILE_WRITE | FILE_READ | FILE_TXT | FILE_SHARE_READ | FILE_ANSI);
             if(m_file_handle == INVALID_HANDLE) {
                 // Se não conseguir abrir, desabilita para evitar tentativas repetidas
                 m_file_enabled = false;
@@ -77,9 +79,10 @@ public:
     //| Construtor — configura nível mínimo e opção de arquivo       |
     //+--------------------------------------------------------------+
     CLogger(ENUM_LOG_LEVEL min_level = LOG_INFO, bool enable_file = false) {
-        m_min_level    = min_level;
-        m_file_enabled = enable_file;
-        m_file_handle  = INVALID_HANDLE;
+        m_min_level     = min_level;
+        m_file_enabled  = enable_file;
+        m_file_handle   = INVALID_HANDLE;
+        m_message_count = 0;
 
         // Gera nome do arquivo com data para rotação diária
         m_file_name = StringFormat("OmniB3_Log_%s.txt",
@@ -105,6 +108,7 @@ public:
         if(level < m_min_level) return;
 
         string formatted = FormatMessage(level, module, message);
+        m_message_count++;
 
         // Sempre imprime no terminal do MT5 (aba Experts)
         Print(formatted);
@@ -138,6 +142,11 @@ public:
     void SetLevel(ENUM_LOG_LEVEL level) {
         m_min_level = level;
     }
+
+    //+--------------------------------------------------------------+
+    //| Retorna o total de mensagens logadas nesta sessão             |
+    //+--------------------------------------------------------------+
+    int GetMessageCount() { return m_message_count; }
 };
 
 //+------------------------------------------------------------------+

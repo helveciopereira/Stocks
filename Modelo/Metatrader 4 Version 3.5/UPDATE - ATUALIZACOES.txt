@@ -1,0 +1,151 @@
+
+UPDATES
+
+VERSION 3.5
+- Always do the Backtest when changing the Robot version or PRESET, before connecting to the real account, to ensure that everything is correct;
+- NOTE: Change the "TakeProfit Minimum" parameter to "TakeProfit Acceptable", so as not to confuse it with the other parameter of the same name;
+- I created Functions "Wait Initial Order after Giant Candle" and "Wait Grid Order after Giant Candle";
+- I created the "Only in Wait *: Start Waiting After Order" and "Only in Wait *: Stop Waiting After Order" options in the Next Lot of the Grid;
+- I created an option to Adjust the Account Currency using a List with average values ​​for most currencies to make things easier;
+- I created the function "Create Pending Order While Waiting for Time Lock";
+- I improved the PRESETS and created some new ones;
+- Improvement of internal functions and other changes.
+
+VERSION 3.4
+- Always do the Backtest when changing the Robot version or PRESET, before connecting to the real account, to ensure that everything is correct;
+- NOTE: I changed the robot's default PRESET to "NoPain", as it is the most stable;
+- If you want to use the PRESET from the previous version, load the "UpHill MTx - Previous Robot Default Preset", then the chosen PRESET, and Backtest, if it is OK, save;
+- I created an option to adjust my PRESET to the Currency of your Account, when your currency is not USD;
+- I created an option to change the Comment that appears in the Orders;
+- I created an option to choose the Custom Criterion Optimization;
+- I created a News Filter, but it only works in MetaTrader 5 and does not work in Backtest;
+- I created the "Candle Price Distance" Indicator and Filter;
+- I created the option to close at Current Loss in "MONEY MANAGE", allowing you to wait a while later or stop trading;
+- Other options in "LIMITS";
+- I created the option to add the "Initial Value Added to the Step at Opening" to the Grid Step, which will reduce over Time;
+- I created the "RECOVERY" mode, to change the Grid and try to help when the Drawdown is high or there are many open orders;
+- I improved the PRESETS using the new functions to increase security;
+- Improvement of internal functions and other changes.
+
+VERSION 3.3
+- Always do the Backtest when changing the Robot version or Preset, before connecting to the real account, to ensure that everything is correct;
+- I created a Money Manage section for the balance value used in the robot and the xPreset multiplier;
+- I improved the option to multiply the Preset, now it is easy, directly enter the Balance or Equity used for x1;
+- NOTE: Adjust the Preset Multiplier Factor for the Value, use 1000/Old Factor, for example: UpHill was 0.7, so now it will be 1000/0.7 = 1500 ($);
+- I created a new STOP ATR indicator and new strategies in the ATR indicator;
+- I created in TakeProfit, BreakEven, StopLoss and Grid Step, the option to use the same value chosen before or use the ATR value. And the option to define Minimum and Maximum values;
+- I created an option to increase the information on the screen, to adjust when the resolution of your screen is different and overlaps the words;
+- I created the option to withdraw in the Metatrader 5 Backtest, and it shows a table with the monthly withdrawals in the daily tab at the end of the Backtest;
+- I moved the Multi Symbols section, now it is after Single Order;
+- I created the option to use an indicator to open a Grid Step Order;
+- I created more options to close in Grid Mode, accepting a small loss, when there are many lots or orders and the drawdown is low;
+- I improved the MajorForce and UpHill Preset, to reduce the Drawdown;
+- Improvement of internal functions and other changes.
+
+VERSION 3.2
+- Fixed notice that was appearing in the Experts tab when updating the Panel;
+- Other options in the Envelopes, Bollinger Bands, Pivot Point, Candle Sequence and Price GAP indicators;
+- I changed the Panel, in some blocks "!" appears in the lot that would open, and in Multi the information appears in the name of the Asset;
+- I changed the UpEverest, NoStress, NoPain, RetireNow, DoubleDragon_EasyGoal, MajorForce, MinorForce, UpRise and TriForce Preset, to reduce the drawdown;
+- Improvement of internal functions and other changes.
+
+VERSION 3
+- I changed the names of the variables, so you can't load the old PRESETS, you have to create them in this Version;
+- I created the Robot Balance, calculated by Percentage and Maximum Balance, and StopLoss by Maximum DD;
+- Other options in “LIMITS”;
+- I created Multiply Indicator in Purchase and Sale;
+- I created Reduce TakeProfit by Time and Search for Price, and can also reduce BreakEven and Monetary;
+- I changed the TakeProfit Loss to TakeProfit Minimum, now it can be positive or negative, so to accept a loss it needs to be negative;
+- I created the Initial Pending Order and Matrix, before they were the same;
+- I created Factor to move BreakEven, StopLoss and Pending Order;
+- Changed the factor of the original UpHill PRESET to 0.7;
+- Now the ToTheMoon title darkens its color in the Ticks, to make it easier to check the robot's execution;
+- I changed the Panel, I placed the lots that will Open and Close;
+- Improvement of internal functions and other changes.
+
+VERSION 2
+- In MT5 now allows testing on Multi Symbols;
+- Other options in "LIMITS";
+- Created TakeProfit and StopLoss Monetary;
+- Bug fixes in Netting account;
+- Improvement of internal functions and other changes.
+
+
+
+
+\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+
+
+
+
+ATUALIZAÇÕES
+
+VERSÃO 3.5
+- Sempre faça o backtest quando trocar a versão do Robô ou o PRESET, antes de ligar na conta real, para garantir que está tudo certo;
+- OBSERVAÇÃO: Alterei o parametro "TakeProfit Mínimo" para "TakeProfit Aceitável", para não confundir com o outro parametro de mesmo nome;
+- Criei Funções "Aguardar Ordem Inicial após Candle Gigante" e "Aguardar Ordem Matriz após Candle Gigante";
+- Criei no Próximo Lote da Matriz a opção "Só em Aguardar *: Começar a Aguardar após a Ordem" e "Só em Aguardar *: Parar de Aguardar após a Ordem";
+- Criei opção de Ajustar Moeda da Conta por uma Lista com valores médios da maioria das moedas para facilitar;
+- Criei a função "Criar Ordem Pendente Enquanto Aguarda o Bloqueio do Tempo";
+- Melhorei os PRESETS e criei alguns novos;
+- Melhoria de funções internas e outras mudanças.
+
+VERSÃO 3.4
+- Sempre faça o backtest quando trocar a versão do Robô ou o PRESET, antes de ligar na conta real, para garantir que está tudo certo;
+- OBSERVAÇÃO: Alterei o PRESET padrão do robô para "NoPain", pois é o mais estável;
+- Se quiser usar PRESET da versão anterior, carregue o "UpHill MTx - Previous Robot Default Preset", depois o PRESET escolhido, e faça Backtest, se tiver OK salve;
+- Criei opção de ajustar meus PRESET para a Moeda da sua Conta, quando sua moeda não for USD;
+- Criei opção de alterar o Comentario que aparece nas Ordens;
+- Criei opção de escolher o Critério de Otimização Personalizado;
+- Criei Filtro de Notícias, mas funciona apenas no MetaTrader 5 e não funciona no Backtest;
+- Criei Indicador e Filtro "Distância Preço Candle";
+- Criei no "GERENCIAR DINHEIRO" a opção de fechar pelo Prejuízo Atual, podendo aguardar um tempo depois ou parar os trades;
+- Outras opções em "LIMITES";
+- Criei opção de acrescentar ao Passo da Matriz "Valor Inicial Somado ao Passo na Abertura", que vai reduzindo com o Tempo;
+- Criei o modo de "RECUPERAÇÃO", para alterar a Matriz e tentar ajudar, quando o rebaixamento for alto ou tiver muitas ordens abertas;
+- Melhorei os PRESETS usando as funções novas, para aumentar a segurança;
+- Melhoria de funções internas e outras mudanças.
+
+VERSÃO 3.3
+- Sempre faça o Backtest quando trocar a versão do Robô ou o Preset, antes de ligar na conta real, para garantir que está tudo certo;
+- Criei secção Gerenciar Dinheiro, para o valor do saldo usado no robô e o multiplicador xPreset;
+- Melhorei a opção de multiplicar o Preset, agora está fácil, coloque direto o Saldo ou Capital Líquido usado para x1;
+- OBSERVAÇÃO: Ajuste o Fator Multiplicador Preset para o Valor, use 1000/Fator Antigo, por exemplo: UpHill era 0.7, então agora será 1000/0.7 = 1500 ($);
+- Criei novo indicador STOP ATR e novas estratégias no indicador ATR;
+- Criei no TakeProfit, BreakEven, StopLoss e Passo da Matriz, a opção de usar o valor escolhido igual antes ou usar o valor ATR. E a opção de definir valor Mínimo e Máximo;
+- Criei opção de aumentar as informações na tela, para ajustar quando a resolução da sua tela é diferente e sobrepunha as palavras;
+- Criei a opção de sacar no Backtest Metatrader 5, e mostra uma tabela com os saques mensais na aba diário no final do Backtest;
+- Mudei de lugar a secção Multi Ativos, agora está depois de Ordem Única;
+- Criei opção de usar indicador para abrir Ordem do Passo da Matriz;
+- Criei mais opções de fechar no Modo Matriz, aceitando um prejúizo pequeno, quando tem muitos lotes ou ordens e o rebaixamento é baixo;
+- Melhorei os Preset MajorForce e UpHill, para reduzir o Rebaixamento;
+- Melhoria de funções internas e outras mudanças.
+
+VERSÃO 3.2
+- Corrigi aviso que estava aparecendo na aba Experts ao atualizar o Painel;
+- Outras opções nos indicadores Envelopes, Bandas de Bollinger, Pivot Point, Sequência de Candles e GAP no Preço;
+- Alterei o Painel, em alguns bloqueios aparece "!" no lote que iria abrir, e no Multi aparece a informação no nome do Ativo;
+- Alterei os Preset UpEverest, NoStress, NoPain, RetireNow, DoubleDragon_EasyGoal, MajorForce, MinorForce, UpRise e TriForce, para reduzir o rebaixamento;
+- Melhoria de funções internas e outras mudanças.
+
+VERSÃO 3
+- Alterei nomes das váriaveis, então não pode carregar os PRESETS antigos, tem que criar eles nesta Versão;
+- Criei o Saldo do Robô, calculado por Porcentagem e Saldo Máximo, e StopLoss pelo DD Máximo;
+- Outras opções em “LIMITES”;
+- Criei Multiplicar Indicador na Compra e Venda;
+- Criei Reduzir TakeProfit por Tempo e Buscando o Preço, e também pode reduzir o BreakEven e o Monetário;
+- Alterei o TakeProfit Prejuízo para TakeProfit Mínimo, agora pode ser positivo ou negativo, então para aceitar prejuízo precisa ser negativo;
+- Criei Ordem Pendente Inicial e Matriz, antes eram iguais;
+- Criei Fator para mover o BreakEven, o StopLoss e a Ordem Pendente;
+- Alterado o fator do PRESET original UpHill para 0,7;
+- Agora o título ToTheMoon escurece sua cor nos Ticks, para facilitar a verificação da execução do robô;
+- Alterei o Painel, coloquei os lotes que vai Abrir e Fechar;
+- Melhoria de funções internas e outras mudanças.
+
+VERSÃO 2
+- Em MT5 agora permite testes em Multi Ativos;
+- Outras opções em “LIMITES”;
+- Criei TakeProfit e StopLoss Monetário;
+- Correções de bugs na conta Netting;
+- Melhoria de funções internas e outras mudanças.
+
