@@ -1,23 +1,23 @@
 //+------------------------------------------------------------------+
 //|                                                  OmniB3_EA.mq5   |
-//|                  Omni-B3 EA v2.11 — Minicontratos B3             |
+//|                  Omni-B3 EA v2.12 — Minicontratos B3             |
 //|                                                                   |
 //|  Grid Trading Avançado para WIN/WDO (contas NETTING)             |
 //|  12+ modos de fechamento | 12+ indicadores | Recovery Mode      |
 //|  Persistência de estado | Money Management | Filtros avançados   |
-//|  NOVO v2.11: Dashboard Gráfico | Ordem Única | Filtro Notícias   |
+//|  NOVO v2.12: Dashboard Gráfico | Ordem Única | Filtro Notícias   |
 //|  Inspirado na metodologia Daniel Moraes (ToTheMoon v3.5)         |
 //|  Adaptado para Real Brasileiro e minicontratos da Bovespa        |
 //+------------------------------------------------------------------+
 #property copyright   "Projeto Omni-B3"
 #property link        "https://github.com/helveciopereira/Stocks"
-#property version     "2.11"
+#property version     "2.12"
 #property description "Grid Trading Avançado para Minicontratos B3 (WIN/WDO)"
 #property description "12+ modos de fechamento | 12+ indicadores técnicos"
 #property description "Persistência de estado | Recovery | Money Management"
-#property description "NOVO v2.11: Dashboard | Modo Ordem Única | Filtro Notícias"
+#property description "NOVO v2.12: Dashboard | Modo Ordem Única | Filtro Notícias"
 #property description "Adaptado para contas NETTING em Real (BRL)"
-#property description "Versão 2.11 corrigida para livre compilação MQL5"
+#property description "Versão 2.12 corrigida para livre compilação MQL5"
 
 //+------------------------------------------------------------------+
 //| INCLUDES                                                          |
