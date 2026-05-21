@@ -5,13 +5,13 @@
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.00"
+#property version     "2.10"
 #property strict
 
 //+------------------------------------------------------------------+
 //| CONSTANTES GLOBAIS DO SISTEMA                                    |
 //+------------------------------------------------------------------+
-#define OMNIB3_VERSION        "2.0.0"
+#define OMNIB3_VERSION        "2.1.0"
 #define OMNIB3_COMMENT_PREFIX "OmniB3"
 
 // Limite absoluto de níveis de grade (trava inviolável de segurança)
@@ -362,3 +362,63 @@ struct SDailyResult {
 };
 
 //+------------------------------------------------------------------+
+//| ENUMERAÇÕES — Modo Ordem Única (Single Order)                    |
+//+------------------------------------------------------------------+
+
+// Modo de operação: Grade tradicional ou Ordem Única
+enum ENUM_SINGLE_ORDER_MODE {
+    SINGLE_DISABLED,        // Grade Tradicional — abre novos níveis virtuais
+    SINGLE_ENABLED          // Ordem Única — apenas uma ordem por vez com SL/TP
+};
+
+// Modo de Martingale em sequência de trades (para Ordem Única)
+enum ENUM_MARTINGALE_MODE {
+    MARTINGALE_NONE,        // Sem martingale — lotes sempre iguais ao inicial
+    MARTINGALE_STANDARD,    // Martingale — multiplica lote após perda
+    ANTI_MARTINGALE         // Anti-Martingale — multiplica lote após ganho
+};
+
+//+------------------------------------------------------------------+
+//| ENUMERAÇÕES — Filtro de Notícias (News Filter)                   |
+//+------------------------------------------------------------------+
+
+// Importância das notícias no calendário econômico
+enum ENUM_NEWS_IMPORTANCE {
+    NEWS_IMPORTANCE_NONE,   // Desabilitado
+    NEWS_IMPORTANCE_LOW,    // Baixo impacto
+    NEWS_IMPORTANCE_MEDIUM, // Médio impacto
+    NEWS_IMPORTANCE_HIGH,   // Alto impacto (2 ou 3 estrelas)
+    NEWS_IMPORTANCE_ALL     // Qualquer impacto
+};
+
+// Ação do robô durante período de notícias bloqueadas
+enum ENUM_NEWS_ACTION {
+    NEWS_ACTION_NONE,           // Nenhuma ação
+    NEWS_ACTION_STOP_ALL,       // Bloquear Tudo — não abre ordem inicial nem novas grades
+    NEWS_ACTION_STOP_INITIAL,   // Bloquear Inicial — não abre nova série, mas permite grade gerenciar
+    NEWS_ACTION_CLOSE_ALL       // Fechar Tudo — fecha posições e limpa ordens pendentes
+};
+
+//+------------------------------------------------------------------+
+//| CONSTANTES E ENUMS — Dashboard Visual                            |
+//+------------------------------------------------------------------+
+
+// Paleta de cores para o dashboard
+enum ENUM_DASHBOARD_THEME {
+    THEME_DARK_MODERN,      // Moderno Escuro (preto/cinza e azul néon)
+    THEME_LIGHT_CLEAN,      // Limpo Claro (branco e azul suave)
+    THEME_GLASSMORPHISM     // Glassmorphism translúcido
+};
+
+// Estrutura para estado das notícias no dashboard
+struct SNewsState {
+    string   event_name;    // Nome do evento econômico
+    datetime event_time;    // Hora do evento
+    string   currency;      // Moeda do evento
+    int      importance;    // Nível de importância (1, 2, 3)
+    int      seconds_to;    // Segundos para o evento (negativo se já passou)
+    bool     is_active;     // Se está ativo no momento
+};
+
+//+------------------------------------------------------------------+
+

@@ -1,19 +1,21 @@
 //+------------------------------------------------------------------+
 //|                                                  OmniB3_EA.mq5   |
-//|                   Omni-B3 EA v2.0 — Minicontratos B3             |
+//|                  Omni-B3 EA v2.10 — Minicontratos B3             |
 //|                                                                   |
 //|  Grid Trading Avançado para WIN/WDO (contas NETTING)             |
 //|  12+ modos de fechamento | 12+ indicadores | Recovery Mode      |
 //|  Persistência de estado | Money Management | Filtros avançados   |
+//|  NOVO v2.10: Dashboard Gráfico | Ordem Única | Filtro Notícias   |
 //|  Inspirado na metodologia Daniel Moraes (ToTheMoon v3.5)         |
 //|  Adaptado para Real Brasileiro e minicontratos da Bovespa        |
 //+------------------------------------------------------------------+
 #property copyright   "Projeto Omni-B3"
 #property link        "https://github.com/helveciopereira/Stocks"
-#property version     "2.00"
+#property version     "2.10"
 #property description "Grid Trading Avançado para Minicontratos B3 (WIN/WDO)"
 #property description "12+ modos de fechamento | 12+ indicadores técnicos"
 #property description "Persistência de estado | Recovery | Money Management"
+#property description "NOVO v2.10: Dashboard | Modo Ordem Única | Filtro Notícias"
 #property description "Adaptado para contas NETTING em Real (BRL)"
 
 //+------------------------------------------------------------------+
@@ -30,6 +32,9 @@
 #include <OmniB3/SmartClose.mqh>
 #include <OmniB3/RiskManager.mqh>
 #include <OmniB3/TimeFilter.mqh>
+#include <OmniB3/Dashboard.mqh>
+#include <OmniB3/SingleOrder.mqh>
+#include <OmniB3/NewsFilter.mqh>
 
 //+------------------------------------------------------------------+
 //| ═══════════════ DADOS INICIAIS ═══════════════                    |
@@ -161,7 +166,6 @@ input int              InpRecoveryTP  = 100;         // TakeProfit em Recovery (
 //| ═══════════════ INDICADORES ═══════════════                       |
 //+------------------------------------------------------------------+
 input string           InpSeparator4 = "════════ INDICADORES ════════";  // ═══════════════════
-
 input string           InpSepRSI = "---- RSI ----";  // ────────────────
 input int              InpRSIPeriod = 14;           // Período RSI
 input ENUM_TIMEFRAMES  InpRSITimeframe = PERIOD_M5; // Timeframe RSI
@@ -211,7 +215,6 @@ input long             InpVolFilterMin = 0;          // Volume Mínimo (0=desab.
 //| ═══════════════ LIMITES ═══════════════                            |
 //+------------------------------------------------------------------+
 input string           InpSeparator6 = "════════ LIMITES (STOP) ════════";  // ═══════════════════
-
 input string           InpSepCurrent = "---- Atual ----";  // ────────────────
 input double           InpLimitProfitCurrent = 0.0;  // Lucro Máx Atual (R$, 0=desab.)
 input double           InpLimitLossCurrent   = 0.0;  // Perda Máx Atual (R$, 0=desab.)
@@ -255,6 +258,36 @@ input bool             InpAllowThursday  = true;     // Operar Quinta?
 input bool             InpAllowFriday    = true;     // Operar Sexta?
 
 //+------------------------------------------------------------------+
+//| ═══════════════ FASE 2: NOVOS INPUTS ═══════════════              |
+//+------------------------------------------------------------------+
+input string           InpSeparator8 = "════════ FASE 2: PAINEL E DASHBOARD ════════"; // ═══════════════════
+input bool             InpUseDashboard   = true;     // Habilitar Painel Gráfico?
+input ENUM_DASHBOARD_THEME InpDashboardTheme = THEME_DARK_MODERN; // Tema do Painel
+input int              InpDashboardX     = 20;       // Posição X do Painel (pixels)
+input int              InpDashboardY     = 40;       // Posição Y do Painel (pixels)
+
+input string           InpSeparator9 = "════════ FASE 2: ORDEM ÚNICA (SINGLE) ════════"; // ═══════════════════
+input ENUM_SINGLE_ORDER_MODE InpSingleOrderMode = SINGLE_DISABLED; // Modo de Operação (Ordem Única)
+input double           InpSingleSLPoints = 200.0;    // StopLoss do Trade (pontos)
+input double           InpSingleTPPoints = 150.0;    // TakeProfit do Trade (pontos)
+input double           InpSingleBEActivation = 100.0; // Ativação BreakEven (pontos, 0=desab.)
+input double           InpSingleBEMargin = 10.0;     // Margem Acima da Entrada (pontos)
+input ENUM_MARTINGALE_MODE InpSingleMartMode = MARTINGALE_NONE; // Modo de Martingale
+input double           InpSingleMartMultiplier = 2.0; // Multiplicador de Lotes
+input int              InpSingleMartSteps = 3;       // Limite de Multiplicações Consecutivas
+input int              InpSingleWaitLoss = 0;        // Espera após Perda (segundos)
+input int              InpSingleWaitWin  = 0;        // Espera após Ganho (segundos)
+input bool             InpSingleCloseOpposite = true; // Fechar posição se houver sinal contrário?
+
+input string           InpSeparator10 = "════════ FASE 2: FILTRO DE NOTÍCIAS ════════"; // ═══════════════════
+input bool             InpNewsEnabled    = false;    // Habilitar Filtro de Notícias?
+input ENUM_NEWS_IMPORTANCE InpNewsMinImportance = NEWS_IMPORTANCE_HIGH; // Importância Mínima
+input ENUM_NEWS_ACTION InpNewsAction     = NEWS_ACTION_STOP_INITIAL; // Ação do EA Durante Notícia
+input int              InpNewsBefore     = 15;       // Bloquear Minutos Antes da Notícia
+input int              InpNewsAfter      = 15;       // Bloquear Minutos Depois da Notícia
+input string           InpNewsCurrency   = "BRL";    // Moeda Filtrada (BRL, USD ou ALL)
+
+//+------------------------------------------------------------------+
 //| OBJETOS GLOBAIS                                                   |
 //+------------------------------------------------------------------+
 CLogger           *Logger;
@@ -267,7 +300,13 @@ CGridEngine       *Grid;
 CSmartClose       *Smart;
 CRiskManager      *Risk;
 CTimeFilter       *TFilter;
+CDashboard        *Dash;
+CSingleOrder      *Single;
+CNewsFilter       *News;
+
 bool               g_initialized = false;
+bool               g_ea_paused = false;     // Controle interativo de pausa via dashboard
+string             g_status_msg = "Aguardando mercado";
 
 //+------------------------------------------------------------------+
 //| Expert initialization                                             |
@@ -398,10 +437,27 @@ int OnInit() {
     TFilter.SetCloseMode(InpTimeCloseMode);
     TFilter.SetTimeReduction(InpReduceMinutes, InpReduceType);
 
-    // ═══ Timer para persistência e dashboard ═══
-    EventSetTimer(PERSISTENCE_INTERVAL);
+    // ═══ 11. FASE 2: Single Order Módulo ═══
+    Single = new CSingleOrder();
+    Single.Init(InpMagicNumber, InpSingleOrderMode, InpSingleSLPoints, InpSingleTPPoints,
+                InpSingleBEActivation, InpSingleBEMargin, InpSingleMartMode, InpSingleMartMultiplier,
+                InpSingleMartSteps, InpSingleWaitLoss, InpSingleWaitWin, InpSingleCloseOpposite);
+
+    // ═══ 12. FASE 2: News Filter Módulo ═══
+    News = new CNewsFilter();
+    News.Init(InpNewsEnabled, InpNewsMinImportance, InpNewsAction, InpNewsBefore, InpNewsAfter, InpNewsCurrency);
+
+    // ═══ 13. FASE 2: Dashboard Visual ═══
+    Dash = new CDashboard();
+    if(InpUseDashboard) {
+        Dash.Init(InpDashboardTheme, InpDashboardX, InpDashboardY);
+    }
+
+    // Timer periódico de persistência e redesenho
+    EventSetTimer(SMART_CLOSE_COOLDOWN); // Reduzido de 30 para 5 segundos para dashboard mais dinâmico
 
     g_initialized = true;
+    g_status_msg = "Rodando normal";
     Logger.Info("EA", "✅ Inicialização completa! v" + OMNIB3_VERSION);
     Logger.Info("EA", Grid.GetSpacingInfo());
     Logger.Info("EA", MoneyMgr.GetStatusString());
@@ -421,6 +477,12 @@ void OnDeinit(const int reason) {
 
     EventKillTimer();
 
+    // Limpeza de objetos da Fase 2
+    if(Dash        != NULL) { Dash.Deinit(); delete Dash; Dash = NULL; }
+    if(Single      != NULL) { delete Single;        Single = NULL; }
+    if(News        != NULL) { delete News;          News = NULL; }
+
+    // Limpeza base
     if(TFilter     != NULL) { delete TFilter;      TFilter = NULL; }
     if(Risk        != NULL) { delete Risk;          Risk = NULL; }
     if(Smart       != NULL) { delete Smart;         Smart = NULL; }
@@ -437,45 +499,69 @@ void OnDeinit(const int reason) {
 
 //+------------------------------------------------------------------+
 //| Expert tick — Pipeline Principal                                  |
-//|                                                                   |
-//| 1. MoneyManager → StopLoss do robô atingido?                    |
-//| 2. RiskManager  → Equity/DD/margem seguros?                     |
-//| 3. Recovery     → Avaliar se ativa/desativa recovery             |
-//| 4. SmartClose   → Algum modo de fechamento dispara?             |
-//| 5. TimeFilter   → Dentro do pregão da B3?                       |
-//| 6. Indicadores  → Qual o sinal dos indicadores?                 |
-//| 7. Filtros      → Todos os filtros passam?                      |
-//| 8. GridEngine   → Abrir novo nível?                              |
 //+------------------------------------------------------------------+
 void OnTick() {
     if(!g_initialized) return;
 
+    // Se o robô foi pausado pelo usuário via dashboard, suspende execução de novos trades
+    if(g_ea_paused) {
+        g_status_msg = "Suspenso (Pausa)";
+        return;
+    }
+
     int levels = PosManager.CountLevels();
+    datetime current_time = TimeCurrent();
+
+    // FASE 2: FILTRO DE NOTÍCIAS
+    ENUM_NEWS_ACTION news_act = NEWS_ACTION_NONE;
+    bool has_news_block = News.CheckNewsBlock(current_time, news_act);
+
+    if(has_news_block) {
+        if(news_act == NEWS_ACTION_CLOSE_ALL) {
+            Logger.Warning("EA", "🚨 Notícia ativa com ação FECHAR TUDO. Encerrando operações.");
+            PosManager.ClearAllLevels();
+            g_status_msg = "Bloq. Noticia (Fechado)";
+            return;
+        }
+        else if(news_act == NEWS_ACTION_STOP_ALL) {
+            g_status_msg = "Bloq. Noticia (Stop All)";
+            if(levels > 0) Smart.CheckAndExecute(); // Só gerencia fechamentos por segurança
+            return;
+        }
+    }
 
     // 1. Money Manager — StopLoss do robô
     if(MoneyMgr.IsStopLossHit()) {
         Risk.ActivateKillSwitch();
         PosManager.ClearAllLevels();
+        g_status_msg = "StopLoss Robô Atingido";
         return;
     }
 
     // 2. Gestão de Risco
     if(!Risk.IsSafeToTrade(levels)) {
-        // Mesmo fora de segurança, Smart Close pode fechar posições
+        g_status_msg = "Bloqueado por Risco";
         if(levels > 0) Smart.CheckAndExecute();
         return;
     }
 
-    // 3. Recovery Mode — avalia estado
-    if(levels > 0) {
+    // FASE 2: TRAILING BREAKEVEN DO MODO ORDEM ÚNICA (SINGLE ORDER)
+    if(InpSingleOrderMode == SINGLE_ENABLED && levels > 0) {
+        double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+        double ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+        double tick = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
+        Single.ManageBreakEven(_Symbol, bid, ask, tick);
+    }
+
+    // 3. Recovery Mode — avalia estado (apenas em modo grade tradicional)
+    if(InpSingleOrderMode == SINGLE_DISABLED && levels > 0) {
         SGridState state = PosManager.GetGridState();
         Recovery.Evaluate(state.max_drawdown_pct, state.total_levels);
 
-        // Se recovery está ativo, usa modo de fechamento do recovery
         if(Recovery.IsActive()) {
+            g_status_msg = "Modo Recovery Ativo";
             if(Smart.CheckAndExecute(Recovery.GetCloseMode())) {
                 Logger.Info("EA", "🎯 Recovery Close executado");
-                // Verifica se deve desativar recovery
                 if(PosManager.CountLevels() == 0) Recovery.Reset();
                 return;
             }
@@ -486,17 +572,17 @@ void OnTick() {
     if(levels > 0) {
         if(Smart.CheckAndExecute()) {
             Logger.Info("EA", "🎯 Smart Close executado");
+            g_status_msg = "Fechamento Smart";
             return;
         }
     }
 
     // 5. Filtro de Horário B3
     if(!TFilter.IsTradeAllowed()) {
-        // Verifica fechamento no fim do horário
+        g_status_msg = "Fora de Horário";
         if(levels > 0 && TFilter.ShouldCloseOnTime()) {
             ENUM_TIME_CLOSE_MODE tclose = TFilter.GetCloseMode();
             if(tclose == TCLOSE_IMMEDIATE) {
-                SGridState state = PosManager.GetGridState();
                 Smart.CheckAndExecute(CMODE_TP_TOTAL);
                 Logger.Info("EA", "⏰ Fechamento por horário");
             }
@@ -519,40 +605,126 @@ void OnTick() {
     }
 
     // 7. Filtros — verifica todos
-    if(!IndHub.PassAllFilters()) return;
+    if(!IndHub.PassAllFilters()) {
+        g_status_msg = "Sinal bloqueado por Filtro";
+        return;
+    }
 
-    // 8. Motor de Grade — abre novos níveis
-    Grid.ProcessGrid(signal);
+    // FASE 2: BLOQUEIO PARCIAL DE NOTÍCIA (NÃO ABRE NOVA SÉRIE, MAS PERMITE MANTENÇÃO DE GRID)
+    if(has_news_block && news_act == NEWS_ACTION_STOP_INITIAL) {
+        if(levels == 0) {
+            g_status_msg = "Bloq. Inicial (Noticia)";
+            return; // Bloqueia início da série
+        }
+    }
+
+    g_status_msg = (levels > 0) ? "Grade em Andamento" : "Aguardando Sinal";
+
+    // 8. FASE 2: PIPELINE DO MODO ORDEM ÚNICA
+    if(InpSingleOrderMode == SINGLE_ENABLED) {
+        // Verifica se há fechamento da ordem por sinal contrário
+        if(levels > 0) {
+            if(Single.CheckOppositeSignalClose(_Symbol, signal)) {
+                g_status_msg = "Fechado Sinal Contrário";
+                return;
+            }
+        }
+        
+        // Tentativa de abertura de nova ordem
+        if(levels == 0 && signal != 0) {
+            if(Single.CanOpenNewOrder(current_time)) {
+                double lot = Single.CalculateLot(InpInitialLot, InpLotMin, InpLotMax);
+                if(Single.OpenOrder(_Symbol, signal, lot, OMNIB3_COMMENT_PREFIX + "_Single")) {
+                    // Adiciona o nível virtual no PositionManager para rastreamento centralizado
+                    double price = (signal == 1) ? SymbolInfoDouble(_Symbol, SYMBOL_ASK) : SymbolInfoDouble(_Symbol, SYMBOL_BID);
+                    PosManager.AddLevelVirtual(price, lot, signal);
+                    g_status_msg = "Ordem Única Aberta";
+                }
+            }
+        }
+    } 
+    // PIPELINE DA GRADE TRADICIONAL (GRID TRADING v2.0)
+    else {
+        Grid.ProcessGrid(signal);
+    }
 }
 
 //+------------------------------------------------------------------+
-//| Timer — Persistência periódica e redução de TP por tempo         |
+//| Timer — Persistência e Atualização do Dashboard                   |
 //+------------------------------------------------------------------+
 void OnTimer() {
     if(!g_initialized) return;
 
     // Auto-save periódico do estado
     PosManager.AutoSave();
+
+    // FASE 2: ATUALIZAÇÃO DO DASHBOARD GRÁFICO
+    if(InpUseDashboard && Dash != NULL) {
+        SGridState g_state = PosManager.GetGridState();
+        double balance = AccountInfoDouble(ACCOUNT_BALANCE);
+        double equity  = AccountInfoDouble(ACCOUNT_EQUITY);
+        double d_profit = Risk.GetDailyProfit();
+        double d_max_dd = Risk.GetDailyMaxDrawdown();
+        SNewsState n_state = News.GetNextNewsState();
+
+        Dash.Update(g_state, balance, equity, d_profit, d_max_dd, g_status_msg, g_ea_paused, n_state);
+    }
 }
 
 //+------------------------------------------------------------------+
-//| Eventos do gráfico — Botões de controle                          |
+//| Eventos do gráfico — Botões interativos                           |
 //+------------------------------------------------------------------+
 void OnChartEvent(const int id, const long &lparam,
                   const double &dparam, const string &sparam) {
-    if(id == CHARTEVENT_OBJECT_CLICK) {
+    if(!g_initialized) return;
+
+    // Repassa o evento para a classe do Dashboard tratar
+    if(InpUseDashboard && Dash != NULL) {
+        string action = Dash.OnChartEvent(id, lparam, dparam, sparam);
+        
+        if(action != "") {
+            if(action == "Panic") {
+                Logger.Critical("EA", "🚨 BOTÃO PÂNICO PREVENTIVO ACIONADO VIA DASHBOARD!");
+                Risk.ActivateKillSwitch();
+                PosManager.ClearAllLevels();
+                if(Recovery != NULL) Recovery.Reset();
+                g_status_msg = "PANICO - BLOQUEADO";
+            }
+            else if(action == "CloseAll") {
+                Logger.Warning("EA", "❌ Fechando todas as ordens e niveis via Painel.");
+                PosManager.ClearAllLevels();
+                g_status_msg = "Zerar via Painel";
+            }
+            else if(action == "Pause") {
+                g_ea_paused = !g_ea_paused;
+                Logger.Info("EA", g_ea_paused ? "⏸ EA pausado pelo painel" : "▶ EA retomado pelo painel");
+                g_status_msg = g_ea_paused ? "Pausado via Painel" : "Rodando normal";
+            }
+            else if(action == "Reset") {
+                Logger.Info("EA", "🔄 Resetando Kill-Switch e limites diarios via painel.");
+                Risk.ResetKillSwitch();
+                if(Recovery != NULL) Recovery.Reset();
+                if(Single != NULL) Single.ResetMartingale();
+                g_status_msg = "Limites resetados";
+            }
+            
+            // Força um timer tick para atualizar visualmente os botões
+            OnTimer();
+        }
+    }
+
+    // Tratamento dos cliques clássicos caso o painel esteja desativado
+    if(!InpUseDashboard && id == CHARTEVENT_OBJECT_CLICK) {
         if(sparam == "btn_panic") {
-            Logger.Critical("EA", "🔴 PÂNICO pressionado!");
+            Logger.Critical("EA", "🔴 PÂNICO clássico pressionado!");
             Risk.ActivateKillSwitch();
             if(PosManager != NULL) PosManager.ClearAllLevels();
             if(Recovery != NULL) Recovery.Reset();
         }
         if(sparam == "btn_reset") {
-            Logger.Info("EA", "🟢 RESET pressionado");
+            Logger.Info("EA", "🟢 RESET clássico pressionado");
             Risk.ResetKillSwitch();
             if(Recovery != NULL) Recovery.Reset();
         }
     }
 }
-
-//+------------------------------------------------------------------+
