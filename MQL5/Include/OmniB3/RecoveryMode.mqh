@@ -1,11 +1,14 @@
 //+------------------------------------------------------------------+
 //|                                               RecoveryMode.mqh   |
-//|            Omni-B3 EA v2.25 — Modo de Recuperação                 |
+//|            Omni-B3 EA v2.35 — Modo de Recuperação                 |
 //|    Altera comportamento da grade quando DD está alto              |
+//+------------------------------------------------------------------+
+//| Copyright 2026, Projeto Omni-B3                                 |
+//| https://github.com/helveciopereira/Stocks                        |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.25"
+#property version   "2.35"
 #property strict
 
 #include "Defines.mqh"

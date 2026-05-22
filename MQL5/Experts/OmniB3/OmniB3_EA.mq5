@@ -1,23 +1,23 @@
 //+------------------------------------------------------------------+
 //|                                                  OmniB3_EA.mq5   |
-//|                  Omni-B3 EA v2.25 — Minicontratos B3             |
+//|                  Omni-B3 EA v2.35 — Minicontratos B3             |
 //|                                                                   |
 //|  Grid Trading Avançado para WIN/WDO (contas NETTING)             |
 //|  12+ modos de fechamento | 12+ indicadores | Recovery Mode      |
 //|  Persistência de estado | Money Management | Filtros avançados   |
-//|  NOVO v2.12: Dashboard Gráfico | Ordem Única | Filtro Notícias   |
+//|  NOVO v2.35: Trailing Stop & Trailing TP Físico e Virtual        |
 //|  Inspirado na metodologia Daniel Moraes (ToTheMoon v3.5)         |
 //|  Adaptado para Real Brasileiro e minicontratos da Bovespa        |
 //+------------------------------------------------------------------+
 #property copyright   "Projeto Omni-B3"
 #property link        "https://github.com/helveciopereira/Stocks"
-#property version     "2.25"
+#property version     "2.35"
 #property description "Grid Trading Avançado para Minicontratos B3 (WIN/WDO)"
 #property description "12+ modos de fechamento | 12+ indicadores técnicos"
 #property description "Persistência de estado | Recovery | Money Management"
-#property description "NOVO v2.25: Take Profit de salvaguarda e Day Trade por servidor"
+#property description "NOVO v2.35: Gain e Stop Gain Moveis (Trailing Stop / Trailing TP)"
 #property description "Adaptado para contas NETTING em Real (BRL)"
-#property description "Versão 2.25 com proteção Day Trade estrito e TP de salvaguarda"
+#property description "Versao 2.35 com Trailing Stop/TP fisicos (Single) e virtuais (Grade)"
 
 //+------------------------------------------------------------------+
 //| INCLUDES                                                          |
@@ -281,6 +281,13 @@ input int              InpSingleWaitLoss = 0;        // Espera após Perda (segu
 input int              InpSingleWaitWin  = 0;        // Espera após Ganho (segundos)
 input bool             InpSingleCloseOpposite = true; // Fechar posição se houver sinal contrário?
 
+input string           InpSeparatorTrailing = "════════ TRAILING STOP & TRAILING TP (v2.35) ════════"; // ═══════════════════
+input bool             InpUseTrailing      = false;     // Habilitar Gain/Stop Gain Móvel?
+input double           InpTrailingTrigger  = 150.0;     // Gatilho para Ativar (pontos)
+input double           InpTrailingStopDist = 150.0;     // Distância do Stop Gain (pontos)
+input double           InpTrailingTPDist   = 200.0;     // Distância do Gain Móvel (pontos)
+input double           InpTrailingStep     = 10.0;      // Passo de Atualização (pontos)
+
 input string           InpSeparator10 = "════════ FASE 2: FILTRO DE NOTÍCIAS ════════"; // ═══════════════════
 input bool             InpNewsEnabled    = false;    // Habilitar Filtro de Notícias?
 input ENUM_NEWS_IMPORTANCE InpNewsMinImportance = NEWS_IMPORTANCE_HIGH; // Importância Mínima
@@ -423,6 +430,7 @@ int OnInit() {
     Smart.SetQuantityLimits(InpLotSumTotal, 0.0, 0.0,
                             InpOrderCountTotal, 0, InpMinProfit);
     Smart.SetAcceptLoss(InpDDAcceptLoss, InpAcceptLoss);
+    Smart.SetTrailing(InpUseTrailing, InpTrailingTrigger, InpTrailingStopDist, InpTrailingTPDist, InpTrailingStep);
 
     // ═══ 9. Risk Manager ═══
     Risk = new CRiskManager(InpMagicNumber, InpEquityStopPct, InpMaxDailyDDPct,
@@ -450,7 +458,8 @@ int OnInit() {
     Single = new CSingleOrder();
     Single.Init(Logger, InpMagicNumber, InpSingleOrderMode, InpSingleSLPoints, InpSingleTPPoints,
                 InpSingleBEActivation, InpSingleBEMargin, InpSingleMartMode, InpSingleMartMultiplier,
-                InpSingleMartSteps, InpSingleWaitLoss, InpSingleWaitWin, InpSingleCloseOpposite);
+                InpSingleMartSteps, InpSingleWaitLoss, InpSingleWaitWin, InpSingleCloseOpposite,
+                InpUseTrailing, InpTrailingTrigger, InpTrailingStopDist, InpTrailingTPDist, InpTrailingStep);
 
     // ═══ 12. FASE 2: News Filter Módulo ═══
     News = new CNewsFilter();
@@ -555,12 +564,13 @@ void OnTick() {
         return;
     }
 
-    // FASE 2: TRAILING BREAKEVEN DO MODO ORDEM ÚNICA (SINGLE ORDER)
+    // FASE 2: TRAILING BREAKEVEN E TRAILING STOP DO MODO ORDEM ÚNICA (SINGLE ORDER)
     if(InpSingleOrderMode == SINGLE_ENABLED && levels > 0) {
         double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
         double ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
         double tick = SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE);
         Single.ManageBreakEven(_Symbol, bid, ask, tick);
+        Single.ManageTrailing(_Symbol, bid, ask, tick);
     }
 
     // 3. Recovery Mode — avalia estado (apenas em modo grade tradicional)

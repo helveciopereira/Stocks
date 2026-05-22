@@ -1,12 +1,12 @@
 //+------------------------------------------------------------------+
 //|                                                   SingleOrder.mqh |
-//|                     Omni-B3 EA v2.25 — Modo de Ordem Única        |
+//|                     Omni-B3 EA v2.35 — Modo de Ordem Única        |
 //|  Gerenciamento de Trades Individuais com Martingale Sequencial   |
-//|  TP, SL, BreakEven independentes e controle de sinal contrário  |
+//|  TP, SL, BreakEven independentes, Trailing Stop e Trailing TP    |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version     "2.25"
+#property version     "2.35"
 #property strict
 
 #include <OmniB3/Defines.mqh>
@@ -48,6 +48,16 @@ private:
     bool                m_close_on_opposite;// Fechar posição se houver sinal contrário?
     CLogger            *m_logger;           // Ponteiro para o Logger centralizado
 
+    // Sistema de Trailing (Gain / Stop Gain Móveis)
+    bool                m_use_trailing;     // Habilitar trailing móvel
+    double              m_trail_trigger;    // Gatilho de ativação do trailing (pontos)
+    double              m_trail_stop_dist;  // Distância do Stop Gain (pontos)
+    double              m_trail_tp_dist;    // Distância do Gain Móvel (pontos)
+    double              m_trail_step;       // Passo de atualização (pontos)
+    bool                m_trail_active;     // Indica se o trailing está ativo no trade atual
+    double              m_max_bid_seen;     // Maior preço Bid visto no trade de COMPRA
+    double              m_min_ask_seen;     // Menor preço Ask visto no trade de VENDA
+
     // Rastreia o histórico para saber o resultado do último trade do Magic Number
     void                UpdateHistoryStats();
 
@@ -64,12 +74,15 @@ public:
                              ENUM_MARTINGALE_MODE mart_mode,
                              double mart_mult, int mart_max_steps,
                              int wait_loss, int wait_win,
-                             bool close_opposite);
+                             bool close_opposite,
+                             bool use_trailing, double trail_trigger,
+                             double trail_stop_dist, double trail_tp_dist,
+                             double trail_step);
 
     // Verifica se podemos abrir uma nova ordem (cooldowns de espera)
     bool                CanOpenNewOrder(datetime current_time);
 
-    // Retorna o lote calculado de acordo com Martingale/Anti-Martingale
+    // Retorna o lote calculated de acordo com Martingale/Anti-Martingale
     double              CalculateLot(double initial_lot, double lot_min, double lot_max);
 
     // Executa a abertura da ordem a mercado
@@ -77,6 +90,9 @@ public:
 
     // Gerencia o trailing do StopLoss para BreakEven
     void                ManageBreakEven(string symbol, double current_bid, double current_ask, double tick_size);
+
+    // Gerencia o trailing móvel físico (TakeProfit e StopLoss)
+    void                ManageTrailing(string symbol, double current_bid, double current_ask, double tick_size);
 
     // Avalia fechamento por sinal contrário
     bool                CheckOppositeSignalClose(string symbol, int opposite_signal);
@@ -113,6 +129,16 @@ CSingleOrder::CSingleOrder() {
     m_be_applied         = false;
     m_close_on_opposite  = false;
     m_logger             = NULL;
+    
+    // Inicialização do Trailing móvel
+    m_use_trailing       = false;
+    m_trail_trigger      = 0.0;
+    m_trail_stop_dist    = 0.0;
+    m_trail_tp_dist      = 0.0;
+    m_trail_step         = 0.0;
+    m_trail_active       = false;
+    m_max_bid_seen       = 0.0;
+    m_min_ask_seen       = 0.0;
 }
 
 //+------------------------------------------------------------------+
@@ -132,7 +158,10 @@ void CSingleOrder::Init(CLogger *logger,
                          ENUM_MARTINGALE_MODE mart_mode,
                          double mart_mult, int mart_max_steps,
                          int wait_loss, int wait_win,
-                         bool close_opposite) {
+                         bool close_opposite,
+                         bool use_trailing, double trail_trigger,
+                         double trail_stop_dist, double trail_tp_dist,
+                         double trail_step) {
     m_logger            = logger;
     m_magic             = magic;
     m_mode              = mode;
@@ -146,6 +175,16 @@ void CSingleOrder::Init(CLogger *logger,
     m_wait_after_loss   = wait_loss;
     m_wait_after_win    = wait_win;
     m_close_on_opposite = close_opposite;
+    
+    // Configurações do Trailing
+    m_use_trailing      = use_trailing;
+    m_trail_trigger     = trail_trigger;
+    m_trail_stop_dist   = trail_stop_dist;
+    m_trail_tp_dist     = trail_tp_dist;
+    m_trail_step        = trail_step;
+    m_trail_active      = false;
+    m_max_bid_seen      = 0.0;
+    m_min_ask_seen      = 0.0;
     
     m_trade.SetExpertMagicNumber(m_magic);
     m_be_applied = false;
@@ -296,6 +335,9 @@ bool CSingleOrder::OpenOrder(string symbol, int direction, double volume, string
     }
 
     m_be_applied = false;
+    m_trail_active = false;
+    m_max_bid_seen = 0.0;
+    m_min_ask_seen = 0.0;
     double price = 0.0;
     double sl = 0.0;
     double tp = 0.0;
@@ -418,4 +460,150 @@ void CSingleOrder::ResetMartingale() {
     m_consecutive_wins   = 0;
     m_current_multiplier = 1.0;
     if(m_logger != NULL) m_logger.Info("SingleOrder", "Multiplicadores do Martingale resetados manualmente.");
+}
+
+//+------------------------------------------------------------------+
+//| Gerenciamento do Trailing Móvel Físico para Ordem Única          |
+//+------------------------------------------------------------------+
+void CSingleOrder::ManageTrailing(string symbol, double current_bid, double current_ask, double tick_size) {
+    if(!m_use_trailing) return;
+
+    // Tenta selecionar a posição correspondente ao Magic Number
+    if(!PositionSelect(symbol)) return;
+    long pos_magic = PositionGetInteger(POSITION_MAGIC);
+    if(pos_magic != m_magic) return;
+
+    double open_price = PositionGetDouble(POSITION_PRICE_OPEN);
+    long pos_type     = PositionGetInteger(POSITION_TYPE);
+    double current_sl = PositionGetDouble(POSITION_SL);
+    double current_tp = PositionGetDouble(POSITION_TP);
+
+    // COMPRA
+    if(pos_type == POSITION_TYPE_BUY) {
+        double profit_pts = current_bid - open_price;
+
+        // Se o trailing ainda não foi ativado, verifica o gatilho (trigger)
+        if(!m_trail_active) {
+            if(profit_pts >= m_trail_trigger) {
+                m_trail_active = true;
+                m_max_bid_seen = current_bid;
+                if(m_logger != NULL) {
+                    m_logger.Info("SingleOrder", StringFormat("🔥 Trailing Físico Ativado na COMPRA! Lucro: %.0f pts. Preço: %.2f", profit_pts, current_bid));
+                }
+            }
+        }
+
+        // Se o trailing estiver ativo, arrasta o SL e o TP
+        if(m_trail_active) {
+            if(current_bid > m_max_bid_seen) {
+                m_max_bid_seen = current_bid;
+            }
+
+            // Calcula o Stop Loss (Stop Gain) e Take Profit (Gain) ideais
+            double target_sl = m_max_bid_seen - m_trail_stop_dist;
+            double target_tp = m_max_bid_seen + m_trail_tp_dist;
+
+            // Arredonda para o tick_size da corretora
+            if(tick_size > 0.0) {
+                target_sl = NormalizeDouble(MathRound(target_sl / tick_size) * tick_size, _Digits);
+                target_tp = NormalizeDouble(MathRound(target_tp / tick_size) * tick_size, _Digits);
+            }
+
+            // O Stop Gain só pode subir. Verificamos se o novo SL ideal está acima do SL atual
+            // e se a diferença é de pelo menos m_trail_step
+            bool modify_sl = false;
+            if(current_sl == 0.0 || target_sl >= current_sl + m_trail_step) {
+                // Apenas move para o breakeven ou lucro (acima da entrada)
+                if(target_sl > open_price) {
+                    modify_sl = true;
+                }
+            }
+
+            // O Take Profit móvel também caminha na direção da alta
+            bool modify_tp = false;
+            if(current_tp == 0.0 || target_tp >= current_tp + m_trail_step) {
+                modify_tp = true;
+            }
+
+            // Modifica se houver alteração pendente
+            if(modify_sl || modify_tp) {
+                double new_sl = modify_sl ? target_sl : current_sl;
+                double new_tp = modify_tp ? target_tp : current_tp;
+
+                if(m_trade.PositionModify(symbol, new_sl, new_tp)) {
+                    if(m_logger != NULL) {
+                        m_logger.Info("SingleOrder", StringFormat("⚡ Trailing COMPRA atualizado. SL: %.2f (antigo: %.2f) | TP: %.2f (antigo: %.2f)", new_sl, current_sl, new_tp, current_tp));
+                    }
+                } else {
+                    if(m_logger != NULL) {
+                        m_logger.Error("SingleOrder", StringFormat("❌ Falha ao modificar Trailing COMPRA. Código: %d", m_trade.ResultRetcode()));
+                    }
+                }
+            }
+        }
+    }
+    // VENDA
+    else if(pos_type == POSITION_TYPE_SELL) {
+        double profit_pts = open_price - current_ask;
+
+        // Se o trailing ainda não foi ativado, verifica o gatilho (trigger)
+        if(!m_trail_active) {
+            if(profit_pts >= m_trail_trigger) {
+                m_trail_active = true;
+                m_min_ask_seen = current_ask;
+                if(m_logger != NULL) {
+                    m_logger.Info("SingleOrder", StringFormat("🔥 Trailing Físico Ativado na VENDA! Lucro: %.0f pts. Preço: %.2f", profit_pts, current_ask));
+                }
+            }
+        }
+
+        // Se o trailing estiver ativo, arrasta o SL e o TP
+        if(m_trail_active) {
+            if(current_ask < m_min_ask_seen) {
+                m_min_ask_seen = current_ask;
+            }
+
+            // Calcula o Stop Loss (Stop Gain) e Take Profit (Gain) ideais
+            double target_sl = m_min_ask_seen + m_trail_stop_dist;
+            double target_tp = m_min_ask_seen - m_trail_tp_dist;
+
+            // Arredonda para o tick_size da corretora
+            if(tick_size > 0.0) {
+                target_sl = NormalizeDouble(MathRound(target_sl / tick_size) * tick_size, _Digits);
+                target_tp = NormalizeDouble(MathRound(target_tp / tick_size) * tick_size, _Digits);
+            }
+
+            // O Stop Gain na venda só pode descer. Verificamos se o novo SL ideal está abaixo do SL atual
+            // e se a diferença é de pelo menos m_trail_step
+            bool modify_sl = false;
+            if(current_sl == 0.0 || target_sl <= current_sl - m_trail_step) {
+                // Apenas move para o breakeven ou lucro (abaixo da entrada)
+                if(target_sl < open_price) {
+                    modify_sl = true;
+                }
+            }
+
+            // O Take Profit móvel na venda também caminha na direção da baixa
+            bool modify_tp = false;
+            if(current_tp == 0.0 || target_tp <= current_tp - m_trail_step) {
+                modify_tp = true;
+            }
+
+            // Modifica se houver alteração pendente
+            if(modify_sl || modify_tp) {
+                double new_sl = modify_sl ? target_sl : current_sl;
+                double new_tp = modify_tp ? target_tp : current_tp;
+
+                if(m_trade.PositionModify(symbol, new_sl, new_tp)) {
+                    if(m_logger != NULL) {
+                        m_logger.Info("SingleOrder", StringFormat("⚡ Trailing VENDA atualizado. SL: %.2f (antigo: %.2f) | TP: %.2f (antigo: %.2f)", new_sl, current_sl, new_tp, current_tp));
+                    }
+                } else {
+                    if(m_logger != NULL) {
+                        m_logger.Error("SingleOrder", StringFormat("❌ Falha ao modificar Trailing VENDA. Código: %d", m_trade.ResultRetcode()));
+                    }
+                }
+            }
+        }
+    }
 }

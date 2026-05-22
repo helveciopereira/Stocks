@@ -1,11 +1,11 @@
 //+------------------------------------------------------------------+
 //|                                                  SmartClose.mqh  |
-//|              Omni-B3 EA v2.25 — Smart Close para B3/NETTING       |
+//|              Omni-B3 EA v2.35 — Smart Close para B3/NETTING       |
 //|   12+ modos de fechamento inspirados no ToTheMoon v3.5          |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.25"
+#property version   "2.35"
 #property strict
 
 #include "Defines.mqh"
@@ -72,6 +72,17 @@ private:
     // Aceitar prejuízo
     double             m_dd_accept_loss;   // DD% abaixo do qual aceitar perda
     double             m_accept_loss_value;// Valor de perda aceitável (BRL)
+
+    // Trailing virtual da Grade (Gain e Stop Gain Móveis)
+    bool               m_use_trailing;     // Habilitar trailing virtual para a grade
+    double             m_trail_trigger;    // Gatilho de ativação do trailing (pontos)
+    double             m_trail_stop_dist;  // Distância do Stop Gain (pontos)
+    double             m_trail_tp_dist;    // Distância do Gain Móvel (pontos)
+    double             m_trail_step;       // Passo de atualização (pontos)
+    bool               m_trail_active;     // Indica se o trailing está ativo na grade
+    double             m_max_price_seen;   // Rastreamento do extremo do preço a favor
+    double             m_virtual_sl;       // Preço absoluto do Stop Gain virtual
+    double             m_virtual_tp;       // Preço absoluto do Gain virtual
 
     CTrade             m_trade;
     CPositionManager  *m_pos_manager;
@@ -436,6 +447,17 @@ public:
         m_dd_accept_loss = 0.0;
         m_accept_loss_value = 0.0;
 
+        // Defaults Trailing virtual da Grade
+        m_use_trailing      = false;
+        m_trail_trigger     = 0.0;
+        m_trail_stop_dist   = 0.0;
+        m_trail_tp_dist     = 0.0;
+        m_trail_step        = 0.0;
+        m_trail_active      = false;
+        m_max_price_seen    = 0.0;
+        m_virtual_sl        = 0.0;
+        m_virtual_tp        = 0.0;
+
         m_trade.SetExpertMagicNumber(m_magic_number);
         m_trade.SetDeviationInPoints(10);
         m_trade.SetTypeFilling(DetectFillingMode());
@@ -506,6 +528,232 @@ public:
     }
 
     //+--------------------------------------------------------------+
+    //| Configura o Trailing Virtual da Grade                        |
+    //+--------------------------------------------------------------+
+    void SetTrailing(bool use_trailing, double trigger, double stop_dist, double tp_dist, double step) {
+        m_use_trailing    = use_trailing;
+        m_trail_trigger   = trigger;
+        m_trail_stop_dist = stop_dist;
+        m_trail_tp_dist   = tp_dist;
+        m_trail_step      = step;
+        m_trail_active    = false;
+        m_max_price_seen  = 0.0;
+        m_virtual_sl      = 0.0;
+        m_virtual_tp      = 0.0;
+        
+        m_logger.Info("SmartClose",
+            StringFormat("Trailing Grade: Habilitado=%s | Gatilho=%.0f pts | StopDist=%.0f pts | TPDist=%.0f pts | Passo=%.0f pts",
+                         use_trailing ? "Sim" : "Nao", trigger, stop_dist, tp_dist, step));
+    }
+
+    //+--------------------------------------------------------------+
+    //| Lógica do Trailing Virtual da Grade (Gain/Stop Gain Móvel)   |
+    //| Retorna true se a grade foi liquidada                         |
+    //+--------------------------------------------------------------+
+    bool CheckTrailingVirtual(SGridState &state) {
+        if(!m_use_trailing) return false;
+
+        // Se não houver níveis ativos na grade, reseta o estado do trailing
+        if(state.total_levels == 0) {
+            if(m_trail_active) {
+                m_trail_active = false;
+                m_max_price_seen = 0.0;
+                m_virtual_sl = 0.0;
+                m_virtual_tp = 0.0;
+            }
+            return false;
+        }
+
+        // Tenta selecionar a posição consolidada
+        if(!PositionSelect(m_symbol)) {
+            if(m_trail_active) {
+                m_trail_active = false;
+                m_max_price_seen = 0.0;
+                m_virtual_sl = 0.0;
+                m_virtual_tp = 0.0;
+            }
+            return false;
+        }
+
+        long pos_type = PositionGetInteger(POSITION_TYPE);
+        double tick_size = SymbolInfoDouble(m_symbol, SYMBOL_TRADE_TICK_SIZE);
+        double point = SymbolInfoDouble(m_symbol, SYMBOL_POINT);
+        double current_bid = SymbolInfoDouble(m_symbol, SYMBOL_BID);
+        double current_ask = SymbolInfoDouble(m_symbol, SYMBOL_ASK);
+
+        // COMPRA
+        if(pos_type == POSITION_TYPE_BUY) {
+            double profit_pts = (current_bid - state.avg_price) / point;
+
+            // Se ainda não ativou o trailing, verifica se o lucro em pontos atingiu o gatilho (trigger)
+            if(!m_trail_active) {
+                if(profit_pts >= m_trail_trigger) {
+                    m_trail_active = true;
+                    m_max_price_seen = current_bid;
+
+                    // Define alvos virtuais iniciais (em preço absoluto)
+                    m_virtual_sl = m_max_price_seen - (m_trail_stop_dist * point);
+                    m_virtual_tp = m_max_price_seen + (m_trail_tp_dist * point);
+
+                    if(tick_size > 0.0) {
+                        m_virtual_sl = NormalizeDouble(MathRound(m_virtual_sl / tick_size) * tick_size, _Digits);
+                        m_virtual_tp = NormalizeDouble(MathRound(m_virtual_tp / tick_size) * tick_size, _Digits);
+                    }
+
+                    m_logger.Info("SmartClose",
+                        StringFormat("🔥 Trailing Virtual Grade Ativado na COMPRA! Lucro: %.0f pts. Preço: %.2f | SL: %.2f | TP: %.2f", 
+                                     profit_pts, current_bid, m_virtual_sl, m_virtual_tp));
+                }
+            }
+
+            // Se o trailing virtual estiver ativo, arrasta o SL e TP virtuais
+            if(m_trail_active) {
+                if(current_bid > m_max_price_seen) {
+                    m_max_price_seen = current_bid;
+                }
+
+                // Níveis ideais de SL e TP
+                double target_sl = m_max_price_seen - (m_trail_stop_dist * point);
+                double target_tp = m_max_price_seen + (m_trail_tp_dist * point);
+
+                if(tick_size > 0.0) {
+                    target_sl = NormalizeDouble(MathRound(target_sl / tick_size) * tick_size, _Digits);
+                    target_tp = NormalizeDouble(MathRound(target_tp / tick_size) * tick_size, _Digits);
+                }
+
+                // O Stop Gain virtual da compra só pode subir.
+                // Respeitamos o passo para evitar atualizações microscópicas desnecessárias nos logs.
+                double step_value = m_trail_step * point;
+                if(target_sl >= m_virtual_sl + step_value) {
+                    double old_sl = m_virtual_sl;
+                    double old_tp = m_virtual_tp;
+                    m_virtual_sl = target_sl;
+                    m_virtual_tp = target_tp;
+                    
+                    m_logger.Info("SmartClose",
+                        StringFormat("⚡ Trailing Virtual COMPRA atualizado. SL: %.2f (antigo: %.2f) | TP: %.2f (antigo: %.2f) | Bid Max: %.2f", 
+                                     m_virtual_sl, old_sl, m_virtual_tp, old_tp, m_max_price_seen));
+                }
+
+                // Verifica condições de fechamento a mercado (saída)
+                if(current_bid <= m_virtual_sl) {
+                    m_logger.Info("SmartClose",
+                        StringFormat("🚨 Trailing Virtual COMPRA atingido pelo Stop Gain! Preço: %.2f <= SL Virtual: %.2f. Fechando a grade inteira.", 
+                                     current_bid, m_virtual_sl));
+                    bool closed = ExecuteCloseAll(state);
+                    if(closed) {
+                        m_trail_active = false;
+                        m_max_price_seen = 0.0;
+                        m_virtual_sl = 0.0;
+                        m_virtual_tp = 0.0;
+                    }
+                    return closed;
+                }
+                
+                if(current_bid >= m_virtual_tp) {
+                    m_logger.Info("SmartClose",
+                        StringFormat("🎯 Trailing Virtual COMPRA atingido pelo Gain Móvel! Preço: %.2f >= TP Virtual: %.2f. Fechando a grade inteira.", 
+                                     current_bid, m_virtual_tp));
+                    bool closed = ExecuteCloseAll(state);
+                    if(closed) {
+                        m_trail_active = false;
+                        m_max_price_seen = 0.0;
+                        m_virtual_sl = 0.0;
+                        m_virtual_tp = 0.0;
+                    }
+                    return closed;
+                }
+            }
+        }
+        // VENDA
+        else if(pos_type == POSITION_TYPE_SELL) {
+            double profit_pts = (state.avg_price - current_ask) / point;
+
+            // Se ainda não ativou o trailing, verifica se o lucro em pontos atingiu o gatilho (trigger)
+            if(!m_trail_active) {
+                if(profit_pts >= m_trail_trigger) {
+                    m_trail_active = true;
+                    m_max_price_seen = current_ask;
+
+                    // Define alvos virtuais iniciais (em preço absoluto)
+                    m_virtual_sl = m_max_price_seen + (m_trail_stop_dist * point);
+                    m_virtual_tp = m_max_price_seen - (m_trail_tp_dist * point);
+
+                    if(tick_size > 0.0) {
+                        m_virtual_sl = NormalizeDouble(MathRound(m_virtual_sl / tick_size) * tick_size, _Digits);
+                        m_virtual_tp = NormalizeDouble(MathRound(m_virtual_tp / tick_size) * tick_size, _Digits);
+                    }
+
+                    m_logger.Info("SmartClose",
+                        StringFormat("🔥 Trailing Virtual Grade Ativado na VENDA! Lucro: %.0f pts. Preço: %.2f | SL: %.2f | TP: %.2f", 
+                                     profit_pts, current_ask, m_virtual_sl, m_virtual_tp));
+                }
+            }
+
+            // Se o trailing virtual estiver ativo, arrasta o SL e TP virtuais
+            if(m_trail_active) {
+                if(current_ask < m_max_price_seen) {
+                    m_max_price_seen = current_ask;
+                }
+
+                // Níveis ideais de SL e TP
+                double target_sl = m_max_price_seen + (m_trail_stop_dist * point);
+                double target_tp = m_max_price_seen - (m_trail_tp_dist * point);
+
+                if(tick_size > 0.0) {
+                    target_sl = NormalizeDouble(MathRound(target_sl / tick_size) * tick_size, _Digits);
+                    target_tp = NormalizeDouble(MathRound(target_tp / tick_size) * tick_size, _Digits);
+                }
+
+                // O Stop Gain virtual da venda só pode descer.
+                // Respeitamos o passo para evitar atualizações microscópicas desnecessárias nos logs.
+                double step_value = m_trail_step * point;
+                if(target_sl <= m_virtual_sl - step_value) {
+                    double old_sl = m_virtual_sl;
+                    double old_tp = m_virtual_tp;
+                    m_virtual_sl = target_sl;
+                    m_virtual_tp = target_tp;
+                    
+                    m_logger.Info("SmartClose",
+                        StringFormat("⚡ Trailing Virtual VENDA atualizado. SL: %.2f (antigo: %.2f) | TP: %.2f (antigo: %.2f) | Ask Min: %.2f", 
+                                     m_virtual_sl, old_sl, m_virtual_tp, old_tp, m_max_price_seen));
+                }
+
+                // Verifica condições de fechamento a mercado (saída)
+                if(current_ask >= m_virtual_sl) {
+                    m_logger.Info("SmartClose",
+                        StringFormat("🚨 Trailing Virtual VENDA atingido pelo Stop Gain! Preço: %.2f >= SL Virtual: %.2f. Fechando a grade inteira.", 
+                                     current_ask, m_virtual_sl));
+                    bool closed = ExecuteCloseAll(state);
+                    if(closed) {
+                        m_trail_active = false;
+                        m_max_price_seen = 0.0;
+                        m_virtual_sl = 0.0;
+                        m_virtual_tp = 0.0;
+                    }
+                    return closed;
+                }
+                
+                if(current_ask <= m_virtual_tp) {
+                    m_logger.Info("SmartClose",
+                        StringFormat("🎯 Trailing Virtual VENDA atingido pelo Gain Móvel! Preço: %.2f <= TP Virtual: %.2f. Fechando a grade inteira.", 
+                                     current_ask, m_virtual_tp));
+                    bool closed = ExecuteCloseAll(state);
+                    if(closed) {
+                        m_trail_active = false;
+                        m_max_price_seen = 0.0;
+                        m_virtual_sl = 0.0;
+                        m_virtual_tp = 0.0;
+                    }
+                    return closed;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    //+--------------------------------------------------------------+
     //| Altera modo de fechamento (usado pelo RecoveryMode)          |
     //+--------------------------------------------------------------+
     void SetCloseMode(ENUM_CLOSE_MODE mode) {
@@ -523,6 +771,13 @@ public:
 
         SGridState state = m_pos_manager.GetGridState();
         if(state.total_levels < 1) return false;
+
+        // Se o trailing virtual estiver ativado, processa as verificações de Gain/Stop Gain móveis primeiro
+        if(m_use_trailing) {
+            if(CheckTrailingVirtual(state)) {
+                return true;
+            }
+        }
 
         ENUM_CLOSE_MODE mode = (override_mode != (ENUM_CLOSE_MODE)-1)
                                ? override_mode : m_close_mode;

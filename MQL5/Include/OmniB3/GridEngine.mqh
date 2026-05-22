@@ -1,11 +1,11 @@
 //+------------------------------------------------------------------+
 //|                                                  GridEngine.mqh  |
-//|                  Omni-B3 EA v2.25 — Motor de Grade (B3/NETTING)  |
+//|                  Omni-B3 EA v2.35 — Motor de Grade (B3/NETTING)  |
 //|   Step multiplicador, candle gigante, integração indicadores     |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.25"
+#property version   "2.35"
 #property strict
 
 #include "Defines.mqh"
