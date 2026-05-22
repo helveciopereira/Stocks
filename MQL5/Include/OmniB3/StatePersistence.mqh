@@ -1,6 +1,6 @@
-//+------------------------------------------------------------------+
+﻿//+------------------------------------------------------------------+
 //|                                           StatePersistence.mqh   |
-//|           Omni-B3 EA v2.45 — Persistência de Estado               |
+//|           Omni-B3 EA v2.46 â€” PersistÃªncia de Estado               |
 //|     Salva/carrega estado da grade para sobreviver restarts       |
 //+------------------------------------------------------------------+
 //| Copyright 2026, Projeto Omni-B3                                 |
@@ -8,22 +8,22 @@
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.45"
+#property version   "2.46"
 #property strict
 
 #include "Defines.mqh"
 #include "Logger.mqh"
 
 //+------------------------------------------------------------------+
-//| Persistência de Estado em Arquivo                                 |
+//| PersistÃªncia de Estado em Arquivo                                 |
 //|                                                                   |
-//| Problema: Em contas NETTING, a posição real é agregada (1 só).   |
-//| Os níveis virtuais da grade existem apenas na memória do EA.     |
-//| Se o EA reiniciar (crash, atualização, restart do terminal),     |
-//| perdemos o rastreamento de todos os níveis.                       |
+//| Problema: Em contas NETTING, a posiÃ§Ã£o real Ã© agregada (1 sÃ³).   |
+//| Os nÃ­veis virtuais da grade existem apenas na memÃ³ria do EA.     |
+//| Se o EA reiniciar (crash, atualizaÃ§Ã£o, restart do terminal),     |
+//| perdemos o rastreamento de todos os nÃ­veis.                       |
 //|                                                                   |
-//| Solução: Serializar o array de SVirtualLevel em arquivo binário  |
-//| com checksum. Auto-save a cada operação e periodicamente.        |
+//| SoluÃ§Ã£o: Serializar o array de SVirtualLevel em arquivo binÃ¡rio  |
+//| com checksum. Auto-save a cada operaÃ§Ã£o e periodicamente.        |
 //+------------------------------------------------------------------+
 class CStatePersistence {
 private:
@@ -31,12 +31,12 @@ private:
     CLogger *m_logger;
     int      m_magic_number;
     string   m_symbol;
-    datetime m_last_save;     // Última vez que salvou
+    datetime m_last_save;     // Ãšltima vez que salvou
     int      m_save_interval; // Intervalo de auto-save em segundos
-    bool     m_dirty;         // Se tem mudanças não salvas
+    bool     m_dirty;         // Se tem mudanÃ§as nÃ£o salvas
 
     //+--------------------------------------------------------------+
-    //| Gera nome do arquivo baseado no símbolo e magic number      |
+    //| Gera nome do arquivo baseado no sÃ­mbolo e magic number      |
     //+--------------------------------------------------------------+
     string GenerateFileName() {
         return StringFormat("%s%s_%d.bin",
@@ -45,15 +45,15 @@ private:
 
     //+--------------------------------------------------------------+
     //| Calcula checksum simples para integridade dos dados          |
-    //| Soma XOR de todos os bytes dos preços e volumes               |
+    //| Soma XOR de todos os bytes dos preÃ§os e volumes               |
     //+--------------------------------------------------------------+
     uint CalculateChecksum(SVirtualLevel &levels[], int count) {
         uint checksum = 0;
         for(int i = 0; i < count; i++) {
-            // XOR com componentes do nível para validação
+            // XOR com componentes do nÃ­vel para validaÃ§Ã£o
             uint price_bits = 0;
             uint vol_bits = 0;
-            // Usa casting seguro via unions implícitas
+            // Usa casting seguro via unions implÃ­citas
             checksum ^= (uint)(levels[i].entry_price * 100000.0);
             checksum ^= (uint)(levels[i].volume * 100.0);
             checksum ^= (uint)levels[i].direction;
@@ -82,12 +82,12 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Salva estado da grade em arquivo binário                     |
+    //| Salva estado da grade em arquivo binÃ¡rio                     |
     //| Formato:                                                      |
-    //|   [4 bytes] Versão do formato                                 |
+    //|   [4 bytes] VersÃ£o do formato                                 |
     //|   [4 bytes] Magic number                                     |
-    //|   [4 bytes] Quantidade de níveis                              |
-    //|   [N × SVirtualLevel] Dados dos níveis                       |
+    //|   [4 bytes] Quantidade de nÃ­veis                              |
+    //|   [N Ã— SVirtualLevel] Dados dos nÃ­veis                       |
     //|   [4 bytes] Checksum                                          |
     //+--------------------------------------------------------------+
     bool SaveState(SVirtualLevel &levels[], int count) {
@@ -100,13 +100,13 @@ public:
             return false;
         }
 
-        // Cabeçalho
+        // CabeÃ§alho
         int version = PERSISTENCE_FORMAT_VERSION;
         FileWriteInteger(handle, version, INT_VALUE);
         FileWriteInteger(handle, m_magic_number, INT_VALUE);
         FileWriteInteger(handle, count, INT_VALUE);
 
-        // Dados dos níveis
+        // Dados dos nÃ­veis
         for(int i = 0; i < count; i++) {
             FileWriteDouble(handle, levels[i].entry_price);
             FileWriteDouble(handle, levels[i].volume);
@@ -128,18 +128,18 @@ public:
         m_dirty = false;
 
         m_logger.Debug("Persist",
-            StringFormat("Estado salvo: %d níveis | Checksum=%u", count, checksum));
+            StringFormat("Estado salvo: %d nÃ­veis | Checksum=%u", count, checksum));
         return true;
     }
 
     //+--------------------------------------------------------------+
-    //| Carrega estado da grade de arquivo binário                   |
-    //| Retorna: quantidade de níveis carregados (-1 = erro)         |
+    //| Carrega estado da grade de arquivo binÃ¡rio                   |
+    //| Retorna: quantidade de nÃ­veis carregados (-1 = erro)         |
     //+--------------------------------------------------------------+
     int LoadState(SVirtualLevel &levels[]) {
         // Verifica se arquivo existe
         if(!FileIsExist(m_file_name, FILE_COMMON)) {
-            m_logger.Info("Persist", "Nenhum estado salvo encontrado — grade limpa");
+            m_logger.Info("Persist", "Nenhum estado salvo encontrado â€” grade limpa");
             return 0;
         }
 
@@ -151,11 +151,11 @@ public:
             return -1;
         }
 
-        // Lê cabeçalho
+        // LÃª cabeÃ§alho
         int version = FileReadInteger(handle, INT_VALUE);
         if(version != PERSISTENCE_FORMAT_VERSION) {
             m_logger.Warning("Persist",
-                StringFormat("Versão incompatível: %d (esperado %d)",
+                StringFormat("VersÃ£o incompatÃ­vel: %d (esperado %d)",
                              version, PERSISTENCE_FORMAT_VERSION));
             FileClose(handle);
             return -1;
@@ -173,12 +173,12 @@ public:
         int count = FileReadInteger(handle, INT_VALUE);
         if(count < 0 || count > GRID_MAX_ABSOLUTE) {
             m_logger.Error("Persist",
-                StringFormat("Quantidade inválida de níveis: %d", count));
+                StringFormat("Quantidade invÃ¡lida de nÃ­veis: %d", count));
             FileClose(handle);
             return -1;
         }
 
-        // Lê níveis
+        // LÃª nÃ­veis
         ArrayResize(levels, count);
         for(int i = 0; i < count; i++) {
             levels[i].Reset();
@@ -199,20 +199,20 @@ public:
 
         if(stored_checksum != calc_checksum) {
             m_logger.Error("Persist",
-                StringFormat("Checksum inválido! Armazenado=%u Calculado=%u",
+                StringFormat("Checksum invÃ¡lido! Armazenado=%u Calculado=%u",
                              stored_checksum, calc_checksum));
-            // Não retorna -1 — tenta usar os dados mesmo assim
-            m_logger.Warning("Persist", "Usando dados apesar do checksum inválido");
+            // NÃ£o retorna -1 â€” tenta usar os dados mesmo assim
+            m_logger.Warning("Persist", "Usando dados apesar do checksum invÃ¡lido");
         }
 
         m_logger.Info("Persist",
-            StringFormat("Estado restaurado: %d níveis | Checksum=%u",
+            StringFormat("Estado restaurado: %d nÃ­veis | Checksum=%u",
                          count, calc_checksum));
         return count;
     }
 
     //+--------------------------------------------------------------+
-    //| Verifica se é hora de auto-save                               |
+    //| Verifica se Ã© hora de auto-save                               |
     //+--------------------------------------------------------------+
     bool ShouldAutoSave() {
         if(!m_dirty) return false;
@@ -220,12 +220,12 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Marca que houve mudanças (precisa salvar)                    |
+    //| Marca que houve mudanÃ§as (precisa salvar)                    |
     //+--------------------------------------------------------------+
     void MarkDirty() { m_dirty = true; }
 
     //+--------------------------------------------------------------+
-    //| Remove arquivo de estado (após fechamento total da grade)    |
+    //| Remove arquivo de estado (apÃ³s fechamento total da grade)    |
     //+--------------------------------------------------------------+
     bool DeleteState() {
         if(FileIsExist(m_file_name, FILE_COMMON)) {
@@ -238,7 +238,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Retorna nome do arquivo para log/diagnóstico                 |
+    //| Retorna nome do arquivo para log/diagnÃ³stico                 |
     //+--------------------------------------------------------------+
     string GetFileName() { return m_file_name; }
 };

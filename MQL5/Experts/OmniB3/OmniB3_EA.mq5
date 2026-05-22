@@ -1,23 +1,23 @@
 //+------------------------------------------------------------------+
 //|                                                  OmniB3_EA.mq5   |
-//|                  Omni-B3 EA v2.45 — Minicontratos B3             |
+//|                  Omni-B3 EA v2.46 — Minicontratos B3             |
 //|                                                                   |
 //|  Grid Trading Avançado para WIN/WDO (contas NETTING)             |
 //|  12+ modos de fechamento | 12+ indicadores | Recovery Mode      |
 //|  Persistência de estado | Money Management | Filtros avançados   |
-//|  NOVO v2.45: Janela Flutuante de Trades e Alvos Gráficos Néon     |
+//|  NOVO v2.46: Janela Flutuante de Trades e Alvos Gráficos Néon     |
 //|  Inspirado na metodologia Daniel Moraes (ToTheMoon v3.5)         |
 //|  Adaptado para Real Brasileiro e minicontratos da Bovespa        |
 //+------------------------------------------------------------------+
 #property copyright   "Projeto Omni-B3"
 #property link        "https://github.com/helveciopereira/Stocks"
-#property version     "2.45"
+#property version     "2.46"
 #property description "Grid Trading Avançado para Minicontratos B3 (WIN/WDO)"
 #property description "12+ modos de fechamento | 12+ indicadores técnicos"
 #property description "Persistência de estado | Recovery | Money Management"
-#property description "NOVO v2.45: Painel Flutuante de Operações e Alvos Virtuais Néon"
+#property description "NOVO v2.46: Painel Flutuante de Operações e Alvos Virtuais Néon"
 #property description "Adaptado para contas NETTING em Real (BRL)"
-#property description "Versao 2.45 com Painel de Operacoes Recentes e Desenhos Graficos"
+#property description "Versao 2.46 com Painel de Operacoes Recentes e Desenhos Graficos"
 
 //+------------------------------------------------------------------+
 //| INCLUDES                                                          |

@@ -1,12 +1,12 @@
 //+------------------------------------------------------------------+
 //|                                                   SingleOrder.mqh |
-//|                     Omni-B3 EA v2.45 — Modo de Ordem Única        |
+//|                     Omni-B3 EA v2.46 — Modo de Ordem Única        |
 //|  Gerenciamento de Trades Individuais com Martingale Sequencial   |
 //|  TP, SL, BreakEven independentes, Trailing Stop e Trailing TP    |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version     "2.45"
+#property version     "2.46"
 #property strict
 
 #include <OmniB3/Defines.mqh>
@@ -104,6 +104,9 @@ public:
     int                 GetConsecutiveLosses() const { return m_consecutive_losses; }
     int                 GetConsecutiveWins()   const { return m_consecutive_wins; }
     double              GetCurrentMultiplier() const { return m_current_multiplier; }
+
+    // Retorna a direção da posição física ativa (1 = COMPRA, -1 = VENDA, 0 = SEM POSIÇÃO)
+    int                 GetPositionDirection();
 };
 
 //+------------------------------------------------------------------+
@@ -145,6 +148,21 @@ CSingleOrder::CSingleOrder() {
 //| Destrutor                                                        |
 //+------------------------------------------------------------------+
 CSingleOrder::~CSingleOrder() {
+}
+
+//+------------------------------------------------------------------+
+//| Retorna a direção da posição física ativa                         |
+//| (1 = COMPRA, -1 = VENDA, 0 = SEM POSIÇÃO)                        |
+//+------------------------------------------------------------------+
+int CSingleOrder::GetPositionDirection() {
+    if(PositionSelect(_Symbol)) {
+        long pos_magic = PositionGetInteger(POSITION_MAGIC);
+        if(pos_magic == m_magic) {
+            long pos_type = PositionGetInteger(POSITION_TYPE);
+            return (pos_type == POSITION_TYPE_BUY) ? 1 : -1;
+        }
+    }
+    return 0;
 }
 
 //+------------------------------------------------------------------+
