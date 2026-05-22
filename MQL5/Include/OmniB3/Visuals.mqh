@@ -1,7 +1,7 @@
-Ôªø//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
 //|                                                      Visuals.mqh |
-//|                     Omni-B3 EA v2.48 ‚Äî M√≥dulo Visual Avan√ßado     |
-//|        Desenho de Alvos Virtuais e Hist√≥rico de Trades no Gr√°fico|
+//|                     Omni-B3 EA v2.48 ó MÛdulo Visual AvanÁado     |
+//|        Desenho de Alvos Virtuais e HistÛrico de Trades no Gr·fico|
 //+------------------------------------------------------------------+
 //| Copyright 2026, Projeto Omni-B3                                 |
 //| https://github.com/helveciopereira/Stocks                        |
@@ -20,45 +20,45 @@
 //+------------------------------------------------------------------+
 class CVisuals {
 private:
-    long     m_chart_id;        // ID do Gr√°fico
+    long     m_chart_id;        // ID do Gr·fico
     int      m_sub_window;      // Sub-janela (0 = principal)
-    string   m_prefix;          // Prefixo √∫nico para evitar conflito com outros EAs
-    int      m_magic_number;    // N√∫mero m√°gico do EA para filtrar trades
+    string   m_prefix;          // Prefixo ˙nico para evitar conflito com outros EAs
+    int      m_magic_number;    // N˙mero m·gico do EA para filtrar trades
     string   m_symbol;          // Ativo operado
     CLogger *m_logger;          // Logger do sistema
-    int      m_last_deals_count;// Quantidade de deals na √∫ltima checagem
+    int      m_last_deals_count;// Quantidade de deals na ˙ltima checagem
 
-    // Cores n√©on premium para manter consist√™ncia est√©tica
-    color    m_color_tp;        // Verde N√©on
-    color    m_color_sl;        // Coral N√©on
-    color    m_color_avg;       // Ciano N√©on (Pre√ßo M√©dio Compra)
-    color    m_color_avg_sell;  // Amarelo N√©on (Pre√ßo M√©dio Venda)
-    color    m_color_text;      // Branco N√©on / Suave
+    // Cores nÈon premium para manter consistÍncia estÈtica
+    color    m_color_tp;        // Verde NÈon
+    color    m_color_sl;        // Coral NÈon
+    color    m_color_avg;       // Ciano NÈon (PreÁo MÈdio Compra)
+    color    m_color_avg_sell;  // Amarelo NÈon (PreÁo MÈdio Venda)
+    color    m_color_text;      // Branco NÈon / Suave
 
-    // M√©todo auxiliar para criar linhas horizontais
+    // MÈtodo auxiliar para criar linhas horizontais
     bool     CreateHLine(string name, double price, color clr, ENUM_LINE_STYLE style, int width, string desc);
-    // M√©todo auxiliar para deletar objetos com base no nome
+    // MÈtodo auxiliar para deletar objetos com base no nome
     void     DeleteObject(string name);
 
 public:
              CVisuals();
             ~CVisuals();
 
-    // Inicializa o m√≥dulo visual
+    // Inicializa o mÛdulo visual
     bool     Init(CLogger *logger, int magic_number, string symbol);
-    // Deinicializa√ß√£o geral, limpa objetos visuais criados
+    // DeinicializaÁ„o geral, limpa objetos visuais criados
     void     Deinit();
 
-    // Limpa todas as linhas de alvos e desenhos do gr√°fico
+    // Limpa todas as linhas de alvos e desenhos do gr·fico
     void     Clear();
 
-    // Atualiza as linhas horizontais virtuais (Pre√ßo M√©dio, Take Profit, Stop Loss)
+    // Atualiza as linhas horizontais virtuais (PreÁo MÈdio, Take Profit, Stop Loss)
     void     DrawTargetLines(bool is_grid_active, double avg_price, double tp_price, double sl_price, int pos_type);
 
-    // Varre o hist√≥rico completo da conta e desenha as setas, conector de tend√™ncia e resultados financeiros
+    // Varre o histÛrico completo da conta e desenha as setas, conector de tendÍncia e resultados financeiros
     void     DrawTradeHistory();
 
-    // Checa se houve novas transa√ß√µes de hist√≥rico e reconstr√≥i se necess√°rio
+    // Checa se houve novas transaÁıes de histÛrico e reconstrÛi se necess·rio
     void     OnTickVisual();
 };
 
@@ -75,10 +75,10 @@ CVisuals::CVisuals() {
     m_last_deals_count = 0;
 
     // Cores Tailored Neon
-    m_color_tp         = C'0,230,180';    // Turquesa/Verde N√©on brilhante
-    m_color_sl         = C'255,80,100';   // Coral N√©on brilhante
-    m_color_avg        = C'0,162,255';    // Azul N√©on brilhante (Compra)
-    m_color_avg_sell   = C'255,193,7';    // Amarelo N√©on brilhante (Venda)
+    m_color_tp         = C'0,230,180';    // Turquesa/Verde NÈon brilhante
+    m_color_sl         = C'255,80,100';   // Coral NÈon brilhante
+    m_color_avg        = C'0,162,255';    // Azul NÈon brilhante (Compra)
+    m_color_avg_sell   = C'255,193,7';    // Amarelo NÈon brilhante (Venda)
     m_color_text       = C'240,242,245';  // Branco premium
 }
 
@@ -90,7 +90,7 @@ CVisuals::~CVisuals() {
 }
 
 //+------------------------------------------------------------------+
-//| Inicializa√ß√£o                                                    |
+//| InicializaÁ„o                                                    |
 //+------------------------------------------------------------------+
 bool CVisuals::Init(CLogger *logger, int magic_number, string symbol) {
     m_logger       = logger;
@@ -99,29 +99,29 @@ bool CVisuals::Init(CLogger *logger, int magic_number, string symbol) {
     m_chart_id     = ChartID();
     m_sub_window   = 0;
 
-    // Ativa exibi√ß√£o de descri√ß√µes de objetos no gr√°fico para podermos ver as legendas das linhas
+    // Ativa exibiÁ„o de descriÁıes de objetos no gr·fico para podermos ver as legendas das linhas
     ChartSetInteger(m_chart_id, CHART_SHOW_OBJECT_DESCR, true);
 
-    // Desativa a exibi√ß√£o autom√°tica do hist√≥rico de transa√ß√µes nativo do MetaTrader 5
-    // para evitar polui√ß√£o visual e conflito com o nosso hist√≥rico de trades premium.
+    // Desativa a exibiÁ„o autom·tica do histÛrico de transaÁıes nativo do MetaTrader 5
+    // para evitar poluiÁ„o visual e conflito com o nosso histÛrico de trades premium.
     ChartSetInteger(m_chart_id, CHART_SHOW_TRADE_HISTORY, false);
 
-    // Desenha o hist√≥rico inicial acumulado de todos os dias operados
+    // Desenha o histÛrico inicial acumulado de todos os dias operados
     DrawTradeHistory();
 
-    if(m_logger != NULL) m_logger.Info("Visuals", "M√≥dulo de desenho gr√°fico premium inicializado para v2.48.");
+    if(m_logger != NULL) m_logger.Info("Visuals", "MÛdulo de desenho gr·fico premium inicializado para v2.48.");
     return true;
 }
 
 //+------------------------------------------------------------------+
-//| Deinicializa√ß√£o                                                  |
+//| DeinicializaÁ„o                                                  |
 //+------------------------------------------------------------------+
 void CVisuals::Deinit() {
     Clear();
 }
 
 //+------------------------------------------------------------------+
-//| Limpa todas as linhas de alvos e desenhos do gr√°fico             |
+//| Limpa todas as linhas de alvos e desenhos do gr·fico             |
 //+------------------------------------------------------------------+
 void CVisuals::Clear() {
     int total = ObjectsTotal(m_chart_id, m_sub_window, -1);
@@ -138,7 +138,7 @@ void CVisuals::Clear() {
 //| Atualiza as linhas horizontais virtuais                          |
 //+------------------------------------------------------------------+
 void CVisuals::DrawTargetLines(bool is_grid_active, double avg_price, double tp_price, double sl_price, int pos_type) {
-    // Se a grade ou posi√ß√£o n√£o estiver ativa, deletamos todas as linhas de alvo
+    // Se a grade ou posiÁ„o n„o estiver ativa, deletamos todas as linhas de alvo
     if(!is_grid_active || avg_price <= 0.0) {
         DeleteObject("Line_Avg");
         DeleteObject("Line_TP");
@@ -147,14 +147,14 @@ void CVisuals::DrawTargetLines(bool is_grid_active, double avg_price, double tp_
         return;
     }
 
-    // 1. Linha do Pre√ßo M√©dio
+    // 1. Linha do PreÁo MÈdio
     color avg_clr = (pos_type == POSITION_TYPE_BUY) ? m_color_avg : m_color_avg_sell;
-    string avg_desc = "OmniB3 PRE√áO M√âDIO VIRTUAL (" + ((pos_type == POSITION_TYPE_BUY) ? "COMPRA" : "VENDA") + "): R$ " + DoubleToString(avg_price, _Digits);
+    string avg_desc = "OmniB3 PRE«O M…DIO VIRTUAL (" + ((pos_type == POSITION_TYPE_BUY) ? "COMPRA" : "VENDA") + "): R$ " + DoubleToString(avg_price, _Digits);
     CreateHLine("Line_Avg", avg_price, avg_clr, STYLE_DASH, 2, avg_desc);
 
     // 2. Linha do Take Profit Virtual
     if(tp_price > 0.0) {
-        // Estima o ganho com base nos pontos do TP at√© a m√©dia (valores meramente indicativos no r√≥tulo)
+        // Estima o ganho com base nos pontos do TP atÈ a mÈdia (valores meramente indicativos no rÛtulo)
         double diff_points = MathAbs(tp_price - avg_price);
         string tp_desc = "OmniB3 ALVO TAKE PROFIT VIRTUAL (+R$): R$ " + DoubleToString(tp_price, _Digits);
         CreateHLine("Line_TP", tp_price, m_color_tp, STYLE_SOLID, 2, tp_desc);
@@ -164,7 +164,7 @@ void CVisuals::DrawTargetLines(bool is_grid_active, double avg_price, double tp_
 
     // 3. Linha do Stop Loss Virtual
     if(sl_price > 0.0) {
-        string sl_desc = "OmniB3 PROTE√á√É∆íO STOP LOSS VIRTUAL (TRILING): R$ " + DoubleToString(sl_price, _Digits);
+        string sl_desc = "OmniB3 PROTE«„O STOP LOSS VIRTUAL (TRILING): R$ " + DoubleToString(sl_price, _Digits);
         CreateHLine("Line_SL", sl_price, m_color_sl, STYLE_SOLID, 2, sl_desc);
     } else {
         DeleteObject("Line_SL");
@@ -174,21 +174,21 @@ void CVisuals::DrawTargetLines(bool is_grid_active, double avg_price, double tp_
 }
 
 //+------------------------------------------------------------------+
-//| Desenha as setas, conector de tend√™ncia e resultados no gr√°fico  |
+//| Desenha as setas, conector de tendÍncia e resultados no gr·fico  |
 //+------------------------------------------------------------------+
 void CVisuals::DrawTradeHistory() {
-    // Solicita o hist√≥rico completo da conta desde o primeiro registro (tempo = 0)
+    // Solicita o histÛrico completo da conta desde o primeiro registro (tempo = 0)
     if(!HistorySelect(0, TimeCurrent())) {
-        if(m_logger != NULL) m_logger.Error("Visuals", "Erro ao carregar hist√≥rico de transa√ß√µes.");
+        if(m_logger != NULL) m_logger.Error("Visuals", "Erro ao carregar histÛrico de transaÁıes.");
         return;
     }
 
     int total_deals = HistoryDealsTotal();
     m_last_deals_count = total_deals;
 
-    // Estruturas auxiliares para agrupar as entradas de cada Posi√ß√£o
-    // Chave: ID da Posi√ß√£o, Valor: √É¬çndice do Deal ou Pre√ßo/Tempo correspondente
-    // Como MQL5 nativo n√£o tem mapas associativos din√¢micos r√°pidos, usaremos arrays paralelos simples
+    // Estruturas auxiliares para agrupar as entradas de cada PosiÁ„o
+    // Chave: ID da PosiÁ„o, Valor: √?ndice do Deal ou PreÁo/Tempo correspondente
+    // Como MQL5 nativo n„o tem mapas associativos din‚micos r·pidos, usaremos arrays paralelos simples
     long   pos_ids[];
     double entry_prices[];
     datetime entry_times[];
@@ -210,15 +210,15 @@ void CVisuals::DrawTradeHistory() {
         long   entry_type  = HistoryDealGetInteger(ticket, DEAL_ENTRY);
         long   pos_id      = HistoryDealGetInteger(ticket, DEAL_POSITION_ID);
 
-        // Filtro de consist√™ncia r√≠gido: mesmo s√≠mbolo e mesmo magic number
+        // Filtro de consistÍncia rÌgido: mesmo sÌmbolo e mesmo magic number
         if(deal_symbol != m_symbol || deal_magic != m_magic_number) continue;
 
         if(entry_type == DEAL_ENTRY_IN) {
-            // Registra a entrada desta posi√ß√£o
+            // Registra a entrada desta posiÁ„o
             bool found = false;
             for(int j=0; j<pos_count; j++) {
                 if(pos_ids[j] == pos_id) {
-                    // Posi√ß√£o j√° registrada (pode ser aumento de posi√ß√£o na grade). Mantemos a primeira entrada.
+                    // PosiÁ„o j· registrada (pode ser aumento de posiÁ„o na grade). Mantemos a primeira entrada.
                     found = true;
                     break;
                 }
@@ -233,7 +233,7 @@ void CVisuals::DrawTradeHistory() {
         }
     }
 
-    // Segundo passo: Localiza as sa√≠das (DEAL_ENTRY_OUT) e desenha os caminhos e resultados correspondentes
+    // Segundo passo: Localiza as saÌdas (DEAL_ENTRY_OUT) e desenha os caminhos e resultados correspondentes
     for(int i = 0; i < total_deals; i++) {
         ulong ticket = HistoryDealGetTicket(i);
         if(ticket == 0) continue;
@@ -253,7 +253,7 @@ void CVisuals::DrawTradeHistory() {
             double swap       = HistoryDealGetDouble(ticket, DEAL_SWAP);
             double net_profit = profit + commission + swap;
 
-            // Busca a entrada correspondente a esta posi√ß√£o ID
+            // Busca a entrada correspondente a esta posiÁ„o ID
             int entry_idx = -1;
             for(int j = 0; j < pos_count; j++) {
                 if(pos_ids[j] == pos_id) {
@@ -267,7 +267,7 @@ void CVisuals::DrawTradeHistory() {
                 datetime ent_time = entry_times[entry_idx];
                 int ent_type     = entry_types[entry_idx];
 
-                // Identificadores √∫nicos dos objetos gr√°ficos para esta transa√ß√£o espec√≠fica
+                // Identificadores ˙nicos dos objetos gr·ficos para esta transaÁ„o especÌfica
                 string suffix = "_" + IntegerToString(pos_id) + "_" + IntegerToString(exit_time);
                 string entry_arrow_name = m_prefix + "EntryArrow" + suffix;
                 string exit_arrow_name  = m_prefix + "ExitArrow" + suffix;
@@ -285,10 +285,10 @@ void CVisuals::DrawTradeHistory() {
                     ObjectSetInteger(m_chart_id, entry_arrow_name, OBJPROP_HIDDEN, true);
                 }
 
-                // 2. Seta de Sa√≠da
+                // 2. Seta de SaÌda
                 if(ObjectFind(m_chart_id, exit_arrow_name) < 0) {
                     ObjectCreate(m_chart_id, exit_arrow_name, OBJ_ARROW, m_sub_window, exit_time, exit_price);
-                    ObjectSetInteger(m_chart_id, exit_arrow_name, OBJPROP_ARROWCODE, 252); // Seta em forma de X de sa√≠da / fechamento
+                    ObjectSetInteger(m_chart_id, exit_arrow_name, OBJPROP_ARROWCODE, 252); // Seta em forma de X de saÌda / fechamento
                     ObjectSetInteger(m_chart_id, exit_arrow_name, OBJPROP_COLOR, (net_profit >= 0.0) ? m_color_tp : m_color_sl);
                     ObjectSetInteger(m_chart_id, exit_arrow_name, OBJPROP_WIDTH, 2);
                     ObjectSetInteger(m_chart_id, exit_arrow_name, OBJPROP_BACK, true);
@@ -296,21 +296,21 @@ void CVisuals::DrawTradeHistory() {
                     ObjectSetInteger(m_chart_id, exit_arrow_name, OBJPROP_HIDDEN, true);
                 }
 
-                // 3. Linha Conectora de Tend√™ncia (Entrada -> Sa√≠da)
+                // 3. Linha Conectora de TendÍncia (Entrada -> SaÌda)
                 if(ObjectFind(m_chart_id, trend_line_name) < 0) {
                     ObjectCreate(m_chart_id, trend_line_name, OBJ_TREND, m_sub_window, ent_time, ent_price, exit_time, exit_price);
                     ObjectSetInteger(m_chart_id, trend_line_name, OBJPROP_COLOR, (net_profit >= 0.0) ? m_color_tp : m_color_sl);
                     ObjectSetInteger(m_chart_id, trend_line_name, OBJPROP_STYLE, STYLE_DOT); // Linha pontilhada estilizada
                     ObjectSetInteger(m_chart_id, trend_line_name, OBJPROP_WIDTH, 1);
-                    ObjectSetInteger(m_chart_id, trend_line_name, OBJPROP_RAY_RIGHT, false); // N√£o estender a linha para a direita
+                    ObjectSetInteger(m_chart_id, trend_line_name, OBJPROP_RAY_RIGHT, false); // N„o estender a linha para a direita
                     ObjectSetInteger(m_chart_id, trend_line_name, OBJPROP_BACK, true);
                     ObjectSetInteger(m_chart_id, trend_line_name, OBJPROP_SELECTABLE, false);
                     ObjectSetInteger(m_chart_id, trend_line_name, OBJPROP_HIDDEN, true);
                 }
 
-                // 4. Texto Flutuante com o Valor Monet√°rio Obtido (P&L Formatado N√©on em Negrito)
+                // 4. Texto Flutuante com o Valor Monet·rio Obtido (P&L Formatado NÈon em Negrito)
                 if(ObjectFind(m_chart_id, text_lbl_name) < 0) {
-                    // Calcula um offset vertical leve para o texto n√£o sobrepor a seta (ex: 25 pontos de WIN)
+                    // Calcula um offset vertical leve para o texto n„o sobrepor a seta (ex: 25 pontos de WIN)
                     double offset = 0.0;
                     double point_val = SymbolInfoDouble(m_symbol, SYMBOL_POINT);
                     if(point_val > 0.0) {
@@ -320,14 +320,14 @@ void CVisuals::DrawTradeHistory() {
                     
                     ObjectCreate(m_chart_id, text_lbl_name, OBJ_TEXT, m_sub_window, exit_time, exit_price + offset);
                     
-                    // Formata√ß√£o premium do resultado da opera√ß√£o conforme especifica√ß√£o:
-                    // Lucro: +R$ X.XX em Azul N√©on (C'0,229,255') e em negrito.
-                    // Preju√≠zo: -R$ X.XX em Vermelho (C'255,0,0') e em negrito.
+                    // FormataÁ„o premium do resultado da operaÁ„o conforme especificaÁ„o:
+                    // Lucro: +R$ X.XX em Azul NÈon (C'0,229,255') e em negrito.
+                    // PrejuÌzo: -R$ X.XX em Vermelho (C'255,0,0') e em negrito.
                     string text_out = "";
                     color text_color;
                     if(net_profit >= 0.0) {
                         text_out = "+R$ " + DoubleToString(net_profit, 2);
-                        text_color = C'0,229,255'; // Azul N√©on vibrante
+                        text_color = C'0,229,255'; // Azul NÈon vibrante
                     } else {
                         text_out = "-R$ " + DoubleToString(MathAbs(net_profit), 2);
                         text_color = C'255,0,0'; // Vermelho vibrante
@@ -350,10 +350,10 @@ void CVisuals::DrawTradeHistory() {
 }
 
 //+------------------------------------------------------------------+
-//| Loop Otimizado de Tick para monitorar novas transa√ß√µes           |
+//| Loop Otimizado de Tick para monitorar novas transaÁıes           |
 //+------------------------------------------------------------------+
 void CVisuals::OnTickVisual() {
-    // Chamamos a varredura do hist√≥rico apenas se o n√∫mero de deals na conta mudou
+    // Chamamos a varredura do histÛrico apenas se o n˙mero de deals na conta mudou
     // Isso economiza 99.9% de processamento comparado com rodar a cada varredura pura
     if(HistorySelect(0, TimeCurrent())) {
         int current_deals = HistoryDealsTotal();
@@ -364,12 +364,12 @@ void CVisuals::OnTickVisual() {
 }
 
 //+------------------------------------------------------------------+
-//| Auxiliar: Cria√ß√£o ou atualiza√ß√£o de HLINE                        |
+//| Auxiliar: CriaÁ„o ou atualizaÁ„o de HLINE                        |
 //+------------------------------------------------------------------+
 bool CVisuals::CreateHLine(string name, double price, color clr, ENUM_LINE_STYLE style, int width, string desc) {
     string obj_name = m_prefix + name;
 
-    // Se j√° existir, apenas move o pre√ßo e atualiza a descri√ß√£o
+    // Se j· existir, apenas move o preÁo e atualiza a descriÁ„o
     if(ObjectFind(m_chart_id, obj_name) >= 0) {
         ObjectSetDouble(m_chart_id, obj_name, OBJPROP_PRICE, price);
         ObjectSetString(m_chart_id, obj_name, OBJPROP_TEXT, desc);

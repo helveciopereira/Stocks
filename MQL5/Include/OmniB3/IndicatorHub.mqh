@@ -1,7 +1,7 @@
-ï»¿ï»¿//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
 //|                                                IndicatorHub.mqh  |
-//|              Omni-B3 EA v2.48 â€” Hub Central de Indicadores        |
-//|       Sistema unificado de sinais e filtros tÃ©cnicos              |
+//|              Omni-B3 EA v2.48 — Hub Central de Indicadores        |
+//|       Sistema unificado de sinais e filtros técnicos              |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
@@ -12,20 +12,20 @@
 #include "Logger.mqh"
 
 //+------------------------------------------------------------------+
-//| Hub centralizado de indicadores tÃ©cnicos                          |
+//| Hub centralizado de indicadores técnicos                          |
 //|                                                                   |
-//| Gerencia handles compartilhados para evitar duplicaÃ§Ã£o de         |
-//| cÃ¡lculos. Cada indicador retorna um sinal normalizado:            |
+//| Gerencia handles compartilhados para evitar duplicação de         |
+//| cálculos. Cada indicador retorna um sinal normalizado:            |
 //|   +1 = compra, -1 = venda, 0 = neutro                            |
-//| O sistema suporta 1 indicador principal + 4 confirmaÃ§Ãµes          |
-//| e filtros independentes que bloqueiam operaÃ§Ãµes.                  |
+//| O sistema suporta 1 indicador principal + 4 confirmações          |
+//| e filtros independentes que bloqueiam operações.                  |
 //+------------------------------------------------------------------+
 class CIndicatorHub {
 private:
     string          m_symbol;
     CLogger        *m_logger;
 
-    // Handles dos indicadores (INVALID_HANDLE = nÃ£o utilizado)
+    // Handles dos indicadores (INVALID_HANDLE = não utilizado)
     int  m_h_rsi;
     int  m_h_cci;
     int  m_h_bb;           // Bollinger Bands
@@ -36,18 +36,18 @@ private:
     int  m_h_adx;
     int  m_h_hilo;         // Usaremos MA para simular
 
-    // ConfiguraÃ§Ãµes dos indicadores
+    // Configurações dos indicadores
     // --- RSI ---
     int             m_rsi_period;
     ENUM_TIMEFRAMES m_rsi_tf;
-    double          m_rsi_upper;       // NÃ­vel de sobrecompra (ex: 70)
-    double          m_rsi_lower;       // NÃ­vel de sobrevenda (ex: 30)
+    double          m_rsi_upper;       // Nível de sobrecompra (ex: 70)
+    double          m_rsi_lower;       // Nível de sobrevenda (ex: 30)
 
     // --- CCI ---
     int             m_cci_period;
     ENUM_TIMEFRAMES m_cci_tf;
-    double          m_cci_upper;       // NÃ­vel superior (ex: 100)
-    double          m_cci_lower;       // NÃ­vel inferior (ex: -100)
+    double          m_cci_upper;       // Nível superior (ex: 100)
+    double          m_cci_lower;       // Nível inferior (ex: -100)
 
     // --- Bollinger Bands ---
     int             m_bb_period;
@@ -59,7 +59,7 @@ private:
     ENUM_TIMEFRAMES m_env_tf;
     double          m_env_deviation;
 
-    // --- MÃ©dias MÃ³veis ---
+    // --- Médias Móveis ---
     int             m_ma_fast_period;
     int             m_ma_slow_period;
     ENUM_TIMEFRAMES m_ma_tf;
@@ -72,19 +72,19 @@ private:
     // --- ADX (para filtro) ---
     int             m_adx_period;
     ENUM_TIMEFRAMES m_adx_tf;
-    double          m_adx_min;         // ForÃ§a mÃ­nima da tendÃªncia
+    double          m_adx_min;         // Força mínima da tendência
 
     // --- HILO ---
     int             m_hilo_period;
     ENUM_TIMEFRAMES m_hilo_tf;
 
     // --- Filtros ---
-    double          m_atr_filter_min;  // ATR mÃ­nimo para operar
-    double          m_atr_filter_max;  // ATR mÃ¡ximo para operar
-    long            m_vol_filter_min;  // Volume mÃ­nimo
+    double          m_atr_filter_min;  // ATR mínimo para operar
+    double          m_atr_filter_max;  // ATR máximo para operar
+    long            m_vol_filter_min;  // Volume mínimo
 
     //+--------------------------------------------------------------+
-    //| LÃª valor de buffer de um indicador                           |
+    //| Lê valor de buffer de um indicador                           |
     //+--------------------------------------------------------------+
     double ReadBuffer(int handle, int buffer_index, int shift = 0) {
         if(handle == INVALID_HANDLE) return 0.0;
@@ -94,19 +94,19 @@ private:
     }
 
     //+--------------------------------------------------------------+
-    //| Sinal do RSI â€” sobrecompra/sobrevenda                        |
+    //| Sinal do RSI — sobrecompra/sobrevenda                        |
     //| Compra quando RSI < lower, Venda quando RSI > upper          |
     //+--------------------------------------------------------------+
     int GetRSISignal() {
         double rsi = ReadBuffer(m_h_rsi, 0);
         if(rsi <= 0.0) return 0;
-        if(rsi < m_rsi_lower) return +1;   // Sobrevenda Ã¢â€ â€™ compra
-        if(rsi > m_rsi_upper) return -1;   // Sobrecompra Ã¢â€ â€™ venda
+        if(rsi < m_rsi_lower) return +1;   // Sobrevenda â†’ compra
+        if(rsi > m_rsi_upper) return -1;   // Sobrecompra â†’ venda
         return 0;
     }
 
     //+--------------------------------------------------------------+
-    //| Sinal do CCI â€” cruzamento de nÃ­veis                          |
+    //| Sinal do CCI — cruzamento de níveis                          |
     //| Compra quando CCI < lower, Venda quando CCI > upper          |
     //+--------------------------------------------------------------+
     int GetCCISignal() {
@@ -117,9 +117,9 @@ private:
     }
 
     //+--------------------------------------------------------------+
-    //| Sinal das Bollinger Bands â€” toque nas bandas                 |
-    //| Compra quando preÃ§o toca banda inferior                      |
-    //| Venda quando preÃ§o toca banda superior                       |
+    //| Sinal das Bollinger Bands — toque nas bandas                 |
+    //| Compra quando preço toca banda inferior                      |
+    //| Venda quando preço toca banda superior                       |
     //+--------------------------------------------------------------+
     int GetBollingerSignal() {
         double upper = ReadBuffer(m_h_bb, 1);  // Banda superior
@@ -127,13 +127,13 @@ private:
         double bid   = SymbolInfoDouble(m_symbol, SYMBOL_BID);
 
         if(upper <= 0.0 || lower <= 0.0) return 0;
-        if(bid <= lower) return +1;   // PreÃ§o na banda inferior Ã¢â€ â€™ compra
-        if(bid >= upper) return -1;   // PreÃ§o na banda superior Ã¢â€ â€™ venda
+        if(bid <= lower) return +1;   // Preço na banda inferior â†’ compra
+        if(bid >= upper) return -1;   // Preço na banda superior â†’ venda
         return 0;
     }
 
     //+--------------------------------------------------------------+
-    //| Sinal dos Envelopes â€” preÃ§o fora do envelope                 |
+    //| Sinal dos Envelopes — preço fora do envelope                 |
     //+--------------------------------------------------------------+
     int GetEnvelopesSignal() {
         double upper = ReadBuffer(m_h_envelopes, 0);  // Envelope superior
@@ -147,8 +147,8 @@ private:
     }
 
     //+--------------------------------------------------------------+
-    //| Sinal das MÃ©dias MÃ³veis â€” cruzamento rÃ¡pida/lenta            |
-    //| Compra quando rÃ¡pida > lenta, Venda quando rÃ¡pida < lenta    |
+    //| Sinal das Médias Móveis — cruzamento rápida/lenta            |
+    //| Compra quando rápida > lenta, Venda quando rápida < lenta    |
     //+--------------------------------------------------------------+
     int GetMASignal() {
         double ma_fast = ReadBuffer(m_h_ma_fast, 0);
@@ -156,22 +156,22 @@ private:
 
         if(ma_fast <= 0.0 || ma_slow <= 0.0) return 0;
 
-        // Verifica cruzamento com margem para evitar ruÃ­do
+        // Verifica cruzamento com margem para evitar ruído
         double diff = ma_fast - ma_slow;
         double point = SymbolInfoDouble(m_symbol, SYMBOL_POINT);
-        double min_diff = point * 5.0; // MÃ­nimo de 5 pontos de diferenÃ§a
+        double min_diff = point * 5.0; // Mínimo de 5 pontos de diferença
 
-        if(diff > min_diff)  return +1;  // RÃ¡pida acima Ã¢â€ â€™ compra
-        if(diff < -min_diff) return -1;  // RÃ¡pida abaixo Ã¢â€ â€™ venda
+        if(diff > min_diff)  return +1;  // Rápida acima â†’ compra
+        if(diff < -min_diff) return -1;  // Rápida abaixo â†’ venda
         return 0;
     }
 
     //+--------------------------------------------------------------+
-    //| Sinal do HILO â€” High-Low Activator                           |
+    //| Sinal do HILO — High-Low Activator                           |
     //| Simula com MA sobre High e Low                               |
     //+--------------------------------------------------------------+
     int GetHILOSignal() {
-        // HILO usa MA sobre os mÃ¡ximos e mÃ­nimos dos candles
+        // HILO usa MA sobre os máximos e mínimos dos candles
         double hilo_val = ReadBuffer(m_h_hilo, 0);
         double bid = SymbolInfoDouble(m_symbol, SYMBOL_BID);
 
@@ -182,16 +182,16 @@ private:
     }
 
     //+--------------------------------------------------------------+
-    //| Sinal do ADX â€” forÃ§a da tendÃªncia                            |
+    //| Sinal do ADX — força da tendência                            |
     //| Compra quando DI+ > DI-, Venda quando DI- > DI+             |
-    //| SÃ³ sinaliza se ADX > mÃ­nimo (tendÃªncia forte)                |
+    //| Só sinaliza se ADX > mínimo (tendência forte)                |
     //+--------------------------------------------------------------+
     int GetADXSignal() {
         double adx   = ReadBuffer(m_h_adx, 0);  // ADX principal
         double di_up = ReadBuffer(m_h_adx, 1);   // +DI
         double di_dn = ReadBuffer(m_h_adx, 2);   // -DI
 
-        if(adx < m_adx_min) return 0;  // TendÃªncia fraca
+        if(adx < m_adx_min) return 0;  // Tendência fraca
         if(di_up > di_dn) return +1;
         if(di_dn > di_up) return -1;
         return 0;
@@ -199,7 +199,7 @@ private:
 
 public:
     //+--------------------------------------------------------------+
-    //| Construtor â€” inicializa todos os handles como invÃ¡lidos      |
+    //| Construtor — inicializa todos os handles como inválidos      |
     //+--------------------------------------------------------------+
     CIndicatorHub(string symbol, CLogger *logger) {
         m_symbol = symbol;
@@ -227,7 +227,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Destrutor â€” libera todos os handles de indicadores           |
+    //| Destrutor — libera todos os handles de indicadores           |
     //+--------------------------------------------------------------+
     ~CIndicatorHub() {
         if(m_h_rsi       != INVALID_HANDLE) IndicatorRelease(m_h_rsi);
@@ -242,7 +242,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Configura parÃ¢metros do RSI                                   |
+    //| Configura parâmetros do RSI                                   |
     //+--------------------------------------------------------------+
     void SetupRSI(int period, ENUM_TIMEFRAMES tf, double upper, double lower) {
         m_rsi_period = period;  m_rsi_tf = tf;
@@ -250,7 +250,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Configura parÃ¢metros do CCI                                   |
+    //| Configura parâmetros do CCI                                   |
     //+--------------------------------------------------------------+
     void SetupCCI(int period, ENUM_TIMEFRAMES tf, double upper, double lower) {
         m_cci_period = period;  m_cci_tf = tf;
@@ -258,21 +258,21 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Configura parÃ¢metros das Bollinger Bands                      |
+    //| Configura parâmetros das Bollinger Bands                      |
     //+--------------------------------------------------------------+
     void SetupBollinger(int period, ENUM_TIMEFRAMES tf, double deviation) {
         m_bb_period = period;  m_bb_tf = tf;  m_bb_deviation = deviation;
     }
 
     //+--------------------------------------------------------------+
-    //| Configura parÃ¢metros dos Envelopes                            |
+    //| Configura parâmetros dos Envelopes                            |
     //+--------------------------------------------------------------+
     void SetupEnvelopes(int period, ENUM_TIMEFRAMES tf, double deviation) {
         m_env_period = period;  m_env_tf = tf;  m_env_deviation = deviation;
     }
 
     //+--------------------------------------------------------------+
-    //| Configura parÃ¢metros das MÃ©dias MÃ³veis                        |
+    //| Configura parâmetros das Médias Móveis                        |
     //+--------------------------------------------------------------+
     void SetupMA(int fast_period, int slow_period, ENUM_TIMEFRAMES tf, ENUM_MA_METHOD method) {
         m_ma_fast_period = fast_period;  m_ma_slow_period = slow_period;
@@ -280,7 +280,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Configura parÃ¢metros do ATR (para filtro e grid dinÃ¢mica)     |
+    //| Configura parâmetros do ATR (para filtro e grid dinâmica)     |
     //+--------------------------------------------------------------+
     void SetupATR(int period, ENUM_TIMEFRAMES tf, double filter_min, double filter_max) {
         m_atr_period = period;  m_atr_tf = tf;
@@ -288,14 +288,14 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Configura parÃ¢metros do ADX                                   |
+    //| Configura parâmetros do ADX                                   |
     //+--------------------------------------------------------------+
     void SetupADX(int period, ENUM_TIMEFRAMES tf, double min_level) {
         m_adx_period = period;  m_adx_tf = tf;  m_adx_min = min_level;
     }
 
     //+--------------------------------------------------------------+
-    //| Configura parÃ¢metros do HILO                                  |
+    //| Configura parâmetros do HILO                                  |
     //+--------------------------------------------------------------+
     void SetupHILO(int period, ENUM_TIMEFRAMES tf) {
         m_hilo_period = period;  m_hilo_tf = tf;
@@ -309,8 +309,8 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Inicializa handles de indicadores que serÃ£o usados            |
-    //| Chame apÃ³s todas as configuraÃ§Ãµes SetupXxx()                 |
+    //| Inicializa handles de indicadores que serão usados            |
+    //| Chame após todas as configurações SetupXxx()                 |
     //| active_signals: array com indicadores ativos                  |
     //+--------------------------------------------------------------+
     bool Initialize(ENUM_INDICATOR_SIGNAL &active_signals[], int count) {
@@ -346,11 +346,11 @@ public:
                     m_h_ma_fast = iMA(m_symbol, m_ma_tf, m_ma_fast_period, 0, m_ma_method, PRICE_CLOSE);
                     m_h_ma_slow = iMA(m_symbol, m_ma_tf, m_ma_slow_period, 0, m_ma_method, PRICE_CLOSE);
                     if(m_h_ma_fast == INVALID_HANDLE || m_h_ma_slow == INVALID_HANDLE) { ok = false; m_logger.Error("IndHub", "Falha MAs"); }
-                    else m_logger.Info("IndHub", StringFormat("MAs: RÃ¡pida=%d Lenta=%d", m_ma_fast_period, m_ma_slow_period));
+                    else m_logger.Info("IndHub", StringFormat("MAs: Rápida=%d Lenta=%d", m_ma_fast_period, m_ma_slow_period));
                     break;
 
                 case OB3_IND_HILO:
-                    // HILO simulado com MA sobre preÃ§o mediano (high+low)/2
+                    // HILO simulado com MA sobre preço mediano (high+low)/2
                     m_h_hilo = iMA(m_symbol, m_hilo_tf, m_hilo_period, 0, MODE_SMA, PRICE_MEDIAN);
                     if(m_h_hilo == INVALID_HANDLE) { ok = false; m_logger.Error("IndHub", "Falha HILO"); }
                     else m_logger.Info("IndHub", StringFormat("HILO: P=%d", m_hilo_period));
@@ -374,11 +374,11 @@ public:
             }
         }
 
-        // Inicializa ATR para filtros (se ainda nÃ£o criado)
+        // Inicializa ATR para filtros (se ainda não criado)
         if(m_h_atr == INVALID_HANDLE) {
             m_h_atr = iATR(m_symbol, m_atr_tf, m_atr_period);
             if(m_h_atr == INVALID_HANDLE)
-                m_logger.Warning("IndHub", "ATR para filtros nÃ£o disponÃ­vel");
+                m_logger.Warning("IndHub", "ATR para filtros não disponível");
             else
                 m_logger.Info("IndHub", StringFormat("ATR (filtro): P=%d", m_atr_period));
         }
@@ -387,7 +387,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| ObtÃ©m sinal de um indicador especÃ­fico                       |
+    //| Obtém sinal de um indicador específico                       |
     //| Retorna: +1 (compra), -1 (venda), 0 (neutro)                |
     //+--------------------------------------------------------------+
     int GetSignal(ENUM_INDICATOR_SIGNAL indicator, ENUM_INDICATOR_STRATEGY strategy) {
@@ -407,20 +407,20 @@ public:
             default:                      return 0;
         }
 
-        // Aplica estratÃ©gia
+        // Aplica estratégia
         if(strategy == STRAT_REVERSE) raw_signal *= -1;
         return raw_signal;
     }
 
     //+--------------------------------------------------------------+
-    //| ObtÃ©m sinal composto (principal + confirmaÃ§Ãµes)              |
+    //| Obtém sinal composto (principal + confirmações)              |
     //| main_signal: indicador principal                              |
-    //| main_strategy: estratÃ©gia do principal                       |
-    //| confirms[]: array de indicadores de confirmaÃ§Ã£o               |
-    //| confirm_strats[]: estratÃ©gias correspondentes                 |
-    //| confirm_count: quantidade de confirmaÃ§Ãµes                     |
+    //| main_strategy: estratégia do principal                       |
+    //| confirms[]: array de indicadores de confirmação               |
+    //| confirm_strats[]: estratégias correspondentes                 |
+    //| confirm_count: quantidade de confirmações                     |
     //|                                                               |
-    //| Retorna sinal apenas se TODOS concordam (ou sÃ£o neutros)     |
+    //| Retorna sinal apenas se TODOS concordam (ou são neutros)     |
     //+--------------------------------------------------------------+
     int GetCompositeSignal(ENUM_INDICATOR_SIGNAL main_signal,
                            ENUM_INDICATOR_STRATEGY main_strategy,
@@ -429,19 +429,19 @@ public:
                            int confirm_count) {
         // Sinal do indicador principal
         int primary = GetSignal(main_signal, main_strategy);
-        if(primary == 0) return 0;  // Principal neutro Ã¢â€ â€™ sem operaÃ§Ã£o
+        if(primary == 0) return 0;  // Principal neutro â†’ sem operação
 
-        // Verifica confirmaÃ§Ãµes (se ativas)
+        // Verifica confirmações (se ativas)
         for(int i = 0; i < confirm_count && i < MAX_CONFIRMATIONS; i++) {
             if(confirms[i] == OB3_IND_NONE || confirm_strats[i] == STRAT_DISABLED)
                 continue;
 
             int conf_signal = GetSignal(confirms[i], confirm_strats[i]);
 
-            // Se confirmaÃ§Ã£o deu sinal contrÃ¡rio, bloqueia
+            // Se confirmação deu sinal contrário, bloqueia
             if(conf_signal != 0 && conf_signal != primary) {
                 m_logger.Debug("IndHub",
-                    StringFormat("Bloqueado por confirmaÃ§Ã£o %d: principal=%d confirm=%d",
+                    StringFormat("Bloqueado por confirmação %d: principal=%d confirm=%d",
                                  i, primary, conf_signal));
                 return 0;
             }
@@ -451,13 +451,13 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Verifica filtro de ATR â€” volatilidade dentro da faixa?       |
+    //| Verifica filtro de ATR — volatilidade dentro da faixa?       |
     //+--------------------------------------------------------------+
     bool PassATRFilter() {
         if(m_atr_filter_min <= 0.0 && m_atr_filter_max >= 999999.0) return true;
 
         double atr = ReadBuffer(m_h_atr, 0);
-        if(atr <= 0.0) return true;  // Sem dados Ã¢â€ â€™ permite
+        if(atr <= 0.0) return true;  // Sem dados â†’ permite
 
         if(atr < m_atr_filter_min || atr > m_atr_filter_max) {
             m_logger.Debug("IndHub",
@@ -469,7 +469,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Verifica filtro de ADX â€” tendÃªncia forte o suficiente?       |
+    //| Verifica filtro de ADX — tendência forte o suficiente?       |
     //+--------------------------------------------------------------+
     bool PassADXFilter() {
         if(m_h_adx == INVALID_HANDLE) return true;
@@ -483,7 +483,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Verifica filtro de Volume â€” volume suficiente?                |
+    //| Verifica filtro de Volume — volume suficiente?                |
     //+--------------------------------------------------------------+
     bool PassVolumeFilter() {
         if(m_vol_filter_min <= 0) return true;
@@ -497,7 +497,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Verifica TODOS os filtros ativos de uma sÃ³ vez                |
+    //| Verifica TODOS os filtros ativos de uma só vez                |
     //+--------------------------------------------------------------+
     bool PassAllFilters() {
         if(!PassATRFilter())    return false;
@@ -507,14 +507,14 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| ObtÃ©m valor atual do ATR (para uso pelo GridEngine e outros) |
+    //| Obtém valor atual do ATR (para uso pelo GridEngine e outros) |
     //+--------------------------------------------------------------+
     double GetATRValue() {
         return ReadBuffer(m_h_atr, 0);
     }
 
     //+--------------------------------------------------------------+
-    //| ObtÃ©m valor atual do ADX                                      |
+    //| Obtém valor atual do ADX                                      |
     //+--------------------------------------------------------------+
     double GetADXValue() {
         return ReadBuffer(m_h_adx, 0);

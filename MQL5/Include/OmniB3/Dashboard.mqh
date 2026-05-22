@@ -1,8 +1,8 @@
-ÔªøÔªø//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
 //|                                                    Dashboard.mqh |
-//|                       Omni-B3 EA v2.35 ‚Äî Painel Gr√°fico Visual    |
-//|        Exibi√ß√£o de Estat√≠sticas em Tempo Real e Bot√µes de A√ß√£o   |
-//|  Criado com design premium n√©on, suporte a temas e micro-pain√©is|
+//|                       Omni-B3 EA v2.35 ó Painel Gr·fico Visual    |
+//|        ExibiÁ„o de EstatÌsticas em Tempo Real e Botıes de AÁ„o   |
+//|  Criado com design premium nÈon, suporte a temas e micro-painÈis|
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
@@ -14,35 +14,35 @@
 
 //+------------------------------------------------------------------+
 //| CLASSE CDashboard                                                |
-//| Gerencia toda a interface gr√°fica do rob√¥ no gr√°fico do MT5       |
+//| Gerencia toda a interface gr·fica do robÙ no gr·fico do MT5       |
 //+------------------------------------------------------------------+
 class CDashboard {
 private:
-    long                 m_chart_id;        // ID do Gr√°fico atual
-    int                  m_sub_window;      // Sub-janela (0 = gr√°fico principal)
-    string               m_prefix;          // Prefixo para objetos gr√°ficos √∫nicos
+    long                 m_chart_id;        // ID do Gr·fico atual
+    int                  m_sub_window;      // Sub-janela (0 = gr·fico principal)
+    string               m_prefix;          // Prefixo para objetos gr·ficos ˙nicos
     ENUM_DASHBOARD_THEME m_theme;           // Tema de cores ativo
     bool                 m_is_visible;      // Visibilidade do painel
-    bool                 m_is_paused;       // Estado do bot√£o de pausa do EA
+    bool                 m_is_paused;       // Estado do bot„o de pausa do EA
     CLogger             *m_logger;          // Ponteiro para o Logger centralizado
     
     // Cores de acordo com o tema
     color                m_color_bg;        // Cor de fundo principal
     color                m_color_border;    // Cor das bordas
-    color                m_color_text;      // Cor do texto padr√£o
-    color                m_color_positive;  // Cor de destaque positivo (Verde/Azul N√©on)
-    color                m_color_negative;  // Cor de destaque negativo (Vermelho N√©on)
-    color                m_color_accent;    // Cor de destaque secund√°ria
-    color                m_color_button;    // Cor de fundo dos bot√µes
-    color                m_color_btn_text;  // Cor do texto dos bot√µes
+    color                m_color_text;      // Cor do texto padr„o
+    color                m_color_positive;  // Cor de destaque positivo (Verde/Azul NÈon)
+    color                m_color_negative;  // Cor de destaque negativo (Vermelho NÈon)
+    color                m_color_accent;    // Cor de destaque secund·ria
+    color                m_color_button;    // Cor de fundo dos botıes
+    color                m_color_btn_text;  // Cor do texto dos botıes
 
-    // Dimens√µes e posicionamento
-    int                  m_x_offset;        // Dist√¢ncia do canto esquerdo
-    int                  m_y_offset;        // Dist√¢ncia do topo
+    // Dimensıes e posicionamento
+    int                  m_x_offset;        // Dist‚ncia do canto esquerdo
+    int                  m_y_offset;        // Dist‚ncia do topo
     int                  m_width;           // Largura do painel principal
     int                  m_height;          // Altura do painel principal
 
-    // M√©todos auxiliares para cria√ß√£o r√°pida de objetos
+    // MÈtodos auxiliares para criaÁ„o r·pida de objetos
     bool                 CreateLabel(string name, string text, int x, int y, int size, color clr, string font="Outfit");
     bool                 CreateRect(string name, int x, int y, int w, int h, color bg, color border, int border_width=1);
     bool                 CreateButton(string name, string text, int x, int y, int w, int h, color bg, color text_clr, string font="Outfit");
@@ -54,12 +54,12 @@ public:
                          CDashboard();
                         ~CDashboard();
 
-    // Inicializa√ß√£o do Painel
+    // InicializaÁ„o do Painel
     bool                 Init(CLogger *logger, ENUM_DASHBOARD_THEME theme=THEME_DARK_MODERN, int x=20, int y=40);
-    // Destr√≥i todos os objetos gr√°ficos do painel
+    // DestrÛi todos os objetos gr·ficos do painel
     void                 Deinit();
 
-    // Renderiza e atualiza todas as informa√ß√µes do painel
+    // Renderiza e atualiza todas as informaÁıes do painel
     void                 Update(const SGridState &grid_state, 
                                 double account_balance, 
                                 double account_equity, 
@@ -69,8 +69,8 @@ public:
                                 bool ea_paused,
                                 const SNewsState &next_news);
 
-    // Processa cliques em bot√µes e eventos do gr√°fico
-    // Retorna a a√ß√£o executada caso um bot√£o seja clicado
+    // Processa cliques em botıes e eventos do gr·fico
+    // Retorna a aÁ„o executada caso um bot„o seja clicado
     string               OnChartEvent(const int id, const long &lparam, const double &dparam, const string &sparam);
     
     // Exibe ou oculta o painel
@@ -79,7 +79,7 @@ public:
 };
 
 //+------------------------------------------------------------------+
-//| Construtor Padr√£o                                                |
+//| Construtor Padr„o                                                |
 //+------------------------------------------------------------------+
 CDashboard::CDashboard() {
     m_chart_id   = 0;
@@ -103,7 +103,7 @@ CDashboard::~CDashboard() {
 }
 
 //+------------------------------------------------------------------+
-//| Inicializa√ß√£o do Dashboard                                       |
+//| InicializaÁ„o do Dashboard                                       |
 //+------------------------------------------------------------------+
 bool CDashboard::Init(CLogger *logger, ENUM_DASHBOARD_THEME theme, int x, int y) {
     m_logger     = logger;
@@ -122,7 +122,7 @@ bool CDashboard::Init(CLogger *logger, ENUM_DASHBOARD_THEME theme, int x, int y)
 }
 
 //+------------------------------------------------------------------+
-//| Deinicializa√ß√£o e Limpeza                                        |
+//| DeinicializaÁ„o e Limpeza                                        |
 //+------------------------------------------------------------------+
 void CDashboard::Deinit() {
     // Apaga todos os objetos criados por este dashboard
@@ -147,7 +147,7 @@ void CDashboard::ApplyTheme() {
             m_color_text     = C'44,53,64';
             m_color_positive = C'40,167,69';    // Verde escuro
             m_color_negative = C'220,53,69';    // Vermelho
-            m_color_accent   = C'0,123,255';    // Azul cl√°ssico
+            m_color_accent   = C'0,123,255';    // Azul cl·ssico
             m_color_button   = C'225,230,238';
             m_color_btn_text = C'44,53,64';
             break;
@@ -156,9 +156,9 @@ void CDashboard::ApplyTheme() {
             m_color_bg       = C'15,20,30';     // Fundo escuro levemente transparente
             m_color_border   = C'100,120,150';  // Borda mais clara brilhante
             m_color_text     = C'220,230,242';
-            m_color_positive = C'80,240,120';   // Verde esmeralda n√©on
-            m_color_negative = C'255,100,120';  // Coral n√©on
-            m_color_accent   = C'0,229,255';    // Ciano el√©trico
+            m_color_positive = C'80,240,120';   // Verde esmeralda nÈon
+            m_color_negative = C'255,100,120';  // Coral nÈon
+            m_color_accent   = C'0,229,255';    // Ciano elÈtrico
             m_color_button   = C'40,50,70';
             m_color_btn_text = C'255,255,255';
             break;
@@ -168,17 +168,17 @@ void CDashboard::ApplyTheme() {
             m_color_bg       = C'10,13,18';     // Cinza ultra escuro premium
             m_color_border   = C'35,42,54';     // Borda grafite
             m_color_text     = C'240,242,245';  // Branco suave
-            m_color_positive = C'0,230,180';    // Turquesa N√©on brilhante
-            m_color_negative = C'255,80,100';   // Coral N√©on brilhante
-            m_color_accent   = C'0,162,255';    // Azul N√©on din√¢mico
-            m_color_button   = C'25,32,47';     // Fundo bot√£o escuro
+            m_color_positive = C'0,230,180';    // Turquesa NÈon brilhante
+            m_color_negative = C'255,80,100';   // Coral NÈon brilhante
+            m_color_accent   = C'0,162,255';    // Azul NÈon din‚mico
+            m_color_button   = C'25,32,47';     // Fundo bot„o escuro
             m_color_btn_text = C'240,242,245';
             break;
     }
 }
 
 //+------------------------------------------------------------------+
-//| Atualiza√ß√£o e Redesenho de Estat√≠sticas                          |
+//| AtualizaÁ„o e Redesenho de EstatÌsticas                          |
 //+------------------------------------------------------------------+
 void CDashboard::Update(const SGridState &grid_state, 
                         double account_balance, 
@@ -193,30 +193,30 @@ void CDashboard::Update(const SGridState &grid_state,
     m_is_paused = ea_paused;
 
     // 1. Criar Painel de Fundo Principal
-    // Para efeito glassmorphism no MT5, usamos um ret√¢ngulo preenchido
+    // Para efeito glassmorphism no MT5, usamos um ret‚ngulo preenchido
     CreateRect("Panel_BG", m_x_offset, m_y_offset, m_width, m_height, m_color_bg, m_color_border, 2);
     
-    // T√≠tulo Principal com efeito n√©on azul
+    // TÌtulo Principal com efeito nÈon azul
     CreateLabel("Title", " OMNI - B3   EA  v2.10", m_x_offset + 15, m_y_offset + 12, 11, m_color_accent, "Outfit");
     CreateRect("Title_Separator", m_x_offset + 15, m_y_offset + 35, m_width - 30, 2, m_color_border, m_color_border);
 
-    // 2. Primeira Se√ß√£o: Conta & Balan√ßo
+    // 2. Primeira SeÁ„o: Conta & BalanÁo
     int y = m_y_offset + 48;
-    CreateLabel("Lbl_Balance", "Saldo do Rob√¥:", m_x_offset + 20, y, 9, m_color_text);
+    CreateLabel("Lbl_Balance", "Saldo do RobÙ:", m_x_offset + 20, y, 9, m_color_text);
     CreateLabel("Val_Balance", "R$ " + DoubleToString(account_balance, 2), m_x_offset + 160, y, 9, m_color_text);
 
     y += 20;
-    CreateLabel("Lbl_Equity", "Capital L√≠quido:", m_x_offset + 20, y, 9, m_color_text);
+    CreateLabel("Lbl_Equity", "Capital LÌquido:", m_x_offset + 20, y, 9, m_color_text);
     CreateLabel("Val_Equity", "R$ " + DoubleToString(account_equity, 2), m_x_offset + 160, y, 9, m_color_text);
 
-    // Lucro Di√°rio com cor din√¢mica (verde se positivo, coral se negativo)
+    // Lucro Di·rio com cor din‚mica (verde se positivo, coral se negativo)
     y += 20;
-    CreateLabel("Lbl_Daily", "Lucro Di√°rio (P&L):", m_x_offset + 20, y, 9, m_color_text);
+    CreateLabel("Lbl_Daily", "Lucro Di·rio (P&L):", m_x_offset + 20, y, 9, m_color_text);
     color daily_clr = (daily_profit >= 0.0) ? m_color_positive : m_color_negative;
     string sign = (daily_profit >= 0.0) ? "+" : "";
     CreateLabel("Val_Daily", sign + "R$ " + DoubleToString(daily_profit, 2), m_x_offset + 160, y, 9, daily_clr);
 
-    // 3. Segunda Se√ß√£o: Estado da Grade (Grid)
+    // 3. Segunda SeÁ„o: Estado da Grade (Grid)
     y += 28;
     CreateRect("Sec1_Separator", m_x_offset + 15, y, m_width - 30, 1, m_color_border, m_color_border);
     
@@ -224,11 +224,11 @@ void CDashboard::Update(const SGridState &grid_state,
     CreateLabel("Lbl_Grid_Header", "ESTADO DA GRADE", m_x_offset + 15, y, 8, m_color_accent);
 
     y += 20;
-    CreateLabel("Lbl_Symbol", "S√≠mbolo Ativo:", m_x_offset + 20, y, 9, m_color_text);
+    CreateLabel("Lbl_Symbol", "SÌmbolo Ativo:", m_x_offset + 20, y, 9, m_color_text);
     CreateLabel("Val_Symbol", (grid_state.symbol == "") ? _Symbol : grid_state.symbol, m_x_offset + 160, y, 9, m_color_text);
 
     y += 20;
-    CreateLabel("Lbl_Levels", "N√≠veis Ativos:", m_x_offset + 20, y, 9, m_color_text);
+    CreateLabel("Lbl_Levels", "NÌveis Ativos:", m_x_offset + 20, y, 9, m_color_text);
     color levels_clr = (grid_state.total_levels > 0) ? m_color_accent : m_color_text;
     CreateLabel("Val_Levels", IntegerToString(grid_state.total_levels) + " / 20", m_x_offset + 160, y, 9, levels_clr);
 
@@ -236,74 +236,74 @@ void CDashboard::Update(const SGridState &grid_state,
     CreateLabel("Lbl_Volume", "Volume Total:", m_x_offset + 20, y, 9, m_color_text);
     CreateLabel("Val_Volume", DoubleToString(grid_state.total_volume, 0) + " contratos", m_x_offset + 160, y, 9, m_color_text);
 
-    // Lucro Flutuante com cor din√¢mica
+    // Lucro Flutuante com cor din‚mica
     y += 20;
     CreateLabel("Lbl_Float", "Lucro Flutuante:", m_x_offset + 20, y, 9, m_color_text);
     color float_clr = (grid_state.total_profit >= 0.0) ? m_color_positive : m_color_negative;
     sign = (grid_state.total_profit >= 0.0) ? "+" : "";
     CreateLabel("Val_Float", sign + "R$ " + DoubleToString(grid_state.total_profit, 2), m_x_offset + 160, y, 9, float_clr);
 
-    // Drawdown Atual do Rob√¥
+    // Drawdown Atual do RobÙ
     y += 20;
     double current_dd = 0.0;
     if(account_balance > 0.0) {
         current_dd = ((account_balance - account_equity) / account_balance) * 100.0;
         if(current_dd < 0.0) current_dd = 0.0;
     }
-    CreateLabel("Lbl_Drawdown", "Drawdown do Rob√¥:", m_x_offset + 20, y, 9, m_color_text);
+    CreateLabel("Lbl_Drawdown", "Drawdown do RobÙ:", m_x_offset + 20, y, 9, m_color_text);
     color dd_clr = (current_dd > 10.0) ? m_color_negative : m_color_text;
     CreateLabel("Val_Drawdown", DoubleToString(current_dd, 2) + "%", m_x_offset + 160, y, 9, dd_clr);
 
-    // 4. Terceira Se√ß√£o: Not√≠cias & Calend√°rio
+    // 4. Terceira SeÁ„o: NotÌcias & Calend·rio
     y += 28;
     CreateRect("Sec2_Separator", m_x_offset + 15, y, m_width - 30, 1, m_color_border, m_color_border);
     
     y += 10;
-    CreateLabel("Lbl_News_Header", "FILTRO DE NOT√É¬çCIAS (MT5)", m_x_offset + 15, y, 8, m_color_accent);
+    CreateLabel("Lbl_News_Header", "FILTRO DE NOT√?CIAS (MT5)", m_x_offset + 15, y, 8, m_color_accent);
 
     y += 20;
     if(next_news.is_active) {
         string time_str = TimeToString(next_news.event_time, TIME_MINUTES);
         string m_stars = "";
-        for(int star=0; star<next_news.importance; star++) m_stars += "√¢Àú‚Ä¶";
+        for(int star=0; star<next_news.importance; star++) m_stars += "‚òÖ";
         string news_info = next_news.currency + " - " + m_stars + " (" + time_str + ")";
         CreateLabel("Val_News_Name", StringSubstr(next_news.event_name, 0, 32) + "...", m_x_offset + 20, y, 8, m_color_negative);
         CreateLabel("Val_News_Time", "Evento em: " + IntegerToString(next_news.seconds_to / 60) + " min (" + news_info + ")", m_x_offset + 20, y + 15, 8, m_color_text);
         y += 15;
     } else {
-        CreateLabel("Val_News_Status", "Sem not√≠cias impactantes pr√≥ximas", m_x_offset + 20, y, 8, m_color_positive);
+        CreateLabel("Val_News_Status", "Sem notÌcias impactantes prÛximas", m_x_offset + 20, y, 8, m_color_positive);
     }
 
-    // Status / Logs r√°pidos
+    // Status / Logs r·pidos
     y += 26;
     CreateRect("Sec3_Separator", m_x_offset + 15, y, m_width - 30, 1, m_color_border, m_color_border);
     
     y += 8;
     color status_clr = (StringFind(status_msg, "Erro") >= 0 || StringFind(status_msg, "Bloqueado") >= 0) ? m_color_negative : m_color_accent;
     if(ea_paused) {
-        status_msg = "Rob√¥ PAUSADO pelo Usu√°rio";
+        status_msg = "RobÙ PAUSADO pelo Usu·rio";
         status_clr = m_color_negative;
     }
     CreateLabel("Val_Status", "STATUS: " + status_msg, m_x_offset + 15, y, 8, status_clr);
 
-    // 5. Quarta Se√ß√£o: Bot√µes Interativos
+    // 5. Quarta SeÁ„o: Botıes Interativos
     y += 25;
-    color btn_panic_color = C'220,53,69'; // Coral brilhante para P√¢nico
+    color btn_panic_color = C'220,53,69'; // Coral brilhante para P‚nico
     color btn_pause_color = ea_paused ? C'40,167,69' : C'255,193,7'; // Verde se pausado (clique para rodar), amarelo se rodando
 
-    CreateButton("Btn_Panic", "√∞≈∏≈°¬® PANICO (KILL)", m_x_offset + 15, y, 138, 25, btn_panic_color, C'255,255,255', "Outfit");
-    CreateButton("Btn_CloseAll", "√¢¬ù≈í FECHAR TUDO", m_x_offset + 167, y, 138, 25, m_color_button, m_color_btn_text, "Outfit");
+    CreateButton("Btn_Panic", "[ALERTA] PANICO (KILL)", m_x_offset + 15, y, 138, 25, btn_panic_color, C'255,255,255', "Outfit");
+    CreateButton("Btn_CloseAll", "‚?å FECHAR TUDO", m_x_offset + 167, y, 138, 25, m_color_button, m_color_btn_text, "Outfit");
 
     y += 30;
-    string pause_lbl = ea_paused ? "√¢‚Äì¬∂ RETOMAR EA" : "√¢¬è¬∏ PAUSAR EA";
+    string pause_lbl = ea_paused ? "[RUN] RETOMAR EA" : "‚?∏ PAUSAR EA";
     CreateButton("Btn_Pause", pause_lbl, m_x_offset + 15, y, 138, 25, btn_pause_color, ea_paused ? C'255,255,255' : C'0,0,0', "Outfit");
-    CreateButton("Btn_Reset", "√∞≈∏‚Äù‚Äû RESET DIARIO", m_x_offset + 167, y, 138, 25, m_color_button, m_color_btn_text, "Outfit");
+    CreateButton("Btn_Reset", "[RESET] RESET DIARIO", m_x_offset + 167, y, 138, 25, m_color_button, m_color_btn_text, "Outfit");
 
     ChartRedraw(m_chart_id);
 }
 
 //+------------------------------------------------------------------+
-//| Eventos do Gr√°fico (Cliques nos Bot√µes)                          |
+//| Eventos do Gr·fico (Cliques nos Botıes)                          |
 //+------------------------------------------------------------------+
 string CDashboard::OnChartEvent(const int id, const long &lparam, const double &dparam, const string &sparam) {
     if(id != CHARTEVENT_OBJECT_CLICK) return "";
@@ -312,9 +312,9 @@ string CDashboard::OnChartEvent(const int id, const long &lparam, const double &
     if(StringFind(sparam, m_prefix) != 0) return "";
 
     string btn_name = StringSubstr(sparam, StringLen(m_prefix));
-    if(m_logger != NULL) m_logger.Info("Dashboard", "Bot√£o clicado: " + btn_name);
+    if(m_logger != NULL) m_logger.Info("Dashboard", "Bot„o clicado: " + btn_name);
 
-    // Redefine o estado do bot√£o para "n√£o pressionado"
+    // Redefine o estado do bot„o para "n„o pressionado"
     ObjectSetInteger(m_chart_id, sparam, OBJPROP_STATE, false);
     ChartRedraw(m_chart_id);
 
@@ -332,12 +332,12 @@ void CDashboard::SetVisibility(bool visible) {
 }
 
 //+------------------------------------------------------------------+
-//| AUXILIAR: Cria√ß√£o de Ret√¢ngulo preenchido                        |
+//| AUXILIAR: CriaÁ„o de Ret‚ngulo preenchido                        |
 //+------------------------------------------------------------------+
 bool CDashboard::CreateRect(string name, int x, int y, int w, int h, color bg, color border, int border_width) {
     string obj_name = m_prefix + name;
     
-    // Deleta se j√° existe para garantir posicionamento atualizado
+    // Deleta se j· existe para garantir posicionamento atualizado
     if(ObjectFind(m_chart_id, obj_name) >= 0) {
         ObjectDelete(m_chart_id, obj_name);
     }
@@ -364,7 +364,7 @@ bool CDashboard::CreateRect(string name, int x, int y, int w, int h, color bg, c
 }
 
 //+------------------------------------------------------------------+
-//| AUXILIAR: Cria√ß√£o de Texto (Label)                               |
+//| AUXILIAR: CriaÁ„o de Texto (Label)                               |
 //+------------------------------------------------------------------+
 bool CDashboard::CreateLabel(string name, string text, int x, int y, int size, color clr, string font) {
     string obj_name = m_prefix + name;
@@ -393,7 +393,7 @@ bool CDashboard::CreateLabel(string name, string text, int x, int y, int size, c
 }
 
 //+------------------------------------------------------------------+
-//| AUXILIAR: Cria√ß√£o de Bot√£o Interativo                            |
+//| AUXILIAR: CriaÁ„o de Bot„o Interativo                            |
 //+------------------------------------------------------------------+
 bool CDashboard::CreateButton(string name, string text, int x, int y, int w, int h, color bg, color text_clr, string font) {
     string obj_name = m_prefix + name;
@@ -431,13 +431,13 @@ bool CDashboard::CreateButton(string name, string text, int x, int y, int w, int
 //+------------------------------------------------------------------+
 class CRecentTradesPanel {
 private:
-    long                 m_chart_id;        // ID do Gr√°fico atual
-    int                  m_sub_window;      // Sub-janela (0 = gr√°fico principal)
-    string               m_prefix;          // Prefixo para objetos gr√°ficos √∫nicos
+    long                 m_chart_id;        // ID do Gr·fico atual
+    int                  m_sub_window;      // Sub-janela (0 = gr·fico principal)
+    string               m_prefix;          // Prefixo para objetos gr·ficos ˙nicos
     ENUM_DASHBOARD_THEME m_theme;           // Tema de cores ativo
     bool                 m_is_visible;      // Visibilidade do painel
     CLogger             *m_logger;          // Ponteiro para o Logger
-    int                  m_magic_number;    // N√∫mero m√°gico do rob√¥
+    int                  m_magic_number;    // N˙mero m·gico do robÙ
     string               m_symbol;          // Ativo operado
 
     // Cores de acordo com o tema
@@ -448,13 +448,13 @@ private:
     color                m_color_negative;  
     color                m_color_accent;    
 
-    // Dimens√µes e posicionamento
+    // Dimensıes e posicionamento
     int                  m_x_offset;        
     int                  m_y_offset;        
     int                  m_width;           
     int                  m_height;          
 
-    // M√©todos auxiliares para cria√ß√£o r√°pida de objetos
+    // MÈtodos auxiliares para criaÁ„o r·pida de objetos
     bool                 CreateLabel(string name, string text, int x, int y, int size, color clr, string font="Outfit");
     bool                 CreateRect(string name, int x, int y, int w, int h, color bg, color border, int border_width=1);
     void                 ApplyTheme();
@@ -463,11 +463,11 @@ public:
                          CRecentTradesPanel();
                         ~CRecentTradesPanel();
 
-    // Inicializa√ß√£o do Painel Flutuante
+    // InicializaÁ„o do Painel Flutuante
     bool                 Init(CLogger *logger, ENUM_DASHBOARD_THEME theme, int x, int y, int magic, string symbol);
-    // Destr√≥i objetos gr√°ficos
+    // DestrÛi objetos gr·ficos
     void                 Deinit();
-    // Renderiza e atualiza o hist√≥rico na tabela flutuante
+    // Renderiza e atualiza o histÛrico na tabela flutuante
     void                 Update();
     // Define visibilidade
     void                 SetVisibility(bool visible);
@@ -475,7 +475,7 @@ public:
 };
 
 //+------------------------------------------------------------------+
-//| Construtor Padr√£o                                                |
+//| Construtor Padr„o                                                |
 //+------------------------------------------------------------------+
 CRecentTradesPanel::CRecentTradesPanel() {
     m_chart_id     = 0;
@@ -500,7 +500,7 @@ CRecentTradesPanel::~CRecentTradesPanel() {
 }
 
 //+------------------------------------------------------------------+
-//| Inicializa√ß√£o                                                    |
+//| InicializaÁ„o                                                    |
 //+------------------------------------------------------------------+
 bool CRecentTradesPanel::Init(CLogger *logger, ENUM_DASHBOARD_THEME theme, int x, int y, int magic, string symbol) {
     m_logger       = logger;
@@ -513,13 +513,13 @@ bool CRecentTradesPanel::Init(CLogger *logger, ENUM_DASHBOARD_THEME theme, int x
     m_symbol       = symbol;
 
     ApplyTheme();
-    Deinit(); // Limpa res√≠duos antigos antes de iniciar
+    Deinit(); // Limpa resÌduos antigos antes de iniciar
 
     return true;
 }
 
 //+------------------------------------------------------------------+
-//| Deinicializa√ß√£o e Limpeza                                        |
+//| DeinicializaÁ„o e Limpeza                                        |
 //+------------------------------------------------------------------+
 void CRecentTradesPanel::Deinit() {
     int total = ObjectsTotal(m_chart_id, m_sub_window, -1);
@@ -568,33 +568,33 @@ void CRecentTradesPanel::ApplyTheme() {
 }
 
 //+------------------------------------------------------------------+
-//| Atualiza as informa√ß√µes do Painel Flutuante                     |
+//| Atualiza as informaÁıes do Painel Flutuante                     |
 //+------------------------------------------------------------------+
 void CRecentTradesPanel::Update() {
     if(!m_is_visible) return;
 
-    // 1. Cria o Ret√¢ngulo de Fundo Flutuante
+    // 1. Cria o Ret‚ngulo de Fundo Flutuante
     CreateRect("Panel_BG", m_x_offset, m_y_offset, m_width, m_height, m_color_bg, m_color_border, 2);
 
-    // T√≠tulo do painel flutuante
-    CreateLabel("Title", " √∞≈∏‚Äú≈† MONITOR DE OPERA√á√ïES RECENTES", m_x_offset + 15, m_y_offset + 12, 9, m_color_accent, "Outfit");
+    // TÌtulo do painel flutuante
+    CreateLabel("Title", " üìä MONITOR DE OPERA«’ES RECENTES", m_x_offset + 15, m_y_offset + 12, 9, m_color_accent, "Outfit");
     CreateRect("Title_Separator", m_x_offset + 15, m_y_offset + 30, m_width - 30, 2, m_color_border, m_color_border);
 
-    // Cabe√ßalho da Tabela
+    // CabeÁalho da Tabela
     int y = m_y_offset + 38;
     CreateLabel("H_Ticket", "TICKET", m_x_offset + 20, y, 8, m_color_border);
     CreateLabel("H_Type", "TIPO", m_x_offset + 100, y, 8, m_color_border);
     CreateLabel("H_Vol", "VOL", m_x_offset + 170, y, 8, m_color_border);
     CreateLabel("H_Profit", "LUCRO (BRL)", m_x_offset + 220, y, 8, m_color_border);
 
-    // Varre o hist√≥rico de deals para pegar os √∫ltimos 5 trades finalizados
+    // Varre o histÛrico de deals para pegar os ˙ltimos 5 trades finalizados
     if(!HistorySelect(0, TimeCurrent())) return;
 
     int total_deals = HistoryDealsTotal();
     int rows_drawn = 0;
     y += 18;
 
-    // Percorre do mais recente para o mais antigo buscando sa√≠das
+    // Percorre do mais recente para o mais antigo buscando saÌdas
     for(int i = total_deals - 1; i >= 0 && rows_drawn < 5; i--) {
         ulong ticket = HistoryDealGetTicket(i);
         if(ticket == 0) continue;
@@ -606,7 +606,7 @@ void CRecentTradesPanel::Update() {
 
         if(deal_symbol != m_symbol || deal_magic != m_magic_number) continue;
 
-        // Filtra estritamente deals que s√£o de fechamento (sa√≠da) para listar a opera√ß√£o consolidada
+        // Filtra estritamente deals que s„o de fechamento (saÌda) para listar a operaÁ„o consolidada
         if(entry_type == DEAL_ENTRY_OUT || entry_type == DEAL_ENTRY_OUT_BY) {
             double exit_price = HistoryDealGetDouble(ticket, DEAL_PRICE);
             double profit     = HistoryDealGetDouble(ticket, DEAL_PROFIT);
@@ -616,7 +616,7 @@ void CRecentTradesPanel::Update() {
             double volume     = HistoryDealGetDouble(ticket, DEAL_VOLUME);
             long   deal_type  = HistoryDealGetInteger(ticket, DEAL_TYPE);
 
-            // A dire√ß√£o original da posi√ß√£o √© inversa ao tipo do deal de sa√≠da (Netting)
+            // A direÁ„o original da posiÁ„o È inversa ao tipo do deal de saÌda (Netting)
             string dir_str = "";
             color dir_clr = m_color_text;
             if(deal_type == DEAL_TYPE_SELL) {
@@ -642,7 +642,7 @@ void CRecentTradesPanel::Update() {
         }
     }
 
-    // Limpa linhas excedentes antigas que possam ter ficado caso tenhamos menos de 5 deals no hist√≥rico
+    // Limpa linhas excedentes antigas que possam ter ficado caso tenhamos menos de 5 deals no histÛrico
     for(int r = rows_drawn; r < 5; r++) {
         string row_suf = "_" + IntegerToString(r);
         ObjectDelete(m_chart_id, m_prefix + "R_Tkt" + row_suf);
@@ -665,7 +665,7 @@ void CRecentTradesPanel::SetVisibility(bool visible) {
 }
 
 //+------------------------------------------------------------------+
-//| AUXILIAR: Cria√ß√£o de Ret√¢ngulo preenchido                        |
+//| AUXILIAR: CriaÁ„o de Ret‚ngulo preenchido                        |
 //+------------------------------------------------------------------+
 bool CRecentTradesPanel::CreateRect(string name, int x, int y, int w, int h, color bg, color border, int border_width) {
     string obj_name = m_prefix + name;
@@ -696,7 +696,7 @@ bool CRecentTradesPanel::CreateRect(string name, int x, int y, int w, int h, col
 }
 
 //+------------------------------------------------------------------+
-//| AUXILIAR: Cria√ß√£o de Texto                                       |
+//| AUXILIAR: CriaÁ„o de Texto                                       |
 //+------------------------------------------------------------------+
 bool CRecentTradesPanel::CreateLabel(string name, string text, int x, int y, int size, color clr, string font) {
     string obj_name = m_prefix + name;

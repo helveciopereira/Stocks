@@ -1,7 +1,7 @@
-ÔªøÔªø//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
 //|                                                 RiskManager.mqh  |
-//|                Omni-B3 EA v2.48 ‚Äî Gest√£o de Risco (B3/BRL)        |
-//|         Limites expandidos: di√°rio, total, por DD, por conta     |
+//|                Omni-B3 EA v2.48 ó Gest„o de Risco (B3/BRL)        |
+//|         Limites expandidos: di·rio, total, por DD, por conta     |
 //+------------------------------------------------------------------+
 //| Copyright 2026, Projeto Omni-B3                                 |
 //| https://github.com/helveciopereira/Stocks                        |
@@ -16,63 +16,63 @@
 #include <Trade/Trade.mqh>
 
 //+------------------------------------------------------------------+
-//| Gest√£o de Risco com m√∫ltiplas camadas de prote√ß√£o ‚Äî v2.13        |
+//| Gest„o de Risco com m˙ltiplas camadas de proteÁ„o ó v2.13        |
 //|                                                                   |
 //| Inspirado nos "LIMITS" do ToTheMoon v3.5:                         |
-//| - Limites por lucro/preju√≠zo atual, di√°rio e total               |
-//| - Limites por DD% do saldo e do capital l√≠quido                  |
+//| - Limites por lucro/prejuÌzo atual, di·rio e total               |
+//| - Limites por DD% do saldo e do capital lÌquido                  |
 //| - Limites por quantidade de ordens (total, ganhadoras, perdedoras)|
-//| - Limites de equity e saldo m√≠nimo/m√°ximo                        |
-//| - Kill-switch de emerg√™ncia                                       |
+//| - Limites de equity e saldo mÌnimo/m·ximo                        |
+//| - Kill-switch de emergÍncia                                       |
 //+------------------------------------------------------------------+
 class CRiskManager {
 private:
     int      m_magic_number;
 
-    // Equity Stop (prote√ß√£o principal)
-    double   m_equity_stop_percent;     // Equity m√≠nima em % do saldo
-    double   m_max_daily_dd_percent;    // DD di√°rio m√°ximo em %
-    int      m_max_total_positions;     // M√°x posi√ß√µes/n√≠veis simult√¢neos
-    double   m_min_margin_percent;      // Margem livre m√≠nima em %
+    // Equity Stop (proteÁ„o principal)
+    double   m_equity_stop_percent;     // Equity mÌnima em % do saldo
+    double   m_max_daily_dd_percent;    // DD di·rio m·ximo em %
+    int      m_max_total_positions;     // M·x posiÁıes/nÌveis simult‚neos
+    double   m_min_margin_percent;      // Margem livre mÌnima em %
 
     // Limites atuais (por ciclo de trade)
-    double   m_limit_profit_current;    // Lucro m√°ximo atual (R$) ‚Äî fecha e para
-    double   m_limit_loss_current;      // Perda m√°xima atual (R$) ‚Äî fecha e para
-    double   m_limit_profit_pct_current;// Lucro m√°ximo atual (%)
-    double   m_limit_loss_pct_current;  // Perda m√°xima atual (%)
-    int      m_wait_after_limit;        // Segundos para aguardar ap√≥s limite
-    bool     m_stop_after_limit;        // Parar completamente ap√≥s limite?
+    double   m_limit_profit_current;    // Lucro m·ximo atual (R$) ó fecha e para
+    double   m_limit_loss_current;      // Perda m·xima atual (R$) ó fecha e para
+    double   m_limit_profit_pct_current;// Lucro m·ximo atual (%)
+    double   m_limit_loss_pct_current;  // Perda m·xima atual (%)
+    int      m_wait_after_limit;        // Segundos para aguardar apÛs limite
+    bool     m_stop_after_limit;        // Parar completamente apÛs limite?
 
-    // Limites di√°rios
-    double   m_limit_profit_daily;      // Lucro m√°ximo di√°rio (R$)
-    double   m_limit_loss_daily;        // Perda m√°xima di√°ria (R$)
-    double   m_limit_dd_daily;          // DD% m√°ximo di√°rio
-    int      m_limit_orders_daily;      // M√°x ordens por dia
-    int      m_limit_wins_daily;        // M√°x ordens ganhadoras por dia
-    int      m_limit_losses_daily;      // M√°x ordens perdedoras por dia
-    bool     m_allow_grid_outside_limit;// Abrir grid mesmo fora do limite di√°rio?
+    // Limites di·rios
+    double   m_limit_profit_daily;      // Lucro m·ximo di·rio (R$)
+    double   m_limit_loss_daily;        // Perda m·xima di·ria (R$)
+    double   m_limit_dd_daily;          // DD% m·ximo di·rio
+    int      m_limit_orders_daily;      // M·x ordens por dia
+    int      m_limit_wins_daily;        // M·x ordens ganhadoras por dia
+    int      m_limit_losses_daily;      // M·x ordens perdedoras por dia
+    bool     m_allow_grid_outside_limit;// Abrir grid mesmo fora do limite di·rio?
 
     // Limites de conta
-    double   m_min_balance;             // Saldo m√≠nimo para operar (R$)
-    double   m_min_equity;              // Capital l√≠quido m√≠nimo (R$)
-    double   m_max_balance;             // Saldo m√°ximo ‚Äî para quando atingir
-    double   m_max_equity;              // Equity m√°xima ‚Äî para quando atingir
-    double   m_limit_dd_equity_pct;     // DD% m√°ximo do capital l√≠quido
-    int      m_wait_after_dd_equity;    // Segundos para aguardar ap√≥s DD equity
-    bool     m_stop_after_dd_equity;    // Parar ap√≥s DD equity?
+    double   m_min_balance;             // Saldo mÌnimo para operar (R$)
+    double   m_min_equity;              // Capital lÌquido mÌnimo (R$)
+    double   m_max_balance;             // Saldo m·ximo ó para quando atingir
+    double   m_max_equity;              // Equity m·xima ó para quando atingir
+    double   m_limit_dd_equity_pct;     // DD% m·ximo do capital lÌquido
+    int      m_wait_after_dd_equity;    // Segundos para aguardar apÛs DD equity
+    bool     m_stop_after_dd_equity;    // Parar apÛs DD equity?
 
     // Estado
     bool     m_kill_switch;
     bool     m_daily_locked;
     bool     m_limit_locked;            // Travado por limite atual
-    double   m_initial_balance;         // Saldo no in√≠cio do dia
-    double   m_initial_equity;          // Equity no in√≠cio do dia
+    double   m_initial_balance;         // Saldo no inÌcio do dia
+    double   m_initial_equity;          // Equity no inÌcio do dia
     int      m_last_day;
     int      m_daily_order_count;       // Contador de ordens do dia
     int      m_daily_wins;              // Ganhos do dia
     int      m_daily_losses;            // Perdas do dia
     double   m_daily_profit;            // Lucro acumulado do dia
-    double   m_daily_max_dd;            // Drawdown di√°rio m√°ximo registrado
+    double   m_daily_max_dd;            // Drawdown di·rio m·ximo registrado
     datetime m_limit_lock_time;         // Quando foi travado por limite
 
     CLogger *m_logger;
@@ -95,13 +95,13 @@ private:
             m_daily_profit = 0.0;
             m_daily_max_dd = 0.0;
             m_logger.Info("RiskManager",
-                StringFormat("√∞≈∏‚Äù‚Äû Novo dia ‚Äî Saldo=R$%.2f | Equity=R$%.2f",
+                StringFormat("[RESET] Novo dia ó Saldo=R$%.2f | Equity=R$%.2f",
                              m_initial_balance, m_initial_equity));
         }
     }
 
     //+--------------------------------------------------------------+
-    //| Detecta filling mode para contra-ordens de emerg√™ncia        |
+    //| Detecta filling mode para contra-ordens de emergÍncia        |
     //+--------------------------------------------------------------+
     ENUM_ORDER_TYPE_FILLING DetectFilling(string symbol) {
         long filling = SymbolInfoInteger(symbol, SYMBOL_FILLING_MODE);
@@ -129,7 +129,7 @@ public:
         m_initial_balance     = AccountInfoDouble(ACCOUNT_BALANCE);
         m_initial_equity      = AccountInfoDouble(ACCOUNT_EQUITY);
 
-        // Defaults ‚Äî limites desabilitados (0 = sem limite)
+        // Defaults ó limites desabilitados (0 = sem limite)
         m_limit_profit_current = 0.0;
         m_limit_loss_current   = 0.0;
         m_limit_profit_pct_current = 0;
@@ -165,7 +165,7 @@ public:
         m_last_day = now.day;
 
         m_logger.Info("RiskManager",
-            StringFormat("Init: EquityStop=%.0f%% | DDDi√°rio=%.1f%% | MaxPos=%d | MargemMin=%.0f%%",
+            StringFormat("Init: EquityStop=%.0f%% | DDDi·rio=%.1f%% | MaxPos=%d | MargemMin=%.0f%%",
                          m_equity_stop_percent, m_max_daily_dd_percent,
                          m_max_total_positions, m_min_margin_percent));
     }
@@ -184,7 +184,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Configura limites di√°rios                                     |
+    //| Configura limites di·rios                                     |
     //+--------------------------------------------------------------+
     void SetDailyLimits(double profit, double loss, double dd_pct,
                         int max_orders, int max_wins, int max_losses,
@@ -214,34 +214,34 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Verifica se √© seguro abrir novas posi√ß√µes                   |
-    //| Par√¢metro: current_levels ‚Äî n√≠veis virtuais da grade         |
+    //| Verifica se È seguro abrir novas posiÁıes                   |
+    //| Par‚metro: current_levels ó nÌveis virtuais da grade         |
     //+--------------------------------------------------------------+
     bool IsSafeToTrade(int current_levels) {
         CheckDayReset();
 
-        // 1. Kill-Switch (trava absoluta de emerg√™ncia)
+        // 1. Kill-Switch (trava absoluta de emergÍncia)
         if(m_kill_switch) {
-            m_logger.Warning("RiskManager", "[BLOQUEIO] Opera√ß√£o bloqueada pelo Kill-Switch ativo (EA desativado).");
+            m_logger.Warning("RiskManager", "[BLOQUEIO] OperaÁ„o bloqueada pelo Kill-Switch ativo (EA desativado).");
             return false;
         }
 
-        // 2. Bloqueio di√°rio
+        // 2. Bloqueio di·rio
         if(m_daily_locked) {
-            m_logger.Warning("RiskManager", "[BLOQUEIO] Opera√ß√£o bloqueada devido a algum limite di√°rio de prote√ß√£o atingido hoje.");
+            m_logger.Warning("RiskManager", "[BLOQUEIO] OperaÁ„o bloqueada devido a algum limite di·rio de proteÁ„o atingido hoje.");
             return false;
         }
 
         // 3. Bloqueio por limite atual (ciclo ativo)
         if(m_limit_locked) {
             if(m_stop_after_limit) {
-                m_logger.Warning("RiskManager", "[BLOQUEIO] Parada permanente ativada ap√≥s atingir limite de perda/lucro configurado.");
+                m_logger.Warning("RiskManager", "[BLOQUEIO] Parada permanente ativada apÛs atingir limite de perda/lucro configurado.");
                 return false;
             }
             // Verifica se tempo de espera expirou
             int elapsed = (int)(TimeCurrent() - m_limit_lock_time);
             if(m_wait_after_limit > 0 && elapsed < m_wait_after_limit) {
-                m_logger.Warning("RiskManager", StringFormat("[BLOQUEIO] Cooldown ativo. Aguardando tempo regulamentar de %d segundos ap√≥s limite (%d segundos restantes).",
+                m_logger.Warning("RiskManager", StringFormat("[BLOQUEIO] Cooldown ativo. Aguardando tempo regulamentar de %d segundos apÛs limite (%d segundos restantes).",
                                  m_wait_after_limit, m_wait_after_limit - elapsed));
                 return false;
             }
@@ -251,78 +251,78 @@ public:
         double equity  = AccountInfoDouble(ACCOUNT_EQUITY);
         double balance = AccountInfoDouble(ACCOUNT_BALANCE);
 
-        // 4. Equity Stop (Bloqueio cr√≠tico de liquidez)
+        // 4. Equity Stop (Bloqueio crÌtico de liquidez)
         if(balance > 0 && (equity / balance * 100.0) < m_equity_stop_percent) {
             m_logger.Critical("RiskManager",
-                StringFormat("√∞≈∏≈°¬® EQUITY STOP! Capital L√≠quido (R$%.2f) caiu abaixo do limite de %.1f%% do Saldo (R$%.2f) ‚Äî Atual: %.1f%%. Ativando Kill-Switch!",
+                StringFormat("[ALERTA] EQUITY STOP! Capital LÌquido (R$%.2f) caiu abaixo do limite de %.1f%% do Saldo (R$%.2f) ó Atual: %.1f%%. Ativando Kill-Switch!",
                              equity, m_equity_stop_percent, balance, equity / balance * 100.0));
             ActivateKillSwitch();
             return false;
         }
 
-        // 5. Drawdown Di√°rio e Limites Di√°rios
+        // 5. Drawdown Di·rio e Limites Di·rios
         if(m_initial_balance > 0) {
             double daily_loss = m_initial_balance - equity;
             double daily_dd = (daily_loss > 0) ? (daily_loss / m_initial_balance) * 100.0 : 0.0;
             
-            // Atualiza drawdown di√°rio m√°ximo registrado
+            // Atualiza drawdown di·rio m·ximo registrado
             if(daily_dd > m_daily_max_dd) m_daily_max_dd = daily_dd;
 
-            // Drawdown Di√°rio M√°ximo (%)
+            // Drawdown Di·rio M·ximo (%)
             if(m_max_daily_dd_percent > 0 && daily_dd > m_max_daily_dd_percent) {
                 m_logger.Warning("RiskManager",
-                    StringFormat("√¢≈°¬†√Ø¬∏¬è DD Di√°rio Atingido: %.2f%% de drawdown (Limite M√°ximo: %.2f%%). Bloqueando opera√ß√µes di√°rias para preservar capital inicial de R$%.2f.",
+                    StringFormat("‚ö†Ô∏? DD Di·rio Atingido: %.2f%% de drawdown (Limite M·ximo: %.2f%%). Bloqueando operaÁıes di·rias para preservar capital inicial de R$%.2f.",
                                  daily_dd, m_max_daily_dd_percent, m_initial_balance));
                 m_daily_locked = true;
                 return false;
             }
 
-            // Limite di√°rio de perda em R$
+            // Limite di·rio de perda em R$
             if(m_limit_loss_daily > 0.0 && daily_loss >= m_limit_loss_daily) {
                 m_logger.Warning("RiskManager",
-                    StringFormat("√¢≈°¬†√Ø¬∏¬è Perda di√°ria limite atingida: R$%.2f de perda flutuante/realizada (Limite M√°ximo: R$%.2f). Opera√ß√µes bloqueadas hoje.",
+                    StringFormat("‚ö†Ô∏? Perda di·ria limite atingida: R$%.2f de perda flutuante/realizada (Limite M·ximo: R$%.2f). OperaÁıes bloqueadas hoje.",
                                  daily_loss, m_limit_loss_daily));
                 m_daily_locked = true;
                 return false;
             }
 
-            // Limite di√°rio de lucro em R$
+            // Limite di·rio de lucro em R$
             if(m_limit_profit_daily > 0.0 && (equity - m_initial_balance) >= m_limit_profit_daily) {
                 m_logger.Info("RiskManager",
-                    StringFormat("√¢≈ì‚Ä¶ Meta di√°ria de lucro atingida! Lucro acumulado hoje: R$%.2f (Meta: R$%.2f). Opera√ß√µes encerradas hoje.",
+                    StringFormat("[OK] Meta di·ria de lucro atingida! Lucro acumulado hoje: R$%.2f (Meta: R$%.2f). OperaÁıes encerradas hoje.",
                                  equity - m_initial_balance, m_limit_profit_daily));
                 m_daily_locked = true;
                 return false;
             }
         }
 
-        // 6. Limite de ordens di√°rias (Overtrading)
+        // 6. Limite de ordens di·rias (Overtrading)
         if(m_limit_orders_daily > 0 && m_daily_order_count >= m_limit_orders_daily) {
             m_logger.Warning("RiskManager",
-                StringFormat("√¢≈°¬†√Ø¬∏¬è Limite di√°rio de ordens atingido: %d ordens executadas hoje (Limite M√°ximo: %d). Bloqueando novas entradas.",
+                StringFormat("‚ö†Ô∏? Limite di·rio de ordens atingido: %d ordens executadas hoje (Limite M·ximo: %d). Bloqueando novas entradas.",
                              m_daily_order_count, m_limit_orders_daily));
             m_daily_locked = true;
             return false;
         }
         if(m_limit_wins_daily > 0 && m_daily_wins >= m_limit_wins_daily) {
             m_logger.Warning("RiskManager",
-                StringFormat("√¢≈°¬†√Ø¬∏¬è Limite di√°rio de vit√≥rias (trades vencedores) atingido: %d vit√≥rias (Limite M√°ximo: %d). Bloqueando novas entradas.",
+                StringFormat("‚ö†Ô∏? Limite di·rio de vitÛrias (trades vencedores) atingido: %d vitÛrias (Limite M·ximo: %d). Bloqueando novas entradas.",
                              m_daily_wins, m_limit_wins_daily));
             m_daily_locked = true;
             return false;
         }
         if(m_limit_losses_daily > 0 && m_daily_losses >= m_limit_losses_daily) {
             m_logger.Warning("RiskManager",
-                StringFormat("√¢≈°¬†√Ø¬∏¬è Limite di√°rio de perdas (trades perdedores) atingido: %d perdas (Limite M√°ximo: %d). Bloqueando novas entradas.",
+                StringFormat("‚ö†Ô∏? Limite di·rio de perdas (trades perdedores) atingido: %d perdas (Limite M·ximo: %d). Bloqueando novas entradas.",
                              m_daily_losses, m_limit_losses_daily));
             m_daily_locked = true;
             return false;
         }
 
-        // 7. M√°ximo de posi√ß√µes/n√≠veis simult√¢neos da grade
+        // 7. M·ximo de posiÁıes/nÌveis simult‚neos da grade
         if(current_levels >= m_max_total_positions) {
             m_logger.Warning("RiskManager",
-                StringFormat("[BLOQUEIO] Limite de n√≠veis simult√¢neos alcan√ßado: %d n√≠veis ativos (Limite M√°ximo: %d). Aguardando fechamento de n√≠veis.",
+                StringFormat("[BLOQUEIO] Limite de nÌveis simult‚neos alcanÁado: %d nÌveis ativos (Limite M·ximo: %d). Aguardando fechamento de nÌveis.",
                              current_levels, m_max_total_positions));
             return false;
         }
@@ -334,30 +334,30 @@ public:
             double margin_level = (free_margin / (free_margin + used_margin)) * 100.0;
             if(margin_level < m_min_margin_percent) {
                 m_logger.Warning("RiskManager",
-                    StringFormat("√∞≈∏≈°¬® Margem Livre Insuficiente na Corretora! Margem livre calculada em %.1f%% do capital garantido, inferior ao limite de seguran√ßa configurado de %.1f%%. Novas entradas bloqueadas para evitar Stop Out compuls√≥rio pela corretora.", 
+                    StringFormat("[ALERTA] Margem Livre Insuficiente na Corretora! Margem livre calculada em %.1f%% do capital garantido, inferior ao limite de seguranÁa configurado de %.1f%%. Novas entradas bloqueadas para evitar Stop Out compulsÛrio pela corretora.", 
                                  margin_level, m_min_margin_percent));
                 return false;
             }
         }
 
-        // 9. Limites de conta (saldo e equity m√≠nimos)
+        // 9. Limites de conta (saldo e equity mÌnimos)
         if(m_min_balance > 0.0 && balance < m_min_balance) {
             m_logger.Warning("RiskManager",
-                StringFormat("Saldo abaixo do m√≠nimo: R$%.2f (m√≠n: R$%.2f)",
+                StringFormat("Saldo abaixo do mÌnimo: R$%.2f (mÌn: R$%.2f)",
                              balance, m_min_balance));
             return false;
         }
         if(m_min_equity > 0.0 && equity < m_min_equity) {
             m_logger.Warning("RiskManager",
-                StringFormat("Equity abaixo do m√≠nimo: R$%.2f (m√≠n: R$%.2f)",
+                StringFormat("Equity abaixo do mÌnimo: R$%.2f (mÌn: R$%.2f)",
                              equity, m_min_equity));
             return false;
         }
 
-        // 10. Meta de saldo/equity m√°ximos (para quando atingir)
+        // 10. Meta de saldo/equity m·ximos (para quando atingir)
         if(m_max_balance > 0.0 && balance >= m_max_balance) {
             m_logger.Info("RiskManager",
-                StringFormat("√¢≈ì‚Ä¶ Meta de saldo atingida: R$%.2f", balance));
+                StringFormat("[OK] Meta de saldo atingida: R$%.2f", balance));
             return false;
         }
 
@@ -365,7 +365,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Registra uma ordem completada (para contadores di√°rios)      |
+    //| Registra uma ordem completada (para contadores di·rios)      |
     //+--------------------------------------------------------------+
     void RegisterOrder(bool is_win, double profit) {
         m_daily_order_count++;
@@ -379,7 +379,7 @@ public:
     //+--------------------------------------------------------------+
     void ActivateKillSwitch() {
         m_kill_switch = true;
-        m_logger.Critical("RiskManager", "√∞≈∏‚Äù¬¥ KILL-SWITCH! Fechando tudo...");
+        m_logger.Critical("RiskManager", "[PANICO] KILL-SWITCH! Fechando tudo...");
 
         CTrade trade;
         trade.SetExpertMagicNumber(m_magic_number);
@@ -394,7 +394,7 @@ public:
             }
         }
 
-        m_logger.Critical("RiskManager", "√∞≈∏‚Äù¬¥ Kill-Switch executado. EA DESLIGADO.");
+        m_logger.Critical("RiskManager", "[PANICO] Kill-Switch executado. EA DESLIGADO.");
     }
 
     //+--------------------------------------------------------------+
@@ -406,7 +406,7 @@ public:
         m_limit_locked = false;
         m_initial_balance = AccountInfoDouble(ACCOUNT_BALANCE);
         m_initial_equity = AccountInfoDouble(ACCOUNT_EQUITY);
-        m_logger.Info("RiskManager", "√∞≈∏≈∏¬¢ Kill-Switch resetado.");
+        m_logger.Info("RiskManager", "[RESET] Kill-Switch resetado.");
     }
 
     //+--------------------------------------------------------------+
@@ -429,7 +429,7 @@ public:
                            m_daily_order_count,
                            m_limit_orders_daily > 0 ? m_limit_orders_daily : 999,
                            daily_pnl,
-                           m_kill_switch ? "√∞≈∏‚Äù¬¥" : "√∞≈∏≈∏¬¢");
+                           m_kill_switch ? "[PANICO]" : "[RESET]");
     }
 };
 

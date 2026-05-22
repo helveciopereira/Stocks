@@ -1,6 +1,6 @@
-ÔªøÔªø//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
 //|                                                  SmartClose.mqh  |
-//|              Omni-B3 EA v2.48 ‚Äî Smart Close para B3/NETTING       |
+//|              Omni-B3 EA v2.48 ó Smart Close para B3/NETTING       |
 //|   12+ modos de fechamento inspirados no ToTheMoon v3.5          |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
@@ -14,21 +14,21 @@
 #include <Trade/Trade.mqh>
 
 //+------------------------------------------------------------------+
-//| Smart Close para contas NETTING ‚Äî v2.0                            |
+//| Smart Close para contas NETTING ó v2.0                            |
 //|                                                                   |
-//| Em NETTING, n√£o podemos fechar posi√ß√µes individuais por ticket.  |
+//| Em NETTING, n„o podemos fechar posiÁıes individuais por ticket.  |
 //| Em vez disso:                                                     |
-//| 1. Calculamos P&L virtual de cada n√≠vel da grade                 |
+//| 1. Calculamos P&L virtual de cada nÌvel da grade                 |
 //| 2. Dependendo do modo de fechamento, decidimos o que fechar      |
-//| 3. Enviamos UMA contra-ordem para reduzir a posi√ß√£o              |
-//| 4. Removemos os n√≠veis virtuais correspondentes                  |
+//| 3. Enviamos UMA contra-ordem para reduzir a posiÁ„o              |
+//| 4. Removemos os nÌveis virtuais correspondentes                  |
 //|                                                                   |
 //| 12+ modos de fechamento inspirados no ToTheMoon v3.5:            |
 //| - Smart Close (pior/mais antigo)                                 |
-//| - TakeProfit (total, monet√°rio, aceit√°vel)                       |
-//| - BreakEven (est√°tico, trailing)                                 |
+//| - TakeProfit (total, monet·rio, aceit·vel)                       |
+//| - BreakEven (est·tico, trailing)                                 |
 //| - Por quantidade de ordens/lotes                                  |
-//| - Aceitar preju√≠zo (quando DD baixo e muitos lotes)              |
+//| - Aceitar prejuÌzo (quando DD baixo e muitos lotes)              |
 //+------------------------------------------------------------------+
 class CSmartClose {
 private:
@@ -36,53 +36,53 @@ private:
     int                m_magic_number;
     ENUM_CLOSE_MODE    m_close_mode;       // Modo de fechamento ativo
     ENUM_CLOSE_TARGET  m_close_target;     // Alvo (pior/mais antigo)
-    double             m_margin_ticks;     // Margem de seguran√ßa em ticks
+    double             m_margin_ticks;     // Margem de seguranÁa em ticks
 
-    // TakeProfit configur√°vel
-    ENUM_TP_MODE       m_tp_mode;          // Modo do TP (pontos, ATR, monet√°rio)
+    // TakeProfit configur·vel
+    ENUM_TP_MODE       m_tp_mode;          // Modo do TP (pontos, ATR, monet·rio)
     double             m_tp_points;        // TP em pontos
-    double             m_tp_monetary;      // TP monet√°rio (BRL)
-    double             m_tp_acceptable;    // TP aceit√°vel (pode ser negativo!)
-    double             m_tp_monetary_acceptable; // TP monet√°rio aceit√°vel
+    double             m_tp_monetary;      // TP monet·rio (BRL)
+    double             m_tp_acceptable;    // TP aceit·vel (pode ser negativo!)
+    double             m_tp_monetary_acceptable; // TP monet·rio aceit·vel
     double             m_tp_multiplier;    // Multiplicador do TP
 
-    // Redu√ß√£o do TP com o tempo
+    // ReduÁ„o do TP com o tempo
     ENUM_TP_REDUCE_TYPE m_tp_reduce_type;
-    double             m_tp_reduce_dd;     // DD% para come√ßar a reduzir
-    double             m_tp_reduce_search; // Dist√¢ncia para buscar pre√ßo
-    int                m_tp_reduce_time;   // Minutos para redu√ß√£o
-    bool               m_reduce_last;      // Reduzir na √∫ltima ordem?
+    double             m_tp_reduce_dd;     // DD% para comeÁar a reduzir
+    double             m_tp_reduce_search; // Dist‚ncia para buscar preÁo
+    int                m_tp_reduce_time;   // Minutos para reduÁ„o
+    bool               m_reduce_last;      // Reduzir na ˙ltima ordem?
 
     // BreakEven
     ENUM_BE_MODE       m_be_mode;
     double             m_be_points;        // BreakEven em pontos
-    double             m_be_acceptable;    // BreakEven aceit√°vel
-    ENUM_BE_TYPE       m_be_type;          // Est√°tico ou trailing
+    double             m_be_acceptable;    // BreakEven aceit·vel
+    ENUM_BE_TYPE       m_be_type;          // Est·tico ou trailing
     double             m_be_trail_factor;  // Fator do trailing (0-1)
 
     // Limites para fechamento por quantidade
     double             m_lot_sum_total;    // Fecha se soma lotes > este valor
     double             m_lot_sum_half;     // Fecha metade se lotes > este valor
-    double             m_lot_avg_total;    // Fecha se m√©dia lotes > este valor
+    double             m_lot_avg_total;    // Fecha se mÈdia lotes > este valor
     int                m_order_count_total;// Fecha se qtde ordens > este valor
     int                m_order_count_half; // Fecha metade se qtde > este valor
     double             m_lot_on_close;     // Lote para usar no fechamento
-    double             m_min_profit;       // Lucro m√≠nimo para fechar (pode ser negativo)
+    double             m_min_profit;       // Lucro mÌnimo para fechar (pode ser negativo)
 
-    // Aceitar preju√≠zo
+    // Aceitar prejuÌzo
     double             m_dd_accept_loss;   // DD% abaixo do qual aceitar perda
-    double             m_accept_loss_value;// Valor de perda aceit√°vel (BRL)
+    double             m_accept_loss_value;// Valor de perda aceit·vel (BRL)
 
-    // Trailing virtual da Grade (Gain e Stop Gain M√≥veis)
+    // Trailing virtual da Grade (Gain e Stop Gain MÛveis)
     bool               m_use_trailing;     // Habilitar trailing virtual para a grade
-    double             m_trail_trigger;    // Gatilho de ativa√ß√£o do trailing (pontos)
-    double             m_trail_stop_dist;  // Dist√¢ncia do Stop Gain (pontos)
-    double             m_trail_tp_dist;    // Dist√¢ncia do Gain M√≥vel (pontos)
-    double             m_trail_step;       // Passo de atualiza√ß√£o (pontos)
-    bool               m_trail_active;     // Indica se o trailing est√° ativo na grade
-    double             m_max_price_seen;   // Rastreamento do extremo do pre√ßo a favor
-    double             m_virtual_sl;       // Pre√ßo absoluto do Stop Gain virtual
-    double             m_virtual_tp;       // Pre√ßo absoluto do Gain virtual
+    double             m_trail_trigger;    // Gatilho de ativaÁ„o do trailing (pontos)
+    double             m_trail_stop_dist;  // Dist‚ncia do Stop Gain (pontos)
+    double             m_trail_tp_dist;    // Dist‚ncia do Gain MÛvel (pontos)
+    double             m_trail_step;       // Passo de atualizaÁ„o (pontos)
+    bool               m_trail_active;     // Indica se o trailing est· ativo na grade
+    double             m_max_price_seen;   // Rastreamento do extremo do preÁo a favor
+    double             m_virtual_sl;       // PreÁo absoluto do Stop Gain virtual
+    double             m_virtual_tp;       // PreÁo absoluto do Gain virtual
 
     CTrade             m_trade;
     CPositionManager  *m_pos_manager;
@@ -90,7 +90,7 @@ private:
     datetime           m_last_close_time;
 
     //+--------------------------------------------------------------+
-    //| Calcula custo da margem de seguran√ßa em BRL                  |
+    //| Calcula custo da margem de seguranÁa em BRL                  |
     //+--------------------------------------------------------------+
     double CalculateMarginCost(double volume) {
         double tick_value = SymbolInfoDouble(m_symbol, SYMBOL_TRADE_TICK_VALUE);
@@ -105,7 +105,7 @@ private:
     }
 
     //+--------------------------------------------------------------+
-    //| Detecta modo de preenchimento do s√≠mbolo                     |
+    //| Detecta modo de preenchimento do sÌmbolo                     |
     //+--------------------------------------------------------------+
     ENUM_ORDER_TYPE_FILLING DetectFillingMode() {
         long filling = SymbolInfoInteger(m_symbol, SYMBOL_FILLING_MODE);
@@ -115,13 +115,13 @@ private:
     }
 
     //+--------------------------------------------------------------+
-    //| Calcula o TakeProfit efetivo considerando redu√ß√µes            |
-    //| Retorna valor em BRL que deve ser alcan√ßado para fechar      |
+    //| Calcula o TakeProfit efetivo considerando reduÁıes            |
+    //| Retorna valor em BRL que deve ser alcanÁado para fechar      |
     //+--------------------------------------------------------------+
     double CalculateEffectiveTP(SGridState &state) {
         double tp = 0.0;
 
-        // C√°lculo base do TP
+        // C·lculo base do TP
         switch(m_tp_mode) {
             case TP_FIXED_POINTS: {
                 double tick_size  = SymbolInfoDouble(m_symbol, SYMBOL_TRADE_TICK_SIZE);
@@ -138,20 +138,20 @@ private:
                 tp = m_tp_points; // Fallback
         }
 
-        // Aplica redu√ß√£o por tempo
+        // Aplica reduÁ„o por tempo
         if(m_tp_reduce_type == TP_REDUCE_BY_TIME && m_tp_reduce_time > 0) {
             int elapsed_min = (int)((TimeCurrent() - state.oldest_level_time) / 60);
             if(elapsed_min > m_tp_reduce_time) {
                 double reduce_factor = 1.0 - ((double)(elapsed_min - m_tp_reduce_time) /
                                                (double)m_tp_reduce_time);
-                if(reduce_factor < 0.1) reduce_factor = 0.1; // M√≠nimo 10%
+                if(reduce_factor < 0.1) reduce_factor = 0.1; // MÌnimo 10%
                 tp *= reduce_factor;
                 m_logger.Debug("SmartClose",
                     StringFormat("TP reduzido por tempo: fator=%.2f (%dmin)", reduce_factor, elapsed_min));
             }
         }
 
-        // Aplica redu√ß√£o por DD
+        // Aplica reduÁ„o por DD
         if(m_tp_reduce_type == TP_REDUCE_BY_DD && m_tp_reduce_dd > 0.0) {
             if(state.max_drawdown_pct >= m_tp_reduce_dd) {
                 double dd_factor = m_tp_reduce_dd / state.max_drawdown_pct;
@@ -162,33 +162,33 @@ private:
             }
         }
 
-        // TP aceit√°vel (piso ‚Äî pode ser negativo para aceitar perda)
+        // TP aceit·vel (piso ó pode ser negativo para aceitar perda)
         double acceptable = (m_tp_mode == TP_MONETARY)
                             ? m_tp_monetary_acceptable
                             : m_tp_acceptable;
         if(acceptable != 0.0 && tp < acceptable) {
-            // N√£o reduz abaixo do aceit√°vel (a menos que aceit√°vel seja negativo)
+            // N„o reduz abaixo do aceit·vel (a menos que aceit·vel seja negativo)
         }
 
         return tp;
     }
 
     //+--------------------------------------------------------------+
-    //| Verifica Smart Close cl√°ssico (pior n√≠vel com lucro)         |
+    //| Verifica Smart Close cl·ssico (pior nÌvel com lucro)         |
     //+--------------------------------------------------------------+
     bool CheckSmartClose(SGridState &state) {
-        // M√≠nimo 2 n√≠veis para Smart Close funcionar
+        // MÌnimo 2 nÌveis para Smart Close funcionar
         if(state.total_levels < 2) return false;
         if(state.worst_index < 0 || state.worst_profit >= 0.0) return false;
         if(state.positive_profit_sum <= 0.0) return false;
 
-        // Margem de seguran√ßa
+        // Margem de seguranÁa
         double margin = CalculateMarginCost(state.worst_volume);
         double required = MathAbs(state.worst_profit) + margin;
 
         if(state.positive_profit_sum >= required) {
             m_logger.Info("SmartClose",
-                StringFormat("√∞≈∏≈Ω¬Ø Smart Close! Lucros=R$%.2f | Necess√°rio=R$%.2f | Pior=R$%.2f",
+                StringFormat("[ALVO] Smart Close! Lucros=R$%.2f | Necess·rio=R$%.2f | Pior=R$%.2f",
                              state.positive_profit_sum, required, state.worst_profit));
             return ExecuteSmartClose(state);
         }
@@ -204,21 +204,21 @@ private:
 
         if(state.total_profit >= effective_tp) {
             m_logger.Info("SmartClose",
-                StringFormat("√∞≈∏≈Ω¬Ø TP Total! P&L=R$%.2f | TP=R$%.2f", state.total_profit, effective_tp));
+                StringFormat("[ALVO] TP Total! P&L=R$%.2f | TP=R$%.2f", state.total_profit, effective_tp));
             return ExecuteCloseAll(state);
         }
         return false;
     }
 
     //+--------------------------------------------------------------+
-    //| Verifica BreakEven (fecha quando pre√ßo atinge m√©dia)         |
+    //| Verifica BreakEven (fecha quando preÁo atinge mÈdia)         |
     //+--------------------------------------------------------------+
     bool CheckBreakEven(SGridState &state) {
         if(m_be_mode == BE_DISABLED) return false;
         if(state.total_levels < 2) return false;
 
         double acceptable = m_be_acceptable;
-        // Converte aceit√°vel para valor monet√°rio
+        // Converte aceit·vel para valor monet·rio
         double tick_size  = SymbolInfoDouble(m_symbol, SYMBOL_TRADE_TICK_SIZE);
         double tick_value = SymbolInfoDouble(m_symbol, SYMBOL_TRADE_TICK_VALUE);
         double acceptable_money = (acceptable * SymbolInfoDouble(m_symbol, SYMBOL_POINT)
@@ -226,7 +226,7 @@ private:
 
         if(state.total_profit >= acceptable_money) {
             m_logger.Info("SmartClose",
-                StringFormat("√∞≈∏≈Ω¬Ø BreakEven! P&L=R$%.2f | Aceit√°vel=R$%.2f",
+                StringFormat("[ALVO] BreakEven! P&L=R$%.2f | Aceit·vel=R$%.2f",
                              state.total_profit, acceptable_money));
             return ExecuteCloseAll(state);
         }
@@ -241,7 +241,7 @@ private:
         if(m_lot_sum_total > 0.0 && state.total_volume >= m_lot_sum_total) {
             if(state.total_profit >= m_min_profit) {
                 m_logger.Info("SmartClose",
-                    StringFormat("√∞≈∏≈Ω¬Ø Lote Total! Vol=%.0f (m√°x=%.0f)", state.total_volume, m_lot_sum_total));
+                    StringFormat("[ALVO] Lote Total! Vol=%.0f (m·x=%.0f)", state.total_volume, m_lot_sum_total));
                 return ExecuteCloseAll(state);
             }
         }
@@ -250,7 +250,7 @@ private:
         if(m_order_count_total > 0 && state.total_levels >= m_order_count_total) {
             if(state.total_profit >= m_min_profit) {
                 m_logger.Info("SmartClose",
-                    StringFormat("√∞≈∏≈Ω¬Ø Qtde Total! Ordens=%d (m√°x=%d)", state.total_levels, m_order_count_total));
+                    StringFormat("[ALVO] Qtde Total! Ordens=%d (m·x=%d)", state.total_levels, m_order_count_total));
                 return ExecuteCloseAll(state);
             }
         }
@@ -259,20 +259,20 @@ private:
     }
 
     //+--------------------------------------------------------------+
-    //| Verifica aceitar preju√≠zo (quando DD baixo e muitos lotes)   |
+    //| Verifica aceitar prejuÌzo (quando DD baixo e muitos lotes)   |
     //+--------------------------------------------------------------+
     bool CheckAcceptLoss(SGridState &state) {
         if(m_accept_loss_value >= 0.0) return false;  // Precisa ser negativo
         if(state.total_levels < 2) return false;
 
-        // Verifica se DD est√° abaixo do limiar
+        // Verifica se DD est· abaixo do limiar
         if(m_dd_accept_loss > 0.0 && state.max_drawdown_pct > m_dd_accept_loss)
             return false;  // DD ainda alto demais
 
-        // Verifica se perda est√° dentro do aceit√°vel
+        // Verifica se perda est· dentro do aceit·vel
         if(state.total_profit >= m_accept_loss_value) {
             m_logger.Info("SmartClose",
-                StringFormat("√∞≈∏≈Ω¬Ø Aceitar Perda! P&L=R$%.2f | Aceit√°vel=R$%.2f | DD=%.1f%%",
+                StringFormat("[ALVO] Aceitar Perda! P&L=R$%.2f | Aceit·vel=R$%.2f | DD=%.1f%%",
                              state.total_profit, m_accept_loss_value, state.max_drawdown_pct));
             return ExecuteCloseAll(state);
         }
@@ -284,19 +284,19 @@ private:
     //+--------------------------------------------------------------+
     bool ExecuteSmartClose(SGridState &state) {
         if(!PositionSelect(m_symbol)) {
-            m_logger.Error("SmartClose", "Posi√ß√£o real n√£o encontrada!");
+            m_logger.Error("SmartClose", "PosiÁ„o real n„o encontrada!");
             return false;
         }
         ENUM_POSITION_TYPE pos_type = (ENUM_POSITION_TYPE)PositionGetInteger(POSITION_TYPE);
         double real_volume = PositionGetDouble(POSITION_VOLUME);
 
-        // Coleta n√≠veis lucrativos
+        // Coleta nÌveis lucrativos
         int    profitable_indices[];
         double profitable_profits[];
         int profit_count = m_pos_manager.GetProfitableLevelIndices(
                                profitable_indices, profitable_profits);
 
-        // Calcula volume e √≠ndices a fechar
+        // Calcula volume e Ìndices a fechar
         double volume_to_close = state.worst_volume;
         double accumulated_profit = state.worst_profit;
         int    indices_to_remove[];
@@ -304,7 +304,7 @@ private:
         ArrayResize(indices_to_remove, 1);
         indices_to_remove[0] = state.worst_index;
 
-        // Adiciona lucrativos at√© cobrir o d√©bito + margem
+        // Adiciona lucrativos atÈ cobrir o dÈbito + margem
         for(int i = 0; i < profit_count; i++) {
             if(accumulated_profit >= 0.0) break;
 
@@ -322,11 +322,11 @@ private:
     }
 
     //+--------------------------------------------------------------+
-    //| Executa fechamento total (toda a posi√ß√£o)                     |
+    //| Executa fechamento total (toda a posiÁ„o)                     |
     //+--------------------------------------------------------------+
     bool ExecuteCloseAll(SGridState &state) {
         if(!PositionSelect(m_symbol)) {
-            m_logger.Error("SmartClose", "Posi√ß√£o real n√£o encontrada!");
+            m_logger.Error("SmartClose", "PosiÁ„o real n„o encontrada!");
             return false;
         }
 
@@ -354,7 +354,7 @@ private:
     bool ExecutePartialClose(ENUM_POSITION_TYPE pos_type, double real_volume,
                               double volume_to_close, int &indices_to_remove[],
                               int remove_count, double accumulated_profit) {
-        // Seguran√ßa: n√£o fechar mais que a posi√ß√£o real
+        // SeguranÁa: n„o fechar mais que a posiÁ„o real
         if(volume_to_close > real_volume)
             volume_to_close = real_volume;
 
@@ -482,7 +482,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Configura redu√ß√£o do TP                                       |
+    //| Configura reduÁ„o do TP                                       |
     //+--------------------------------------------------------------+
     void SetTPReduction(ENUM_TP_REDUCE_TYPE type, double dd_pct,
                         double search, int time_minutes, bool reduce_last) {
@@ -520,7 +520,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Configura aceitar preju√≠zo                                    |
+    //| Configura aceitar prejuÌzo                                    |
     //+--------------------------------------------------------------+
     void SetAcceptLoss(double dd_threshold, double loss_value) {
         m_dd_accept_loss = dd_threshold;
@@ -547,13 +547,13 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| L√≥gica do Trailing Virtual da Grade (Gain/Stop Gain M√≥vel)   |
+    //| LÛgica do Trailing Virtual da Grade (Gain/Stop Gain MÛvel)   |
     //| Retorna true se a grade foi liquidada                         |
     //+--------------------------------------------------------------+
     bool CheckTrailingVirtual(SGridState &state) {
         if(!m_use_trailing) return false;
 
-        // Se n√£o houver n√≠veis ativos na grade, reseta o estado do trailing
+        // Se n„o houver nÌveis ativos na grade, reseta o estado do trailing
         if(state.total_levels == 0) {
             if(m_trail_active) {
                 m_trail_active = false;
@@ -564,7 +564,7 @@ public:
             return false;
         }
 
-        // Tenta selecionar a posi√ß√£o consolidada
+        // Tenta selecionar a posiÁ„o consolidada
         if(!PositionSelect(m_symbol)) {
             if(m_trail_active) {
                 m_trail_active = false;
@@ -585,13 +585,13 @@ public:
         if(pos_type == POSITION_TYPE_BUY) {
             double profit_pts = (current_bid - state.avg_price) / point;
 
-            // Se ainda n√£o ativou o trailing, verifica se o lucro em pontos atingiu o gatilho (trigger)
+            // Se ainda n„o ativou o trailing, verifica se o lucro em pontos atingiu o gatilho (trigger)
             if(!m_trail_active) {
                 if(profit_pts >= m_trail_trigger) {
                     m_trail_active = true;
                     m_max_price_seen = current_bid;
 
-                    // Define alvos virtuais iniciais (em pre√ßo absoluto)
+                    // Define alvos virtuais iniciais (em preÁo absoluto)
                     m_virtual_sl = m_max_price_seen - (m_trail_stop_dist * point);
                     m_virtual_tp = m_max_price_seen + (m_trail_tp_dist * point);
 
@@ -601,7 +601,7 @@ public:
                     }
 
                     m_logger.Info("SmartClose",
-                        StringFormat("√∞≈∏‚Äù¬• Trailing Virtual Grade Ativado na COMPRA! Lucro: %.0f pts. Pre√ßo: %.2f | SL: %.2f | TP: %.2f", 
+                        StringFormat("üî• Trailing Virtual Grade Ativado na COMPRA! Lucro: %.0f pts. PreÁo: %.2f | SL: %.2f | TP: %.2f", 
                                      profit_pts, current_bid, m_virtual_sl, m_virtual_tp));
                 }
             }
@@ -612,7 +612,7 @@ public:
                     m_max_price_seen = current_bid;
                 }
 
-                // N√≠veis ideais de SL e TP
+                // NÌveis ideais de SL e TP
                 double target_sl = m_max_price_seen - (m_trail_stop_dist * point);
                 double target_tp = m_max_price_seen + (m_trail_tp_dist * point);
 
@@ -621,8 +621,8 @@ public:
                     target_tp = NormalizeDouble(MathRound(target_tp / tick_size) * tick_size, _Digits);
                 }
 
-                // O Stop Gain virtual da compra s√≥ pode subir.
-                // Respeitamos o passo para evitar atualiza√ß√µes microsc√≥picas desnecess√°rias nos logs.
+                // O Stop Gain virtual da compra sÛ pode subir.
+                // Respeitamos o passo para evitar atualizaÁıes microscÛpicas desnecess·rias nos logs.
                 double step_value = m_trail_step * point;
                 if(target_sl >= m_virtual_sl + step_value) {
                     double old_sl = m_virtual_sl;
@@ -631,14 +631,14 @@ public:
                     m_virtual_tp = target_tp;
                     
                     m_logger.Info("SmartClose",
-                        StringFormat("√¢≈°¬° Trailing Virtual COMPRA atualizado. SL: %.2f (antigo: %.2f) | TP: %.2f (antigo: %.2f) | Bid Max: %.2f", 
+                        StringFormat("‚ö° Trailing Virtual COMPRA atualizado. SL: %.2f (antigo: %.2f) | TP: %.2f (antigo: %.2f) | Bid Max: %.2f", 
                                      m_virtual_sl, old_sl, m_virtual_tp, old_tp, m_max_price_seen));
                 }
 
-                // Verifica condi√ß√µes de fechamento a mercado (sa√≠da)
+                // Verifica condiÁıes de fechamento a mercado (saÌda)
                 if(current_bid <= m_virtual_sl) {
                     m_logger.Info("SmartClose",
-                        StringFormat("√∞≈∏≈°¬® Trailing Virtual COMPRA atingido pelo Stop Gain! Pre√ßo: %.2f <= SL Virtual: %.2f. Fechando a grade inteira.", 
+                        StringFormat("[ALERTA] Trailing Virtual COMPRA atingido pelo Stop Gain! PreÁo: %.2f <= SL Virtual: %.2f. Fechando a grade inteira.", 
                                      current_bid, m_virtual_sl));
                     bool closed = ExecuteCloseAll(state);
                     if(closed) {
@@ -652,7 +652,7 @@ public:
                 
                 if(current_bid >= m_virtual_tp) {
                     m_logger.Info("SmartClose",
-                        StringFormat("√∞≈∏≈Ω¬Ø Trailing Virtual COMPRA atingido pelo Gain M√≥vel! Pre√ßo: %.2f >= TP Virtual: %.2f. Fechando a grade inteira.", 
+                        StringFormat("[ALVO] Trailing Virtual COMPRA atingido pelo Gain MÛvel! PreÁo: %.2f >= TP Virtual: %.2f. Fechando a grade inteira.", 
                                      current_bid, m_virtual_tp));
                     bool closed = ExecuteCloseAll(state);
                     if(closed) {
@@ -669,13 +669,13 @@ public:
         else if(pos_type == POSITION_TYPE_SELL) {
             double profit_pts = (state.avg_price - current_ask) / point;
 
-            // Se ainda n√£o ativou o trailing, verifica se o lucro em pontos atingiu o gatilho (trigger)
+            // Se ainda n„o ativou o trailing, verifica se o lucro em pontos atingiu o gatilho (trigger)
             if(!m_trail_active) {
                 if(profit_pts >= m_trail_trigger) {
                     m_trail_active = true;
                     m_max_price_seen = current_ask;
 
-                    // Define alvos virtuais iniciais (em pre√ßo absoluto)
+                    // Define alvos virtuais iniciais (em preÁo absoluto)
                     m_virtual_sl = m_max_price_seen + (m_trail_stop_dist * point);
                     m_virtual_tp = m_max_price_seen - (m_trail_tp_dist * point);
 
@@ -685,7 +685,7 @@ public:
                     }
 
                     m_logger.Info("SmartClose",
-                        StringFormat("√∞≈∏‚Äù¬• Trailing Virtual Grade Ativado na VENDA! Lucro: %.0f pts. Pre√ßo: %.2f | SL: %.2f | TP: %.2f", 
+                        StringFormat("üî• Trailing Virtual Grade Ativado na VENDA! Lucro: %.0f pts. PreÁo: %.2f | SL: %.2f | TP: %.2f", 
                                      profit_pts, current_ask, m_virtual_sl, m_virtual_tp));
                 }
             }
@@ -696,7 +696,7 @@ public:
                     m_max_price_seen = current_ask;
                 }
 
-                // N√≠veis ideais de SL e TP
+                // NÌveis ideais de SL e TP
                 double target_sl = m_max_price_seen + (m_trail_stop_dist * point);
                 double target_tp = m_max_price_seen - (m_trail_tp_dist * point);
 
@@ -705,8 +705,8 @@ public:
                     target_tp = NormalizeDouble(MathRound(target_tp / tick_size) * tick_size, _Digits);
                 }
 
-                // O Stop Gain virtual da venda s√≥ pode descer.
-                // Respeitamos o passo para evitar atualiza√ß√µes microsc√≥picas desnecess√°rias nos logs.
+                // O Stop Gain virtual da venda sÛ pode descer.
+                // Respeitamos o passo para evitar atualizaÁıes microscÛpicas desnecess·rias nos logs.
                 double step_value = m_trail_step * point;
                 if(target_sl <= m_virtual_sl - step_value) {
                     double old_sl = m_virtual_sl;
@@ -715,14 +715,14 @@ public:
                     m_virtual_tp = target_tp;
                     
                     m_logger.Info("SmartClose",
-                        StringFormat("√¢≈°¬° Trailing Virtual VENDA atualizado. SL: %.2f (antigo: %.2f) | TP: %.2f (antigo: %.2f) | Ask Min: %.2f", 
+                        StringFormat("‚ö° Trailing Virtual VENDA atualizado. SL: %.2f (antigo: %.2f) | TP: %.2f (antigo: %.2f) | Ask Min: %.2f", 
                                      m_virtual_sl, old_sl, m_virtual_tp, old_tp, m_max_price_seen));
                 }
 
-                // Verifica condi√ß√µes de fechamento a mercado (sa√≠da)
+                // Verifica condiÁıes de fechamento a mercado (saÌda)
                 if(current_ask >= m_virtual_sl) {
                     m_logger.Info("SmartClose",
-                        StringFormat("√∞≈∏≈°¬® Trailing Virtual VENDA atingido pelo Stop Gain! Pre√ßo: %.2f >= SL Virtual: %.2f. Fechando a grade inteira.", 
+                        StringFormat("[ALERTA] Trailing Virtual VENDA atingido pelo Stop Gain! PreÁo: %.2f >= SL Virtual: %.2f. Fechando a grade inteira.", 
                                      current_ask, m_virtual_sl));
                     bool closed = ExecuteCloseAll(state);
                     if(closed) {
@@ -736,7 +736,7 @@ public:
                 
                 if(current_ask <= m_virtual_tp) {
                     m_logger.Info("SmartClose",
-                        StringFormat("√∞≈∏≈Ω¬Ø Trailing Virtual VENDA atingido pelo Gain M√≥vel! Pre√ßo: %.2f <= TP Virtual: %.2f. Fechando a grade inteira.", 
+                        StringFormat("[ALVO] Trailing Virtual VENDA atingido pelo Gain MÛvel! PreÁo: %.2f <= TP Virtual: %.2f. Fechando a grade inteira.", 
                                      current_ask, m_virtual_tp));
                     bool closed = ExecuteCloseAll(state);
                     if(closed) {
@@ -763,7 +763,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| M√©todo principal: verifica e executa fechamento               |
+    //| MÈtodo principal: verifica e executa fechamento               |
     //| Retorna: true se fechamento foi executado                    |
     //+--------------------------------------------------------------+
     bool CheckAndExecute(ENUM_CLOSE_MODE override_mode = (ENUM_CLOSE_MODE)-1) {
@@ -772,7 +772,7 @@ public:
         SGridState state = m_pos_manager.GetGridState();
         if(state.total_levels < 1) return false;
 
-        // Se o trailing virtual estiver ativado, processa as verifica√ß√µes de Gain/Stop Gain m√≥veis primeiro
+        // Se o trailing virtual estiver ativado, processa as verificaÁıes de Gain/Stop Gain mÛveis primeiro
         if(m_use_trailing) {
             if(CheckTrailingVirtual(state)) {
                 return true;
@@ -782,29 +782,29 @@ public:
         ENUM_CLOSE_MODE mode = (override_mode != (ENUM_CLOSE_MODE)-1)
                                ? override_mode : m_close_mode;
 
-        // Salvaguarda TP de Seguran√ßa: Se o lucro total l√≠quido da grade atingir o Take Profit Total
+        // Salvaguarda TP de SeguranÁa: Se o lucro total lÌquido da grade atingir o Take Profit Total
         // configurado (effective_tp), fechamos toda a grade imediatamente, independente do modo de fechamento!
-        // Isso evita que posi√ß√µes altamente lucrativas fiquem presas em modos cl√°ssicos como CMODE_SMART_WORST/OLDEST.
+        // Isso evita que posiÁıes altamente lucrativas fiquem presas em modos cl·ssicos como CMODE_SMART_WORST/OLDEST.
         if(state.total_levels >= 1 && (mode == CMODE_SMART_WORST || mode == CMODE_SMART_OLDEST)) {
             double effective_tp = CalculateEffectiveTP(state);
             if(effective_tp > 0.0 || m_tp_acceptable < 0.0) {
                 if(state.total_profit >= effective_tp) {
                     m_logger.Info("SmartClose",
-                        StringFormat("√∞≈∏‚Ä∫¬°√Ø¬∏¬è Salvaguarda TP Total atingida! P&L=R$%.2f | TP=R$%.2f. Fechando toda a grade por seguran√ßa.", state.total_profit, effective_tp));
+                        StringFormat("üõ°Ô∏? Salvaguarda TP Total atingida! P&L=R$%.2f | TP=R$%.2f. Fechando toda a grade por seguranÁa.", state.total_profit, effective_tp));
                     return ExecuteCloseAll(state);
                 }
             }
         }
 
-        // Se houver apenas 1 n√≠vel ativo, os modos Smart Close cl√°ssicos (worst/oldest)
-        // n√£o conseguem realizar fechamentos parciais/combinados por exigirem >= 2 n√≠veis.
-        // Logo, para evitar que a ordem inicial corra indefinidamente no lucro ou preju√≠zo,
-        // for√ßamos a valida√ß√£o de sa√≠da baseada no Take Profit Total configurado.
+        // Se houver apenas 1 nÌvel ativo, os modos Smart Close cl·ssicos (worst/oldest)
+        // n„o conseguem realizar fechamentos parciais/combinados por exigirem >= 2 nÌveis.
+        // Logo, para evitar que a ordem inicial corra indefinidamente no lucro ou prejuÌzo,
+        // forÁamos a validaÁ„o de saÌda baseada no Take Profit Total configurado.
         if(state.total_levels == 1 && (mode == CMODE_SMART_WORST || mode == CMODE_SMART_OLDEST)) {
             return CheckTPTotal(state);
         }
 
-        // Executa verifica√ß√£o baseada no modo ativo
+        // Executa verificaÁ„o baseada no modo ativo
         switch(mode) {
             case CMODE_SMART_WORST:
             case CMODE_SMART_OLDEST:
@@ -814,7 +814,7 @@ public:
                 return CheckTPTotal(state);
 
             case CMODE_TP_MONETARY:
-                // Verifica TP monet√°rio direto
+                // Verifica TP monet·rio direto
                 if(m_tp_monetary > 0.0 && state.total_profit >= m_tp_monetary * m_tp_multiplier) {
                     m_logger.Info("SmartClose",
                         StringFormat("[TP] TP Monetario! P&L=R$%.2f | TP=R$%.2f",
@@ -851,7 +851,7 @@ public:
 
     //+--------------------------------------------------------------+
     //| Verifica TODOS os modos de fechamento (cascata)              |
-    //| √ötil quando m√∫ltiplas condi√ß√µes podem fechar                 |
+    //| ⁄til quando m˙ltiplas condiÁıes podem fechar                 |
     //+--------------------------------------------------------------+
     bool CheckAllModes() {
         if(!IsCooldownExpired()) return false;
@@ -859,12 +859,12 @@ public:
         SGridState state = m_pos_manager.GetGridState();
         if(state.total_levels < 1) return false;
 
-        // 1. TP Total (prioridade m√°xima)
+        // 1. TP Total (prioridade m·xima)
         if(m_tp_points > 0 || m_tp_monetary > 0) {
             if(CheckTPTotal(state)) return true;
         }
 
-        // 2. TP Monet√°rio
+        // 2. TP Monet·rio
         if(m_tp_monetary > 0.0) {
             if(state.total_profit >= m_tp_monetary * m_tp_multiplier) {
                 m_logger.Info("SmartClose",
@@ -876,13 +876,13 @@ public:
         // 3. Quantidade (lotes/ordens)
         if(CheckQuantityClose(state)) return true;
 
-        // 4. Smart Close (padr√£o)
+        // 4. Smart Close (padr„o)
         if(CheckSmartClose(state)) return true;
 
         // 5. BreakEven
         if(CheckBreakEven(state)) return true;
 
-        // 6. Aceitar perda (√∫ltima op√ß√£o)
+        // 6. Aceitar perda (˙ltima opÁ„o)
         if(CheckAcceptLoss(state)) return true;
 
         return false;

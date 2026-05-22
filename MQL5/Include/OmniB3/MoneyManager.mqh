@@ -1,7 +1,7 @@
-ï»¿ï»¿//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
 //|                                               MoneyManager.mqh   |
-//|              Omni-B3 EA v2.48 â€” GestÃ£o de Capital                 |
-//|       Saldo do RobÃ´, preset multiplier, ajuste de moeda          |
+//|              Omni-B3 EA v2.48 — Gestão de Capital                 |
+//|       Saldo do Robô, preset multiplier, ajuste de moeda          |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
@@ -12,42 +12,42 @@
 #include "Logger.mqh"
 
 //+------------------------------------------------------------------+
-//| GestÃ£o de Capital e Dimensionamento de Lotes                      |
+//| Gestão de Capital e Dimensionamento de Lotes                      |
 //|                                                                   |
 //| Inspirado no sistema "Money Manage" do ToTheMoon v3.5:            |
-//| - Saldo do RobÃ´ (separado do saldo da conta)                     |
+//| - Saldo do Robô (separado do saldo da conta)                     |
 //| - Multiplicador de preset (xPreset): ajusta lotes pelo saldo     |
-//| - StopLoss por DD mÃ¡ximo do saldo do robÃ´                        |
-//| - Ajuste de moeda (BRL Ã¢â€ â€™ USD equivalente para cÃ¡lculos)          |
+//| - StopLoss por DD máximo do saldo do robô                        |
+//| - Ajuste de moeda (BRL â†’ USD equivalente para cálculos)          |
 //+------------------------------------------------------------------+
 class CMoneyManager {
 private:
     CLogger *m_logger;
 
-    // Modo do saldo do robÃ´
+    // Modo do saldo do robô
     ENUM_BALANCE_MODE m_balance_mode;
     double  m_fixed_balance;       // Saldo fixo (BAL_FIXED_VALUE)
     double  m_balance_percentage;  // % do saldo da conta (BAL_PERCENTAGE)
-    double  m_max_balance;         // Teto do saldo do robÃ´ (0 = sem teto)
+    double  m_max_balance;         // Teto do saldo do robô (0 = sem teto)
 
     // Preset multiplier (xPreset)
     ENUM_PRESET_MODE m_preset_mode;
     double  m_preset_factor;       // Fator base (ex: 1200 USD = x1)
 
     // Ajuste de moeda da conta
-    double  m_currency_rate;       // Taxa de conversÃ£o (ex: BRL/USD = 5.50)
+    double  m_currency_rate;       // Taxa de conversão (ex: BRL/USD = 5.50)
 
     // Stops do Money Manager
     double  m_stoploss_amount;     // StopLoss em valor (R$)
-    double  m_stoploss_percent;    // StopLoss em % do saldo do robÃ´
-    double  m_current_loss;        // PrejuÃ­zo atual acumulado (negativo)
-    double  m_max_loss_amount;     // PrejuÃ­zo mÃ¡ximo atual antes de parar
-    int     m_wait_after_loss;     // Segundos para aguardar apÃ³s atingir perda mÃ¡x
-    bool    m_stop_after_loss;     // Parar completamente apÃ³s perda mÃ¡xima?
+    double  m_stoploss_percent;    // StopLoss em % do saldo do robô
+    double  m_current_loss;        // Prejuízo atual acumulado (negativo)
+    double  m_max_loss_amount;     // Prejuízo máximo atual antes de parar
+    int     m_wait_after_loss;     // Segundos para aguardar após atingir perda máx
+    bool    m_stop_after_loss;     // Parar completamente após perda máxima?
 
     // Cache
-    double  m_last_robot_balance;  // Ãšltimo saldo calculado do robÃ´
-    datetime m_last_calc_time;     // Ãšltima vez que calculou
+    double  m_last_robot_balance;  // Último saldo calculado do robô
+    datetime m_last_calc_time;     // Última vez que calculou
 
 public:
     //+--------------------------------------------------------------+
@@ -56,7 +56,7 @@ public:
     CMoneyManager(CLogger *logger) {
         m_logger = logger;
 
-        // Defaults â€” modo simples, usa saldo total da conta
+        // Defaults — modo simples, usa saldo total da conta
         m_balance_mode      = BAL_FULL_ACCOUNT;
         m_fixed_balance     = 0.0;
         m_balance_percentage = 100.0;
@@ -65,7 +65,7 @@ public:
         m_preset_mode       = PRESET_DISABLED;
         m_preset_factor     = 1000.0;
 
-        m_currency_rate     = 1.0;  // Sem conversÃ£o por padrÃ£o
+        m_currency_rate     = 1.0;  // Sem conversão por padrão
 
         m_stoploss_amount   = 0.0;
         m_stoploss_percent  = 0.0;
@@ -79,7 +79,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Configura modo do saldo do robÃ´                              |
+    //| Configura modo do saldo do robô                              |
     //+--------------------------------------------------------------+
     void SetBalanceMode(ENUM_BALANCE_MODE mode, double value, double max_balance) {
         m_balance_mode = mode;
@@ -138,7 +138,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Calcula o saldo efetivo do robÃ´ (quanto pode usar)           |
+    //| Calcula o saldo efetivo do robô (quanto pode usar)           |
     //+--------------------------------------------------------------+
     double GetRobotBalance() {
         double balance = 0.0;
@@ -167,7 +167,7 @@ public:
     //+--------------------------------------------------------------+
     //| Calcula o multiplicador de preset                             |
     //| Retorna fator pelo qual multiplicar os lotes do preset        |
-    //| Exemplo: preset base = 1200 USD, saldo = 2400 Ã¢â€ â€™ mult = 2.0  |
+    //| Exemplo: preset base = 1200 USD, saldo = 2400 â†’ mult = 2.0  |
     //+--------------------------------------------------------------+
     double GetPresetMultiplier() {
         if(m_preset_mode == PRESET_DISABLED || m_preset_factor <= 0.0)
@@ -185,12 +185,12 @@ public:
                 return 1.0;
         }
 
-        // Converte para moeda de referÃªncia se necessÃ¡rio
+        // Converte para moeda de referência se necessário
         reference /= m_currency_rate;
 
         double mult = reference / m_preset_factor;
 
-        // MÃ­nimo x0.01 (nunca zero)
+        // Mínimo x0.01 (nunca zero)
         if(mult < 0.01) mult = 0.01;
 
         return mult;
@@ -198,7 +198,7 @@ public:
 
     //+--------------------------------------------------------------+
     //| Calcula lote ajustado pelo Money Manager                     |
-    //| base_lot: lote base do preset/configuraÃ§Ã£o                   |
+    //| base_lot: lote base do preset/configuração                   |
     //| Retorna: lote ajustado pelo multiplicador                    |
     //+--------------------------------------------------------------+
     double CalculateAdjustedLot(double base_lot) {
@@ -219,7 +219,7 @@ public:
             double loss = robot_balance - equity;
             if(loss >= m_stoploss_amount) {
                 m_logger.Critical("MoneyMgr",
-                    StringFormat("Ã°Å¸Å¡Â¨ StopLoss $: Perda=R$%.2f (mÃ¡x=R$%.2f)",
+                    StringFormat("[ALERTA] StopLoss $: Perda=R$%.2f (máx=R$%.2f)",
                                  loss, m_stoploss_amount));
                 return true;
             }
@@ -231,16 +231,16 @@ public:
             double dd_pct = ((robot_balance - equity) / robot_balance) * 100.0;
             if(dd_pct >= m_stoploss_percent) {
                 m_logger.Critical("MoneyMgr",
-                    StringFormat("Ã°Å¸Å¡Â¨ StopLoss %%: DD=%.1f%% (mÃ¡x=%.1f%%)",
+                    StringFormat("[ALERTA] StopLoss %%: DD=%.1f%% (máx=%.1f%%)",
                                  dd_pct, m_stoploss_percent));
                 return true;
             }
         }
 
-        // PrejuÃ­zo atual mÃ¡ximo
+        // Prejuízo atual máximo
         if(m_max_loss_amount > 0.0 && MathAbs(m_current_loss) >= m_max_loss_amount) {
             m_logger.Warning("MoneyMgr",
-                StringFormat("PrejuÃ­zo atual: R$%.2f (mÃ¡x=R$%.2f)",
+                StringFormat("Prejuízo atual: R$%.2f (máx=R$%.2f)",
                              m_current_loss, m_max_loss_amount));
             return true;
         }
@@ -249,7 +249,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Atualiza o prejuÃ­zo atual acumulado                          |
+    //| Atualiza o prejuízo atual acumulado                          |
     //+--------------------------------------------------------------+
     void UpdateCurrentLoss(double loss) {
         m_current_loss = loss;
@@ -263,10 +263,10 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Retorna informaÃ§Ãµes para o dashboard                         |
+    //| Retorna informações para o dashboard                         |
     //+--------------------------------------------------------------+
     string GetStatusString() {
-        return StringFormat("Saldo RobÃ´: R$%.2f | xPreset: %.2fx | Moeda: %.2f",
+        return StringFormat("Saldo Robô: R$%.2f | xPreset: %.2fx | Moeda: %.2f",
                            m_last_robot_balance, GetPresetMultiplier(), m_currency_rate);
     }
 };

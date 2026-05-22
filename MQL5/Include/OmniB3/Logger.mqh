@@ -1,7 +1,7 @@
-ÔªøÔªø//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
 //|                                                      Logger.mqh  |
-//|                         Omni-B3 EA v2.48 ‚Äî Sistema de Logging     |
-//|             Logging estruturado com n√≠veis e sa√≠da formatada      |
+//|                         Omni-B3 EA v2.48 ó Sistema de Logging     |
+//|             Logging estruturado com nÌveis e saÌda formatada      |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
@@ -11,20 +11,20 @@
 #include "Defines.mqh"
 
 //+------------------------------------------------------------------+
-//| Classe respons√°vel pelo sistema de logging do EA                 |
-//| Centraliza todas as mensagens com formata√ß√£o padronizada,        |
-//| filtro por n√≠vel de verbosidade e output para Print() e arquivo. |
+//| Classe respons·vel pelo sistema de logging do EA                 |
+//| Centraliza todas as mensagens com formataÁ„o padronizada,        |
+//| filtro por nÌvel de verbosidade e output para Print() e arquivo. |
 //+------------------------------------------------------------------+
 class CLogger {
 private:
-    ENUM_LOG_LEVEL m_min_level;     // N√≠vel m√≠nimo para exibir mensagens
+    ENUM_LOG_LEVEL m_min_level;     // NÌvel mÌnimo para exibir mensagens
     bool           m_file_enabled;  // Se deve salvar logs em arquivo
     string         m_file_name;     // Nome do arquivo de log
     int            m_file_handle;   // Handle do arquivo aberto
-    int            m_message_count; // Contador de mensagens (para diagn√≥stico)
+    int            m_message_count; // Contador de mensagens (para diagnÛstico)
 
     //+--------------------------------------------------------------+
-    //| Converte o enum de n√≠vel para string leg√≠vel em PT-BR        |
+    //| Converte o enum de nÌvel para string legÌvel em PT-BR        |
     //+--------------------------------------------------------------+
     string LevelToString(ENUM_LOG_LEVEL level) {
         switch(level) {
@@ -32,13 +32,13 @@ private:
             case LOG_INFO:     return "INFO";
             case LOG_WARNING:  return "AVISO";
             case LOG_ERROR:    return "ERRO";
-            case LOG_CRITICAL: return "CR√É¬çTICO";
+            case LOG_CRITICAL: return "CR√?TICO";
             default:           return "???";
         }
     }
 
     //+--------------------------------------------------------------+
-    //| Formata a mensagem com timestamp, n√≠vel e m√≥dulo              |
+    //| Formata a mensagem com timestamp, nÌvel e mÛdulo              |
     //+--------------------------------------------------------------+
     string FormatMessage(ENUM_LOG_LEVEL level, string module, string message) {
         // Formato: [2026.05.07 15:30:45][INFO][GridEngine] Mensagem aqui
@@ -55,12 +55,12 @@ private:
     void WriteToFile(string formatted_message) {
         if(!m_file_enabled) return;
 
-        // Abre o arquivo se ainda n√£o estiver aberto
+        // Abre o arquivo se ainda n„o estiver aberto
         if(m_file_handle == INVALID_HANDLE) {
             m_file_handle = FileOpen(m_file_name,
                 FILE_WRITE | FILE_READ | FILE_TXT | FILE_SHARE_READ | FILE_ANSI);
             if(m_file_handle == INVALID_HANDLE) {
-                // Se n√£o conseguir abrir, desabilita para evitar tentativas repetidas
+                // Se n„o conseguir abrir, desabilita para evitar tentativas repetidas
                 m_file_enabled = false;
                 Print("Logger: FALHA ao abrir arquivo de log: ", m_file_name);
                 return;
@@ -76,7 +76,7 @@ private:
 
 public:
     //+--------------------------------------------------------------+
-    //| Construtor ‚Äî configura n√≠vel m√≠nimo e op√ß√£o de arquivo       |
+    //| Construtor ó configura nÌvel mÌnimo e opÁ„o de arquivo       |
     //+--------------------------------------------------------------+
     CLogger(ENUM_LOG_LEVEL min_level = LOG_INFO, bool enable_file = false) {
         m_min_level     = min_level;
@@ -84,7 +84,7 @@ public:
         m_file_handle   = INVALID_HANDLE;
         m_message_count = 0;
 
-        // Gera nome do arquivo com data para rota√ß√£o di√°ria
+        // Gera nome do arquivo com data para rotaÁ„o di·ria
         m_file_name = StringFormat("OmniB3_Log_%s.txt",
                                    TimeToString(TimeCurrent(), TIME_DATE));
         // Substitui pontos por underscores no nome do arquivo
@@ -92,7 +92,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Destrutor ‚Äî fecha arquivo de log se estiver aberto           |
+    //| Destrutor ó fecha arquivo de log se estiver aberto           |
     //+--------------------------------------------------------------+
     ~CLogger() {
         if(m_file_handle != INVALID_HANDLE) {
@@ -101,10 +101,10 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| M√©todo principal de logging ‚Äî filtra por n√≠vel e despacha    |
+    //| MÈtodo principal de logging ó filtra por nÌvel e despacha    |
     //+--------------------------------------------------------------+
     void Log(ENUM_LOG_LEVEL level, string module, string message) {
-        // Ignora mensagens abaixo do n√≠vel m√≠nimo configurado
+        // Ignora mensagens abaixo do nÌvel mÌnimo configurado
         if(level < m_min_level) return;
 
         string formatted = FormatMessage(level, module, message);
@@ -118,33 +118,33 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Atalhos de conveni√™ncia para cada n√≠vel de log               |
+    //| Atalhos de conveniÍncia para cada nÌvel de log               |
     //+--------------------------------------------------------------+
 
-    // Mensagens de depura√ß√£o detalhadas (ex: valores de vari√°veis)
+    // Mensagens de depuraÁ„o detalhadas (ex: valores de vari·veis)
     void Debug(string module, string message)    { Log(LOG_DEBUG, module, message); }
 
-    // Informa√ß√µes operacionais normais (ex: "Ordem aberta com sucesso")
+    // InformaÁıes operacionais normais (ex: "Ordem aberta com sucesso")
     void Info(string module, string message)     { Log(LOG_INFO, module, message); }
 
-    // Situa√ß√µes anormais mas n√£o cr√≠ticas (ex: "Spread alto, aguardando")
+    // SituaÁıes anormais mas n„o crÌticas (ex: "Spread alto, aguardando")
     void Warning(string module, string message)  { Log(LOG_WARNING, module, message); }
 
-    // Falhas que impedem uma opera√ß√£o (ex: "Erro ao enviar ordem")
+    // Falhas que impedem uma operaÁ„o (ex: "Erro ao enviar ordem")
     void Error(string module, string message)    { Log(LOG_ERROR, module, message); }
 
-    // Falhas graves que exigem a√ß√£o imediata (ex: "Equity abaixo do limite")
+    // Falhas graves que exigem aÁ„o imediata (ex: "Equity abaixo do limite")
     void Critical(string module, string message) { Log(LOG_CRITICAL, module, message); }
 
     //+--------------------------------------------------------------+
-    //| Altera o n√≠vel m√≠nimo de log em tempo de execu√ß√£o            |
+    //| Altera o nÌvel mÌnimo de log em tempo de execuÁ„o            |
     //+--------------------------------------------------------------+
     void SetLevel(ENUM_LOG_LEVEL level) {
         m_min_level = level;
     }
 
     //+--------------------------------------------------------------+
-    //| Retorna o total de mensagens logadas nesta sess√£o             |
+    //| Retorna o total de mensagens logadas nesta sess„o             |
     //+--------------------------------------------------------------+
     int GetMessageCount() { return m_message_count; }
 };

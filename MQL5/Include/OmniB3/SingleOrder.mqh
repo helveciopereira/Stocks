@@ -1,6 +1,6 @@
-ÔªøÔªø//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
 //|                                                   SingleOrder.mqh |
-//|                     Omni-B3 EA v2.48 ‚Äî Modo de Ordem √önica        |
+//|                     Omni-B3 EA v2.48 ó Modo de Ordem ⁄nica        |
 //|  Gerenciamento de Trades Individuais com Martingale Sequencial   |
 //|  TP, SL, BreakEven independentes, Trailing Stop e Trailing TP    |
 //+------------------------------------------------------------------+
@@ -15,57 +15,57 @@
 
 //+------------------------------------------------------------------+
 //| CLASSE CSingleOrder                                              |
-//| Gerencia ordens simples independentes sem forma√ß√£o de grade      |
+//| Gerencia ordens simples independentes sem formaÁ„o de grade      |
 //+------------------------------------------------------------------+
 class CSingleOrder {
 private:
-    CTrade              m_trade;            // Classe padr√£o de trade do MT5
-    ulong               m_magic;            // N√∫mero M√°gico
+    CTrade              m_trade;            // Classe padr„o de trade do MT5
+    ulong               m_magic;            // N˙mero M·gico
     ENUM_SINGLE_ORDER_MODE m_mode;          // Modo ativo (Habilitado/Desabilitado)
     
-    // Configura√ß√µes do Trade
+    // ConfiguraÁıes do Trade
     double              m_sl_points;        // StopLoss em pontos (0 = sem)
     double              m_tp_points;        // TakeProfit em pontos (0 = sem)
-    double              m_be_activation;    // Ativa√ß√£o do BreakEven em pontos
+    double              m_be_activation;    // AtivaÁ„o do BreakEven em pontos
     double              m_be_margin;        // Margem de lucro do BreakEven
     
     // Sistema Martingale / Anti-Martingale
     ENUM_MARTINGALE_MODE m_mart_mode;       // Modo de Martingale
     double              m_mart_multiplier;  // Multiplicador de lote
-    int                 m_mart_max_steps;   // Limite de multiplica√ß√µes consecutivas
+    int                 m_mart_max_steps;   // Limite de multiplicaÁıes consecutivas
     int                 m_consecutive_losses;// Contador de perdas consecutivas
     int                 m_consecutive_wins;  // Contador de ganhos consecutivos
     double              m_current_multiplier;// Multiplicador atual aplicado ao lote inicial
 
-    // L√≥gicas de Espera (Cooldown)
-    int                 m_wait_after_loss;  // Segundos de espera ap√≥s uma perda
-    int                 m_wait_after_win;   // Segundos de espera ap√≥s um ganho
-    datetime            m_last_close_time;  // Hora do fechamento do √∫ltimo trade
-    double              m_last_trade_profit;// Lucro do √∫ltimo trade fechado
+    // LÛgicas de Espera (Cooldown)
+    int                 m_wait_after_loss;  // Segundos de espera apÛs uma perda
+    int                 m_wait_after_win;   // Segundos de espera apÛs um ganho
+    datetime            m_last_close_time;  // Hora do fechamento do ˙ltimo trade
+    double              m_last_trade_profit;// Lucro do ˙ltimo trade fechado
 
     // Auxiliares internos
     bool                m_be_applied;       // Sinalizador de BreakEven aplicado
-    bool                m_close_on_opposite;// Fechar posi√ß√£o se houver sinal contr√°rio?
+    bool                m_close_on_opposite;// Fechar posiÁ„o se houver sinal contr·rio?
     CLogger            *m_logger;           // Ponteiro para o Logger centralizado
 
-    // Sistema de Trailing (Gain / Stop Gain M√≥veis)
-    bool                m_use_trailing;     // Habilitar trailing m√≥vel
-    double              m_trail_trigger;    // Gatilho de ativa√ß√£o do trailing (pontos)
-    double              m_trail_stop_dist;  // Dist√¢ncia do Stop Gain (pontos)
-    double              m_trail_tp_dist;    // Dist√¢ncia do Gain M√≥vel (pontos)
-    double              m_trail_step;       // Passo de atualiza√ß√£o (pontos)
-    bool                m_trail_active;     // Indica se o trailing est√° ativo no trade atual
-    double              m_max_bid_seen;     // Maior pre√ßo Bid visto no trade de COMPRA
-    double              m_min_ask_seen;     // Menor pre√ßo Ask visto no trade de VENDA
+    // Sistema de Trailing (Gain / Stop Gain MÛveis)
+    bool                m_use_trailing;     // Habilitar trailing mÛvel
+    double              m_trail_trigger;    // Gatilho de ativaÁ„o do trailing (pontos)
+    double              m_trail_stop_dist;  // Dist‚ncia do Stop Gain (pontos)
+    double              m_trail_tp_dist;    // Dist‚ncia do Gain MÛvel (pontos)
+    double              m_trail_step;       // Passo de atualizaÁ„o (pontos)
+    bool                m_trail_active;     // Indica se o trailing est· ativo no trade atual
+    double              m_max_bid_seen;     // Maior preÁo Bid visto no trade de COMPRA
+    double              m_min_ask_seen;     // Menor preÁo Ask visto no trade de VENDA
 
-    // Rastreia o hist√≥rico para saber o resultado do √∫ltimo trade do Magic Number
+    // Rastreia o histÛrico para saber o resultado do ˙ltimo trade do Magic Number
     void                UpdateHistoryStats();
 
 public:
                         CSingleOrder();
                        ~CSingleOrder();
 
-    // Inicializa√ß√£o
+    // InicializaÁ„o
     void                Init(CLogger *logger,
                              ulong magic, 
                              ENUM_SINGLE_ORDER_MODE mode,
@@ -91,21 +91,21 @@ public:
     // Gerencia o trailing do StopLoss para BreakEven
     void                ManageBreakEven(string symbol, double current_bid, double current_ask, double tick_size);
 
-    // Gerencia o trailing m√≥vel f√≠sico (TakeProfit e StopLoss)
+    // Gerencia o trailing mÛvel fÌsico (TakeProfit e StopLoss)
     void                ManageTrailing(string symbol, double current_bid, double current_ask, double tick_size);
 
-    // Avalia fechamento por sinal contr√°rio
+    // Avalia fechamento por sinal contr·rio
     bool                CheckOppositeSignalClose(string symbol, int opposite_signal);
 
-    // Resetador do hist√≥rico de Martingale
+    // Resetador do histÛrico de Martingale
     void                ResetMartingale();
     
-    // Getters para estat√≠sticas
+    // Getters para estatÌsticas
     int                 GetConsecutiveLosses() const { return m_consecutive_losses; }
     int                 GetConsecutiveWins()   const { return m_consecutive_wins; }
     double              GetCurrentMultiplier() const { return m_current_multiplier; }
 
-    // Retorna a dire√ß√£o da posi√ß√£o f√≠sica ativa (1 = COMPRA, -1 = VENDA, 0 = SEM POSI√á√É∆íO)
+    // Retorna a direÁ„o da posiÁ„o fÌsica ativa (1 = COMPRA, -1 = VENDA, 0 = SEM POSI«„O)
     int                 GetPositionDirection();
 };
 
@@ -133,7 +133,7 @@ CSingleOrder::CSingleOrder() {
     m_close_on_opposite  = false;
     m_logger             = NULL;
     
-    // Inicializa√ß√£o do Trailing m√≥vel
+    // InicializaÁ„o do Trailing mÛvel
     m_use_trailing       = false;
     m_trail_trigger      = 0.0;
     m_trail_stop_dist    = 0.0;
@@ -151,8 +151,8 @@ CSingleOrder::~CSingleOrder() {
 }
 
 //+------------------------------------------------------------------+
-//| Retorna a dire√ß√£o da posi√ß√£o f√≠sica ativa                         |
-//| (1 = COMPRA, -1 = VENDA, 0 = SEM POSI√á√É∆íO)                        |
+//| Retorna a direÁ„o da posiÁ„o fÌsica ativa                         |
+//| (1 = COMPRA, -1 = VENDA, 0 = SEM POSI«„O)                        |
 //+------------------------------------------------------------------+
 int CSingleOrder::GetPositionDirection() {
     if(PositionSelect(_Symbol)) {
@@ -166,7 +166,7 @@ int CSingleOrder::GetPositionDirection() {
 }
 
 //+------------------------------------------------------------------+
-//| Inicializa√ß√£o das Configura√ß√µes                                  |
+//| InicializaÁ„o das ConfiguraÁıes                                  |
 //+------------------------------------------------------------------+
 void CSingleOrder::Init(CLogger *logger,
                          ulong magic, 
@@ -194,7 +194,7 @@ void CSingleOrder::Init(CLogger *logger,
     m_wait_after_win    = wait_win;
     m_close_on_opposite = close_opposite;
     
-    // Configura√ß√µes do Trailing
+    // ConfiguraÁıes do Trailing
     m_use_trailing      = use_trailing;
     m_trail_trigger     = trail_trigger;
     m_trail_stop_dist   = trail_stop_dist;
@@ -207,17 +207,17 @@ void CSingleOrder::Init(CLogger *logger,
     m_trade.SetExpertMagicNumber(m_magic);
     m_be_applied = false;
 
-    // Atualiza estat√≠sticas iniciais com base no hist√≥rico da conta
+    // Atualiza estatÌsticas iniciais com base no histÛrico da conta
     UpdateHistoryStats();
 }
 
 //+------------------------------------------------------------------+
-//| Atualiza estat√≠sticas baseadas no hist√≥rico da conta             |
+//| Atualiza estatÌsticas baseadas no histÛrico da conta             |
 //+------------------------------------------------------------------+
 void CSingleOrder::UpdateHistoryStats() {
     if(m_magic == 0) return;
 
-    // Solicita o hist√≥rico de negocia√ß√£o da conta
+    // Solicita o histÛrico de negociaÁ„o da conta
     if(!HistorySelect(0, TimeCurrent())) {
         if(m_logger != NULL) m_logger.Warning("SingleOrder", "Falha ao carregar o historico de trades.");
         return;
@@ -232,7 +232,7 @@ void CSingleOrder::UpdateHistoryStats() {
     int wins_count = 0;
     bool found_active_streak = false;
 
-    // Varre de tr√°s para frente para pegar os √∫ltimos resultados fechados
+    // Varre de tr·s para frente para pegar os ˙ltimos resultados fechados
     for(int i = total_deals - 1; i >= 0; i--) {
         ulong ticket = HistoryDealGetTicket(i);
         if(ticket == 0) continue;
@@ -241,14 +241,14 @@ void CSingleOrder::UpdateHistoryStats() {
         long deal_magic = HistoryDealGetInteger(ticket, DEAL_MAGIC);
         if(deal_magic != m_magic) continue;
 
-        // Apenas neg√≥cios de sa√≠da (que fecharam posi√ß√£o) nos interessam
+        // Apenas negÛcios de saÌda (que fecharam posiÁ„o) nos interessam
         long entry_type = HistoryDealGetInteger(ticket, DEAL_ENTRY);
         if(entry_type != DEAL_ENTRY_OUT && entry_type != DEAL_ENTRY_INOUT) continue;
 
         double profit = HistoryDealGetDouble(ticket, DEAL_PROFIT);
         datetime close_time = (datetime)HistoryDealGetInteger(ticket, DEAL_TIME);
 
-        // Define a data do √∫ltimo fechamento se for o mais recente
+        // Define a data do ˙ltimo fechamento se for o mais recente
         if(m_last_close_time == 0) {
             m_last_close_time = close_time;
             m_last_trade_profit = profit;
@@ -266,7 +266,7 @@ void CSingleOrder::UpdateHistoryStats() {
             }
         }
         
-        // Se encontramos uma transi√ß√£o, finalizamos a busca da sequ√™ncia atual
+        // Se encontramos uma transiÁ„o, finalizamos a busca da sequÍncia atual
         if(losses_count > 0 || wins_count > 0) {
             found_active_streak = true;
         }
@@ -292,15 +292,15 @@ void CSingleOrder::UpdateHistoryStats() {
 }
 
 //+------------------------------------------------------------------+
-//| Verifica se passou o Cooldown de espera ap√≥s ganho/perda          |
+//| Verifica se passou o Cooldown de espera apÛs ganho/perda          |
 //+------------------------------------------------------------------+
 bool CSingleOrder::CanOpenNewOrder(datetime current_time) {
     if(m_mode == SINGLE_DISABLED) return false;
-    if(m_last_close_time == 0) return true; // Sem hist√≥rico, pode operar
+    if(m_last_close_time == 0) return true; // Sem histÛrico, pode operar
 
     int elapsed = (int)(current_time - m_last_close_time);
 
-    // Se o √∫ltimo trade foi perdedor e temos cooldown de perda
+    // Se o ˙ltimo trade foi perdedor e temos cooldown de perda
     if(m_last_trade_profit < 0.0 && m_wait_after_loss > 0) {
         if(elapsed < m_wait_after_loss) {
             int remaining = m_wait_after_loss - elapsed;
@@ -308,7 +308,7 @@ bool CSingleOrder::CanOpenNewOrder(datetime current_time) {
             return false;
         }
     }
-    // Se o √∫ltimo trade foi vencedor e temos cooldown de ganho
+    // Se o ˙ltimo trade foi vencedor e temos cooldown de ganho
     else if(m_last_trade_profit > 0.0 && m_wait_after_win > 0) {
         if(elapsed < m_wait_after_win) {
             int remaining = m_wait_after_win - elapsed;
@@ -324,12 +324,12 @@ bool CSingleOrder::CanOpenNewOrder(datetime current_time) {
 //| Calcula o lote baseado nas regras de Martingale                  |
 //+------------------------------------------------------------------+
 double CSingleOrder::CalculateLot(double initial_lot, double lot_min, double lot_max) {
-    // For√ßa a atualiza√ß√£o do hist√≥rico antes de calcular o lote
+    // ForÁa a atualizaÁ„o do histÛrico antes de calcular o lote
     UpdateHistoryStats();
 
     double calculated_lot = initial_lot * m_current_multiplier;
     
-    // Limita os valores aos limites m√≠nimos e m√°ximos da corretora/EA
+    // Limita os valores aos limites mÌnimos e m·ximos da corretora/EA
     calculated_lot = MathMax(calculated_lot, lot_min);
     calculated_lot = MathMin(calculated_lot, lot_max);
     
@@ -338,12 +338,12 @@ double CSingleOrder::CalculateLot(double initial_lot, double lot_min, double lot
 }
 
 //+------------------------------------------------------------------+
-//| Abre Ordem √önica                                                 |
+//| Abre Ordem ⁄nica                                                 |
 //+------------------------------------------------------------------+
 bool CSingleOrder::OpenOrder(string symbol, int direction, double volume, string comment) {
     if(m_mode == SINGLE_DISABLED) return false;
 
-    // Garante que n√£o h√° nenhuma posi√ß√£o aberta com o Magic Number
+    // Garante que n„o h· nenhuma posiÁ„o aberta com o Magic Number
     if(PositionSelect(symbol)) {
         long pos_magic = PositionGetInteger(POSITION_MAGIC);
         if(pos_magic == m_magic) {
@@ -360,7 +360,7 @@ bool CSingleOrder::OpenOrder(string symbol, int direction, double volume, string
     double sl = 0.0;
     double tp = 0.0;
 
-    // Define pre√ßos e n√≠veis de SL/TP com base na dire√ß√£o
+    // Define preÁos e nÌveis de SL/TP com base na direÁ„o
     if(direction == 1) { // COMPRA
         price = SymbolInfoDouble(symbol, SYMBOL_ASK);
         if(m_sl_points > 0.0) sl = price - m_sl_points;
@@ -379,20 +379,20 @@ bool CSingleOrder::OpenOrder(string symbol, int direction, double volume, string
     uint ret_code = m_trade.ResultRetcode();
     if(ret_code == TRADE_RETCODE_DONE || ret_code == TRADE_RETCODE_PLACED) {
         if(m_logger != NULL) {
-            m_logger.Info("SingleOrder", StringFormat("Posi√ß√£o aberta com sucesso. Lote: %.0f, Pre√ßo: %.2f, SL: %.2f, TP: %.2f", 
+            m_logger.Info("SingleOrder", StringFormat("PosiÁ„o aberta com sucesso. Lote: %.0f, PreÁo: %.2f, SL: %.2f, TP: %.2f", 
                                       volume, price, sl, tp));
         }
         return true;
     } else {
         if(m_logger != NULL) {
-            m_logger.Error("SingleOrder", StringFormat("Falha ao abrir ordem. C√≥digo de retorno: %d", ret_code));
+            m_logger.Error("SingleOrder", StringFormat("Falha ao abrir ordem. CÛdigo de retorno: %d", ret_code));
         }
         return false;
     }
 }
 
 //+------------------------------------------------------------------+
-//| Gerenciamento de BreakEven para a posi√ß√£o individual             |
+//| Gerenciamento de BreakEven para a posiÁ„o individual             |
 //+------------------------------------------------------------------+
 void CSingleOrder::ManageBreakEven(string symbol, double current_bid, double current_ask, double tick_size) {
     if(m_be_activation <= 0.0 || m_be_applied) return;
@@ -406,11 +406,11 @@ void CSingleOrder::ManageBreakEven(string symbol, double current_bid, double cur
     double current_sl = PositionGetDouble(POSITION_SL);
 
     if(pos_type == POSITION_TYPE_BUY) {
-        // Dist√¢ncia que o pre√ßo subiu acima da entrada
+        // Dist‚ncia que o preÁo subiu acima da entrada
         double ppts = (current_bid - open_price);
         if(ppts >= m_be_activation) {
             double new_sl = open_price + m_be_margin;
-            // S√≥ ajusta se o SL for menor do que o novo SL de seguran√ßa
+            // SÛ ajusta se o SL for menor do que o novo SL de seguranÁa
             if(current_sl < new_sl) {
                 m_trade.PositionModify(symbol, new_sl, PositionGetDouble(POSITION_TP));
                 m_be_applied = true;
@@ -419,11 +419,11 @@ void CSingleOrder::ManageBreakEven(string symbol, double current_bid, double cur
         }
     } 
     else if(pos_type == POSITION_TYPE_SELL) {
-        // Dist√¢ncia que o pre√ßo caiu abaixo da entrada
+        // Dist‚ncia que o preÁo caiu abaixo da entrada
         double ppts = (open_price - current_ask);
         if(ppts >= m_be_activation) {
             double new_sl = open_price - m_be_margin;
-            // S√≥ ajusta se o SL for maior ou n√£o definido
+            // SÛ ajusta se o SL for maior ou n„o definido
             if(current_sl > new_sl || current_sl == 0.0) {
                 m_trade.PositionModify(symbol, new_sl, PositionGetDouble(POSITION_TP));
                 m_be_applied = true;
@@ -434,7 +434,7 @@ void CSingleOrder::ManageBreakEven(string symbol, double current_bid, double cur
 }
 
 //+------------------------------------------------------------------+
-//| Fecha a Posi√ß√£o se houver Sinal Contr√°rio                         |
+//| Fecha a PosiÁ„o se houver Sinal Contr·rio                         |
 //+------------------------------------------------------------------+
 bool CSingleOrder::CheckOppositeSignalClose(string symbol, int opposite_signal) {
     if(!m_close_on_opposite || opposite_signal == 0) return false;
@@ -446,11 +446,11 @@ bool CSingleOrder::CheckOppositeSignalClose(string symbol, int opposite_signal) 
     long pos_type = PositionGetInteger(POSITION_TYPE);
     bool should_close = false;
 
-    // Se temos posi√ß√£o de compra e o sinal contr√°rio √© de VENDA (-1)
+    // Se temos posiÁ„o de compra e o sinal contr·rio È de VENDA (-1)
     if(pos_type == POSITION_TYPE_BUY && opposite_signal == -1) {
         should_close = true;
     }
-    // Se temos posi√ß√£o de venda e o sinal contr√°rio √© de COMPRA (1)
+    // Se temos posiÁ„o de venda e o sinal contr·rio È de COMPRA (1)
     else if(pos_type == POSITION_TYPE_SELL && opposite_signal == 1) {
         should_close = true;
     }
@@ -462,7 +462,7 @@ bool CSingleOrder::CheckOppositeSignalClose(string symbol, int opposite_signal) 
         // Zera o estado do BreakEven
         m_be_applied = false;
         
-        // For√ßa a atualiza√ß√£o do hist√≥rico
+        // ForÁa a atualizaÁ„o do histÛrico
         UpdateHistoryStats();
         return true;
     }
@@ -481,12 +481,12 @@ void CSingleOrder::ResetMartingale() {
 }
 
 //+------------------------------------------------------------------+
-//| Gerenciamento do Trailing M√≥vel F√≠sico para Ordem √önica          |
+//| Gerenciamento do Trailing MÛvel FÌsico para Ordem ⁄nica          |
 //+------------------------------------------------------------------+
 void CSingleOrder::ManageTrailing(string symbol, double current_bid, double current_ask, double tick_size) {
     if(!m_use_trailing) return;
 
-    // Tenta selecionar a posi√ß√£o correspondente ao Magic Number
+    // Tenta selecionar a posiÁ„o correspondente ao Magic Number
     if(!PositionSelect(symbol)) return;
     long pos_magic = PositionGetInteger(POSITION_MAGIC);
     if(pos_magic != m_magic) return;
@@ -500,13 +500,13 @@ void CSingleOrder::ManageTrailing(string symbol, double current_bid, double curr
     if(pos_type == POSITION_TYPE_BUY) {
         double profit_pts = current_bid - open_price;
 
-        // Se o trailing ainda n√£o foi ativado, verifica o gatilho (trigger)
+        // Se o trailing ainda n„o foi ativado, verifica o gatilho (trigger)
         if(!m_trail_active) {
             if(profit_pts >= m_trail_trigger) {
                 m_trail_active = true;
                 m_max_bid_seen = current_bid;
                 if(m_logger != NULL) {
-                    m_logger.Info("SingleOrder", StringFormat("√∞≈∏‚Äù¬• Trailing F√≠sico Ativado na COMPRA! Lucro: %.0f pts. Pre√ßo: %.2f", profit_pts, current_bid));
+                    m_logger.Info("SingleOrder", StringFormat("üî• Trailing FÌsico Ativado na COMPRA! Lucro: %.0f pts. PreÁo: %.2f", profit_pts, current_bid));
                 }
             }
         }
@@ -527,8 +527,8 @@ void CSingleOrder::ManageTrailing(string symbol, double current_bid, double curr
                 target_tp = NormalizeDouble(MathRound(target_tp / tick_size) * tick_size, _Digits);
             }
 
-            // O Stop Gain s√≥ pode subir. Verificamos se o novo SL ideal est√° acima do SL atual
-            // e se a diferen√ßa √© de pelo menos m_trail_step
+            // O Stop Gain sÛ pode subir. Verificamos se o novo SL ideal est· acima do SL atual
+            // e se a diferenÁa È de pelo menos m_trail_step
             bool modify_sl = false;
             if(current_sl == 0.0 || target_sl >= current_sl + m_trail_step) {
                 // Apenas move para o breakeven ou lucro (acima da entrada)
@@ -537,24 +537,24 @@ void CSingleOrder::ManageTrailing(string symbol, double current_bid, double curr
                 }
             }
 
-            // O Take Profit m√≥vel tamb√©m caminha na dire√ß√£o da alta
+            // O Take Profit mÛvel tambÈm caminha na direÁ„o da alta
             bool modify_tp = false;
             if(current_tp == 0.0 || target_tp >= current_tp + m_trail_step) {
                 modify_tp = true;
             }
 
-            // Modifica se houver altera√ß√£o pendente
+            // Modifica se houver alteraÁ„o pendente
             if(modify_sl || modify_tp) {
                 double new_sl = modify_sl ? target_sl : current_sl;
                 double new_tp = modify_tp ? target_tp : current_tp;
 
                 if(m_trade.PositionModify(symbol, new_sl, new_tp)) {
                     if(m_logger != NULL) {
-                        m_logger.Info("SingleOrder", StringFormat("√¢≈°¬° Trailing COMPRA atualizado. SL: %.2f (antigo: %.2f) | TP: %.2f (antigo: %.2f)", new_sl, current_sl, new_tp, current_tp));
+                        m_logger.Info("SingleOrder", StringFormat("‚ö° Trailing COMPRA atualizado. SL: %.2f (antigo: %.2f) | TP: %.2f (antigo: %.2f)", new_sl, current_sl, new_tp, current_tp));
                     }
                 } else {
                     if(m_logger != NULL) {
-                        m_logger.Error("SingleOrder", StringFormat("√¢¬ù≈í Falha ao modificar Trailing COMPRA. C√≥digo: %d", m_trade.ResultRetcode()));
+                        m_logger.Error("SingleOrder", StringFormat("‚?å Falha ao modificar Trailing COMPRA. CÛdigo: %d", m_trade.ResultRetcode()));
                     }
                 }
             }
@@ -564,13 +564,13 @@ void CSingleOrder::ManageTrailing(string symbol, double current_bid, double curr
     else if(pos_type == POSITION_TYPE_SELL) {
         double profit_pts = open_price - current_ask;
 
-        // Se o trailing ainda n√£o foi ativado, verifica o gatilho (trigger)
+        // Se o trailing ainda n„o foi ativado, verifica o gatilho (trigger)
         if(!m_trail_active) {
             if(profit_pts >= m_trail_trigger) {
                 m_trail_active = true;
                 m_min_ask_seen = current_ask;
                 if(m_logger != NULL) {
-                    m_logger.Info("SingleOrder", StringFormat("√∞≈∏‚Äù¬• Trailing F√≠sico Ativado na VENDA! Lucro: %.0f pts. Pre√ßo: %.2f", profit_pts, current_ask));
+                    m_logger.Info("SingleOrder", StringFormat("üî• Trailing FÌsico Ativado na VENDA! Lucro: %.0f pts. PreÁo: %.2f", profit_pts, current_ask));
                 }
             }
         }
@@ -591,8 +591,8 @@ void CSingleOrder::ManageTrailing(string symbol, double current_bid, double curr
                 target_tp = NormalizeDouble(MathRound(target_tp / tick_size) * tick_size, _Digits);
             }
 
-            // O Stop Gain na venda s√≥ pode descer. Verificamos se o novo SL ideal est√° abaixo do SL atual
-            // e se a diferen√ßa √© de pelo menos m_trail_step
+            // O Stop Gain na venda sÛ pode descer. Verificamos se o novo SL ideal est· abaixo do SL atual
+            // e se a diferenÁa È de pelo menos m_trail_step
             bool modify_sl = false;
             if(current_sl == 0.0 || target_sl <= current_sl - m_trail_step) {
                 // Apenas move para o breakeven ou lucro (abaixo da entrada)
@@ -601,24 +601,24 @@ void CSingleOrder::ManageTrailing(string symbol, double current_bid, double curr
                 }
             }
 
-            // O Take Profit m√≥vel na venda tamb√©m caminha na dire√ß√£o da baixa
+            // O Take Profit mÛvel na venda tambÈm caminha na direÁ„o da baixa
             bool modify_tp = false;
             if(current_tp == 0.0 || target_tp <= current_tp - m_trail_step) {
                 modify_tp = true;
             }
 
-            // Modifica se houver altera√ß√£o pendente
+            // Modifica se houver alteraÁ„o pendente
             if(modify_sl || modify_tp) {
                 double new_sl = modify_sl ? target_sl : current_sl;
                 double new_tp = modify_tp ? target_tp : current_tp;
 
                 if(m_trade.PositionModify(symbol, new_sl, new_tp)) {
                     if(m_logger != NULL) {
-                        m_logger.Info("SingleOrder", StringFormat("√¢≈°¬° Trailing VENDA atualizado. SL: %.2f (antigo: %.2f) | TP: %.2f (antigo: %.2f)", new_sl, current_sl, new_tp, current_tp));
+                        m_logger.Info("SingleOrder", StringFormat("‚ö° Trailing VENDA atualizado. SL: %.2f (antigo: %.2f) | TP: %.2f (antigo: %.2f)", new_sl, current_sl, new_tp, current_tp));
                     }
                 } else {
                     if(m_logger != NULL) {
-                        m_logger.Error("SingleOrder", StringFormat("√¢¬ù≈í Falha ao modificar Trailing VENDA. C√≥digo: %d", m_trade.ResultRetcode()));
+                        m_logger.Error("SingleOrder", StringFormat("‚?å Falha ao modificar Trailing VENDA. CÛdigo: %d", m_trade.ResultRetcode()));
                     }
                 }
             }
