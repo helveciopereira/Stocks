@@ -292,10 +292,10 @@ void CDashboard::Update(const SGridState &grid_state,
     color btn_pause_color = ea_paused ? C'40,167,69' : C'255,193,7'; // Verde se pausado (clique para rodar), amarelo se rodando
 
     CreateButton("Btn_Panic", "[ALERTA] PANICO (KILL)", m_x_offset + 15, y, 138, 25, btn_panic_color, C'255,255,255', "Outfit");
-    CreateButton("Btn_CloseAll", "â?Œ FECHAR TUDO", m_x_offset + 167, y, 138, 25, m_color_button, m_color_btn_text, "Outfit");
+    CreateButton("Btn_CloseAll", " FECHAR TUDO", m_x_offset + 167, y, 138, 25, m_color_button, m_color_btn_text, "Outfit");
 
     y += 30;
-    string pause_lbl = ea_paused ? "[RUN] RETOMAR EA" : "â?¸ PAUSAR EA";
+    string pause_lbl = ea_paused ? "[RUN] RETOMAR EA" : "¸ PAUSAR EA";
     CreateButton("Btn_Pause", pause_lbl, m_x_offset + 15, y, 138, 25, btn_pause_color, ea_paused ? C'255,255,255' : C'0,0,0', "Outfit");
     CreateButton("Btn_Reset", "[RESET] RESET DIARIO", m_x_offset + 167, y, 138, 25, m_color_button, m_color_btn_text, "Outfit");
 

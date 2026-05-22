@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                                  TimeFilter.mqh  |
-//|               Omni-B3 EA v2.48 — Filtro de Horário (B3)          |
+//|               Omni-B3 EA v2.49 — Filtro de Horário (B3)          |
 //|       Dias permitidos, redução por tempo, criação de pendentes   |
 //+------------------------------------------------------------------+
 //| Copyright 2026, Projeto Omni-B3                                 |
@@ -8,7 +8,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.48"
+#property version   "2.49"
 #property strict
 
 #include "Defines.mqh"
@@ -196,12 +196,12 @@ public:
 
         // Detecta transição de dentro â†’ fora (apenas log)
         if(m_was_inside && !is_inside) {
-            m_logger.Info("TimeFilter", "â?° Fim do horário de operação");
+            m_logger.Info("TimeFilter", "Fim do horário de operação");
         }
         // Reseta flag quando volta para dentro do horário (no dia seguinte ou ao reativar)
         if(is_inside && !m_was_inside) {
             m_close_executed = false;
-            m_logger.Info("TimeFilter", "â?° Início do horário de operação. Resetando controle de fechamento.");
+            m_logger.Info("TimeFilter", "Início do horário de operação. Resetando controle de fechamento.");
         }
 
         m_was_inside = is_inside;
@@ -227,7 +227,7 @@ public:
         // Chegou no horário de fechar?
         if(current_minutes >= end_minutes && !m_close_executed) {
             m_close_executed = true; // Define como executado imediatamente para evitar múltiplos fechamentos no mesmo dia
-            m_logger.Info("TimeFilter", "â?° Horário limite atingido. Disparando fechamento forçado.");
+            m_logger.Info("TimeFilter", "Horário limite atingido. Disparando fechamento forçado.");
             return true;
         }
         return false;
@@ -291,7 +291,7 @@ public:
         double reduction = GetTPReductionFactor();
         return StringFormat("Janela: %02d:%02d-%02d:%02d | %s | Restam: %dmin%s",
                            m_start_hour, m_start_minute, m_end_hour, m_end_minute,
-                           IsTradeAllowed() ? "[OK] ABERTO" : "â?Œ FECHADO",
+                           IsTradeAllowed() ? "[OK] ABERTO" : "[FECHADO]",
                            remaining > 0 ? remaining : 0,
                            reduction < 1.0 ? StringFormat(" | Red=%.0f%%", reduction * 100) : "");
     }

@@ -1,18 +1,18 @@
 //+------------------------------------------------------------------+
 //|                                                     Defines.mqh  |
-//|                         Omni-B3 EA v2.48 — Definições Centrais    |
+//|                         Omni-B3 EA v2.49 — Definições Centrais    |
 //|          Adaptado para B3 (NETTING) — Minicontratos WIN/WDO      |
-//|  Versão 2.48 com Painel de Operações Recentes e Desenhos Gráficos |
+//|  Versão 2.49 com Painel de Operações Recentes e Desenhos Gráficos |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version     "2.48"
+#property version     "2.49"
 #property strict
 
 //+------------------------------------------------------------------+
 //| CONSTANTES GLOBAIS DO SISTEMA                                    |
 //+------------------------------------------------------------------+
-#define OMNIB3_VERSION        "2.48"
+#define OMNIB3_VERSION        "2.49"
 #define OMNIB3_COMMENT_PREFIX "OmniB3"
 
 // Limite absoluto de níveis de grade (trava inviolável de segurança)

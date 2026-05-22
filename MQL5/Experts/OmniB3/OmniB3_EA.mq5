@@ -1,23 +1,23 @@
 //+------------------------------------------------------------------+
 //|                                                  OmniB3_EA.mq5   |
-//|                  Omni-B3 EA v2.48 — Minicontratos B3             |
+//|                  Omni-B3 EA v2.49 — Minicontratos B3             |
 //|                                                                   |
 //|  Grid Trading Avançado para WIN/WDO (contas NETTING)             |
 //|  12+ modos de fechamento | 12+ indicadores | Recovery Mode      |
 //|  Persistência de estado | Money Management | Filtros avançados   |
-//|  NOVO v2.48: Janela Flutuante de Trades e Alvos Gráficos Néon     |
+//|  NOVO v2.49: Janela Flutuante de Trades e Alvos Gráficos Néon     |
 //|  Inspirado na metodologia Daniel Moraes (ToTheMoon v3.5)         |
 //|  Adaptado para Real Brasileiro e minicontratos da Bovespa        |
 //+------------------------------------------------------------------+
 #property copyright   "Projeto Omni-B3"
 #property link        "https://github.com/helveciopereira/Stocks"
-#property version     "2.48"
+#property version     "2.49"
 #property description "Grid Trading Avançado para Minicontratos B3 (WIN/WDO)"
 #property description "12+ modos de fechamento | 12+ indicadores técnicos"
 #property description "Persistência de estado | Recovery | Money Management"
-#property description "NOVO v2.48: Painel Flutuante de Operações e Alvos Virtuais Néon"
+#property description "NOVO v2.49: Painel Flutuante de Operações e Alvos Virtuais Néon"
 #property description "Adaptado para contas NETTING em Real (BRL)"
-#property description "Versao 2.48 com Painel de Operacoes Recentes e Desenhos Graficos"
+#property description "Versao 2.49 com Painel de Operacoes Recentes e Desenhos Graficos"
 
 //+------------------------------------------------------------------+
 //| INCLUDES                                                          |
@@ -39,9 +39,9 @@
 #include <OmniB3/Visuals.mqh>
 
 //+------------------------------------------------------------------+
-//| =?=?=?=?=?=?=?=?=?=?=?=?=?=?=? DADOS INICIAIS =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?                    |
+//| =============== DADOS INICIAIS ===============                    |
 //+------------------------------------------------------------------+
-input string           InpSeparator0 = "=?=?=?=?=?=?=?=? DADOS INICIAIS =?=?=?=?=?=?=?=?";   // =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?
+input string           InpSeparator0 = "======== DADOS INICIAIS ========";   // ===================
 input int              InpMagicNumber = 202605;    // Número Mágico (ID único do EA)
 input ENUM_LOG_LEVEL   InpLogLevel    = LOG_INFO;  // Nível de Log
 input bool             InpLogToFile   = false;     // Salvar Log em Arquivo?
@@ -49,9 +49,9 @@ input string           InpComment     = "";        // Comentário nas Ordens (vaz
 input int              InpSpreadMax   = 30;        // Spread Máximo (pontos)
 
 //+------------------------------------------------------------------+
-//| =?=?=?=?=?=?=?=?=?=?=?=?=?=?=? GERENCIAR DINHEIRO =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?                |
+//| =============== GERENCIAR DINHEIRO ===============                |
 //+------------------------------------------------------------------+
-input string           InpSeparator1 = "=?=?=?=?=?=?=?=? GERENCIAR DINHEIRO =?=?=?=?=?=?=?=?";  // =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?
+input string           InpSeparator1 = "======== GERENCIAR DINHEIRO ========";  // ===================
 input ENUM_BALANCE_MODE InpBalanceMode = BAL_FULL_ACCOUNT; // Modo do Saldo do Robô
 input double           InpBalanceValue = 10000.0;  // Valor do Saldo (R$) ou Porcentagem
 input double           InpMaxBalance   = 0.0;      // Saldo Máximo do Robô (0=sem teto)
@@ -68,9 +68,9 @@ input int              InpMMWaitLoss    = 0;        // Aguardar após Prejuízo (s
 input bool             InpMMStopLoss    = false;    // Parar após Prejuízo?
 
 //+------------------------------------------------------------------+
-//| =?=?=?=?=?=?=?=?=?=?=?=?=?=?=? ABERTURA =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?                           |
+//| =============== ABERTURA ===============                           |
 //+------------------------------------------------------------------+
-input string           InpSeparator2 = "=?=?=?=?=?=?=?=? ABERTURA =?=?=?=?=?=?=?=?";  // =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?
+input string           InpSeparator2 = "======== ABERTURA ========";  // ===================
 input ENUM_RISK_PROFILE InpRiskProfile = PROFILE_CUSTOM;  // Perfil de Risco
 input ENUM_GRID_DIRECTION InpDirection = GRID_BUY_ONLY;   // Direção (Compra ou Venda)
 
@@ -103,9 +103,9 @@ input int              InpGiantCandleSizeGrid = 100;// Tamanho Candle Gigante Gr
 input double           InpMaxDDNoOpen  = 50.0;     // Não Abrir se DD Robô > % (0=desab.)
 
 //+------------------------------------------------------------------+
-//| =?=?=?=?=?=?=?=?=?=?=?=?=?=?=? MODO GRADE =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?                        |
+//| =============== MODO GRADE ===============                        |
 //+------------------------------------------------------------------+
-input string           InpSeparator3 = "=?=?=?=?=?=?=?=? MODO GRADE (GRID) =?=?=?=?=?=?=?=?";  // =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?
+input string           InpSeparator3 = "======== MODO GRADE (GRID) ========";  // ===================
 input ENUM_GRID_TYPE   InpGridType    = GRID_FIXED;  // Tipo de Grade
 input ENUM_CLOSE_MODE  InpCloseMode   = CMODE_SMART_WORST;  // Modo de Fechamento
 input int              InpMaxLevels   = 5;          // Máximo de Níveis
@@ -165,9 +165,9 @@ input double           InpRecoveryExtraLot  = 0.0;   // Fator Extra no Lote (Rec
 input int              InpRecoveryTP  = 100;         // TakeProfit em Recovery (pts)
 
 //+------------------------------------------------------------------+
-//| =?=?=?=?=?=?=?=?=?=?=?=?=?=?=? INDICADORES =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?                       |
+//| =============== INDICADORES ===============                       |
 //+------------------------------------------------------------------+
-input string           InpSeparator4 = "=?=?=?=?=?=?=?=? INDICADORES =?=?=?=?=?=?=?=?";  // =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?
+input string           InpSeparator4 = "======== INDICADORES ========";  // ===================
 input string           InpSepRSI = "---- RSI ----";  // ----------------
 input int              InpRSIPeriod = 14;           // Período RSI
 input ENUM_TIMEFRAMES  InpRSITimeframe = PERIOD_M5; // Timeframe RSI
@@ -206,17 +206,17 @@ input ENUM_TIMEFRAMES  InpADXTimeframe = PERIOD_M5; // Timeframe ADX
 input double           InpADXMin = 22.0;            // ADX Mínimo (força)
 
 //+------------------------------------------------------------------+
-//| =?=?=?=?=?=?=?=?=?=?=?=?=?=?=? FILTROS =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?                            |
+//| =============== FILTROS ===============                            |
 //+------------------------------------------------------------------+
-input string           InpSeparator5 = "=?=?=?=?=?=?=?=? FILTROS =?=?=?=?=?=?=?=?";  // =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?
+input string           InpSeparator5 = "======== FILTROS ========";  // ===================
 input double           InpATRFilterMin = 0.0;       // ATR Mínimo (0=desab.)
 input double           InpATRFilterMax = 999999.0;  // ATR Máximo
 input long             InpVolFilterMin = 0;          // Volume Mínimo (0=desab.)
 
 //+------------------------------------------------------------------+
-//| =?=?=?=?=?=?=?=?=?=?=?=?=?=?=? LIMITES =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?                            |
+//| =============== LIMITES ===============                            |
 //+------------------------------------------------------------------+
-input string           InpSeparator6 = "=?=?=?=?=?=?=?=? LIMITES (STOP) =?=?=?=?=?=?=?=?";  // =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?
+input string           InpSeparator6 = "======== LIMITES (STOP) ========";  // ===================
 input string           InpSepCurrent = "---- Atual ----";  // ----------------
 input double           InpLimitProfitCurrent = 0.0;  // Lucro Máx Atual (R$, 0=desab.)
 input double           InpLimitLossCurrent   = 0.0;  // Perda Máx Atual (R$, 0=desab.)
@@ -239,9 +239,9 @@ input double           InpMinBalance     = 0.0;       // Saldo Mínimo (R$, 0=des
 input double           InpMinEquity      = 0.0;       // Equity Mínima (R$, 0=desab.)
 
 //+------------------------------------------------------------------+
-//| =?=?=?=?=?=?=?=?=?=?=?=?=?=?=? HORÃ?RIO =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?                            |
+//| =============== HORÃ?RIO ===============                            |
 //+------------------------------------------------------------------+
-input string           InpSeparator7 = "=?=?=?=?=?=?=?=? HORÃ?RIO PERMITIDO =?=?=?=?=?=?=?=?";  // =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?
+input string           InpSeparator7 = "======== HORÃ?RIO PERMITIDO ========";  // ===================
 input int              InpStartHour    = 9;          // Hora de Início
 input int              InpStartMinute  = 5;          // Minuto de Início
 input int              InpEndHour      = 17;         // Hora de Fim
@@ -261,20 +261,20 @@ input bool             InpAllowThursday  = true;     // Operar Quinta?
 input bool             InpAllowFriday    = true;     // Operar Sexta?
 
 //+------------------------------------------------------------------+
-//| =?=?=?=?=?=?=?=?=?=?=?=?=?=?=? FASE 2: NOVOS INPUTS =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?              |
+//| =============== FASE 2: NOVOS INPUTS ===============              |
 //+------------------------------------------------------------------+
-input string           InpSeparator8 = "=?=?=?=?=?=?=?=? FASE 2: PAINEL E DASHBOARD =?=?=?=?=?=?=?=?"; // =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?
+input string           InpSeparator8 = "======== FASE 2: PAINEL E DASHBOARD ========"; // ===================
 input bool             InpUseDashboard   = true;     // Habilitar Painel Gráfico?
 input ENUM_DASHBOARD_THEME InpDashboardTheme = THEME_DARK_MODERN; // Tema do Painel
 input int              InpDashboardX     = 20;       // Posição X do Painel (pixels)
 input int              InpDashboardY     = 40;       // Posição Y do Painel (pixels)
 
-input string           InpSeparatorVisuals = "=?=?=?=?=?=?=?=? CONFIGURAÇÕES VISUAIS v2.45 =?=?=?=?=?=?=?=?"; // =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?
+input string           InpSeparatorVisuals = "======== CONFIGURAÇÕES VISUAIS v2.45 ========"; // ===================
 input bool             InpShowTargetLines       = true;  // Exibir Linhas de Alvos Virtuais?
 input bool             InpShowTradeHistory     = true;  // Exibir Mapa Histórico de Trades?
 input bool             InpShowRecentTradesPanel = true;  // Exibir Painel de Trades Recentes?
 
-input string           InpSeparator9 = "=?=?=?=?=?=?=?=? FASE 2: ORDEM ÚNICA (SINGLE) =?=?=?=?=?=?=?=?"; // =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?
+input string           InpSeparator9 = "======== FASE 2: ORDEM ÚNICA (SINGLE) ========"; // ===================
 input ENUM_SINGLE_ORDER_MODE InpSingleOrderMode = SINGLE_DISABLED; // Modo de Operação (Ordem Única)
 input double           InpSingleSLPoints = 200.0;    // StopLoss do Trade (pontos)
 input double           InpSingleTPPoints = 150.0;    // TakeProfit do Trade (pontos)
@@ -287,14 +287,14 @@ input int              InpSingleWaitLoss = 0;        // Espera após Perda (segun
 input int              InpSingleWaitWin  = 0;        // Espera após Ganho (segundos)
 input bool             InpSingleCloseOpposite = true; // Fechar posição se houver sinal contrário?
 
-input string           InpSeparatorTrailing = "=?=?=?=?=?=?=?=? TRAILING STOP & TRAILING TP (v2.35) =?=?=?=?=?=?=?=?"; // =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?
+input string           InpSeparatorTrailing = "======== TRAILING STOP & TRAILING TP (v2.35) ========"; // ===================
 input bool             InpUseTrailing      = false;     // Habilitar Gain/Stop Gain Móvel?
 input double           InpTrailingTrigger  = 150.0;     // Gatilho para Ativar (pontos)
 input double           InpTrailingStopDist = 150.0;     // Distância do Stop Gain (pontos)
 input double           InpTrailingTPDist   = 200.0;     // Distância do Gain Móvel (pontos)
 input double           InpTrailingStep     = 10.0;      // Passo de Atualização (pontos)
 
-input string           InpSeparator10 = "=?=?=?=?=?=?=?=? FASE 2: FILTRO DE NOTÃ?CIAS =?=?=?=?=?=?=?=?"; // =?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?=?
+input string           InpSeparator10 = "======== FASE 2: FILTRO DE NOTÃ?CIAS ========"; // ===================
 input bool             InpNewsEnabled    = false;    // Habilitar Filtro de Notícias?
 input ENUM_NEWS_IMPORTANCE InpNewsMinImportance = NEWS_IMPORTANCE_HIGH; // Importância Mínima
 input ENUM_NEWS_ACTION InpNewsAction     = NEWS_ACTION_STOP_INITIAL; // Ação do EA Durante Notícia
@@ -329,9 +329,9 @@ string             g_status_msg = "Aguardando mercado";
 //| Expert initialization                                             |
 //+------------------------------------------------------------------+
 int OnInit() {
-    // =?=?=? 1. Logger (primeiro — todos dependem dele) =?=?=?
+    // === 1. Logger (primeiro — todos dependem dele) ===
     Logger = new CLogger(InpLogLevel, InpLogToFile);
-    Logger.Info("EA", StringFormat("=?=?=? Omni-B3 EA v%s =?=?=? Minicontratos B3", OMNIB3_VERSION));
+    Logger.Info("EA", StringFormat("=== Omni-B3 EA v%s === Minicontratos B3", OMNIB3_VERSION));
     Logger.Info("EA", StringFormat("Símbolo: %s | Magic: %d", _Symbol, InpMagicNumber));
 
     // Info do símbolo para debug
@@ -342,7 +342,7 @@ int OnInit() {
     Logger.Info("EA", StringFormat("TickSize=%.2f | TickValue=R$%.2f | VolMin=%.0f | VolStep=%.0f",
                                    tick_size, tick_value, vol_min, vol_step));
 
-    // =?=?=? 2. Indicator Hub =?=?=?
+    // === 2. Indicator Hub ===
     IndHub = new CIndicatorHub(_Symbol, Logger);
 
     // Configura indicadores
@@ -378,28 +378,28 @@ int OnInit() {
 
     IndHub.Initialize(active_signals, sig_count);
 
-    // =?=?=? 3. Money Manager =?=?=?
+    // === 3. Money Manager ===
     MoneyMgr = new CMoneyManager(Logger);
     MoneyMgr.SetBalanceMode(InpBalanceMode, InpBalanceValue, InpMaxBalance);
     MoneyMgr.SetPresetMode(InpPresetMode, InpPresetFactor);
     MoneyMgr.SetStopLoss(InpMMStopAmount, InpMMStopPercent, InpMMMaxLoss,
                           InpMMWaitLoss, InpMMStopLoss);
 
-    // =?=?=? 4. Persistência de Estado =?=?=?
+    // === 4. Persistência de Estado ===
     Persistence = new CStatePersistence(_Symbol, InpMagicNumber, Logger);
 
-    // =?=?=? 5. Recovery Mode =?=?=?
+    // === 5. Recovery Mode ===
     Recovery = new CRecoveryMode(Logger);
     Recovery.SetTriggers(InpRecoveryDD, InpRecoveryOrders, InpRecoveryLock);
     Recovery.SetRecoveryParams(InpRecoveryCloseMode, InpRecoveryExtraStep,
                                 InpRecoveryExtraLot, InpRecoveryTP);
 
-    // =?=?=? 6. Position Manager =?=?=?
+    // === 6. Position Manager ===
     PosManager = new CPositionManager(_Symbol, InpMagicNumber, Logger);
     PosManager.SetPersistence(Persistence);
     PosManager.SyncOnStartup();
 
-    // =?=?=? 7. Grid Engine =?=?=?
+    // === 7. Grid Engine ===
     // Sanitização e validação estrita de InpDirection (evita presets inválidos fora do enumerador)
     ENUM_GRID_DIRECTION verified_direction = InpDirection;
     if(InpDirection != GRID_BUY_ONLY && InpDirection != GRID_SELL_ONLY) {
@@ -425,7 +425,7 @@ int OnInit() {
     Grid.SetIndicatorUsage(InpUseIndInitial, InpUseIndGrid, InpOpenOnCandle);
     Grid.SetWaitTime(InpWaitSameDir);
 
-    // =?=?=? 8. Smart Close =?=?=?
+    // === 8. Smart Close ===
     Smart = new CSmartClose(_Symbol, InpMagicNumber,
                             InpCloseMode, SMART_CLOSE_MARGIN_TICKS,
                             PosManager, Logger);
@@ -440,7 +440,7 @@ int OnInit() {
     Smart.SetAcceptLoss(InpDDAcceptLoss, InpAcceptLoss);
     Smart.SetTrailing(InpUseTrailing, InpTrailingTrigger, InpTrailingStopDist, InpTrailingTPDist, InpTrailingStep);
 
-    // =?=?=? 9. Risk Manager =?=?=?
+    // === 9. Risk Manager ===
     Risk = new CRiskManager(InpMagicNumber, InpEquityStopPct, InpMaxDailyDDPct,
                             InpMaxPositions, InpMinMarginPct, Logger);
 
@@ -450,7 +450,7 @@ int OnInit() {
                         InpMaxOrdersDaily, InpMaxWinsDaily, InpMaxLossesDaily, true);
     Risk.SetAccountLimits(InpMinBalance, InpMinEquity, 0.0, 0.0, 0.0, 0, false);
 
-    // =?=?=? 10. Time Filter =?=?=?
+    // === 10. Time Filter ===
     TFilter = new CTimeFilter(InpStartHour, InpStartMinute,
                               InpEndHour, InpEndMinute,
                               InpFridayEarly, InpFridayEndHour,
@@ -462,24 +462,24 @@ int OnInit() {
     TFilter.SetCloseMode(InpTimeCloseMode);
     TFilter.SetTimeReduction(InpReduceMinutes, InpReduceType);
 
-    // =?=?=? 11. FASE 2: Single Order Módulo =?=?=?
+    // === 11. FASE 2: Single Order Módulo ===
     Single = new CSingleOrder();
     Single.Init(Logger, InpMagicNumber, InpSingleOrderMode, InpSingleSLPoints, InpSingleTPPoints,
                 InpSingleBEActivation, InpSingleBEMargin, InpSingleMartMode, InpSingleMartMultiplier,
                 InpSingleMartSteps, InpSingleWaitLoss, InpSingleWaitWin, InpSingleCloseOpposite,
                 InpUseTrailing, InpTrailingTrigger, InpTrailingStopDist, InpTrailingTPDist, InpTrailingStep);
 
-    // =?=?=? 12. FASE 2: News Filter Módulo =?=?=?
+    // === 12. FASE 2: News Filter Módulo ===
     News = new CNewsFilter();
     News.Init(Logger, InpNewsEnabled, InpNewsMinImportance, InpNewsAction, InpNewsBefore, InpNewsAfter, InpNewsCurrency);
 
-    // =?=?=? 13. FASE 2: Dashboard Visual =?=?=?
+    // === 13. FASE 2: Dashboard Visual ===
     Dash = new CDashboard();
     if(InpUseDashboard) {
         Dash.Init(Logger, InpDashboardTheme, InpDashboardX, InpDashboardY);
     }
 
-    // =?=?=? 14. OMNI-B3 v2.45: Módulo Visual e Painel de Operações Recentes =?=?=?
+    // === 14. OMNI-B3 v2.45: Módulo Visual e Painel de Operações Recentes ===
     Visuals = new CVisuals();
     if(InpShowTradeHistory || InpShowTargetLines) {
         Visuals.Init(Logger, InpMagicNumber, _Symbol);
@@ -663,7 +663,7 @@ void OnTick() {
             ENUM_TIME_CLOSE_MODE tclose = TFilter.GetCloseMode();
             if(tclose == TCLOSE_IMMEDIATE) {
                 Smart.CheckAndExecute(CMODE_TP_TOTAL);
-                Logger.Info("EA", "â?° Fechamento por horário");
+                Logger.Info("EA", "Fechamento por horário");
             }
         }
         return;
@@ -727,7 +727,7 @@ void OnTick() {
         Grid.ProcessGrid(signal);
     }
 
-    // =?=?=? OMNI-B3 v2.45: Atualização em Tempo Real de Linhas Horizontais de Alvos e Histórico =?=?=?
+    // === OMNI-B3 v2.45: Atualização em Tempo Real de Linhas Horizontais de Alvos e Histórico ===
     if(g_initialized) {
         if(InpShowTargetLines && Visuals != NULL) {
             int levels_cnt = PosManager.CountLevels();
@@ -814,7 +814,7 @@ void OnChartEvent(const int id, const long &lparam,
                 g_status_msg = "PANICO - BLOQUEADO";
             }
             else if(action == "CloseAll") {
-                Logger.Warning("EA", "â?Œ Fechando todas as ordens e niveis via Painel.");
+                Logger.Warning("EA", " Fechando todas as ordens e niveis via Painel.");
                 PosManager.ClearAllLevels();
                 
                 // Fecha a posição real física no MT5
@@ -829,7 +829,7 @@ void OnChartEvent(const int id, const long &lparam,
             }
             else if(action == "Pause") {
                 g_ea_paused = !g_ea_paused;
-                Logger.Info("EA", g_ea_paused ? "â?¸ EA pausado pelo painel" : "[RUN] EA retomado pelo painel");
+                Logger.Info("EA", g_ea_paused ? "¸ EA pausado pelo painel" : "[RUN] EA retomado pelo painel");
                 g_status_msg = g_ea_paused ? "Pausado via Painel" : "Rodando normal";
             }
             else if(action == "Reset") {

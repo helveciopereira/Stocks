@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                                   NewsFilter.mqh |
-//|                     Omni-B3 EA v2.48 — Filtro de Notícias Nativo  |
+//|                     Omni-B3 EA v2.49 — Filtro de Notícias Nativo  |
 //|  Proteção contra Alta Volatilidade de Calendário Econômico do MT5 |
 //|  Verifica eventos próximos e bloqueia abertura/execução do EA    |
 //+------------------------------------------------------------------+
@@ -9,7 +9,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version     "2.48"
+#property version     "2.49"
 #property strict
 
 #include <OmniB3/Defines.mqh>

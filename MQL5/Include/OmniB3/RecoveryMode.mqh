@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                               RecoveryMode.mqh   |
-//|            Omni-B3 EA v2.48 — Modo de Recuperação                 |
+//|            Omni-B3 EA v2.49 — Modo de Recuperação                 |
 //|    Altera comportamento da grade quando DD está alto              |
 //+------------------------------------------------------------------+
 //| Copyright 2026, Projeto Omni-B3                                 |
@@ -8,7 +8,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.48"
+#property version   "2.49"
 #property strict
 
 #include "Defines.mqh"
@@ -175,7 +175,7 @@ public:
     //| Status para dashboard/log                                     |
     //+--------------------------------------------------------------+
     string GetStatusString() {
-        if(!m_is_active) return "Recovery: â?Œ Inativo";
+        if(!m_is_active) return "Recovery:  Inativo";
         int elapsed = (int)(TimeCurrent() - m_activation_time);
         return StringFormat("Recovery: âš ï¸? ATIVO há %dm | #%d",
                            elapsed / 60, m_activation_count);

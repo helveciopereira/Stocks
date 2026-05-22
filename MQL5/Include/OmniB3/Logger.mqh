@@ -1,11 +1,11 @@
 //+------------------------------------------------------------------+
 //|                                                      Logger.mqh  |
-//|                         Omni-B3 EA v2.48 — Sistema de Logging     |
+//|                         Omni-B3 EA v2.49 — Sistema de Logging     |
 //|             Logging estruturado com níveis e saída formatada      |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.48"
+#property version   "2.49"
 #property strict
 
 #include "Defines.mqh"

@@ -1,11 +1,11 @@
 //+------------------------------------------------------------------+
 //|                                                IndicatorHub.mqh  |
-//|              Omni-B3 EA v2.48 — Hub Central de Indicadores        |
+//|              Omni-B3 EA v2.49 — Hub Central de Indicadores        |
 //|       Sistema unificado de sinais e filtros técnicos              |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.48"
+#property version   "2.49"
 #property strict
 
 #include "Defines.mqh"

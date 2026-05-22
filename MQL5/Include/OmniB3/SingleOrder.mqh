@@ -1,12 +1,12 @@
 //+------------------------------------------------------------------+
 //|                                                   SingleOrder.mqh |
-//|                     Omni-B3 EA v2.48 — Modo de Ordem Única        |
+//|                     Omni-B3 EA v2.49 — Modo de Ordem Única        |
 //|  Gerenciamento de Trades Individuais com Martingale Sequencial   |
 //|  TP, SL, BreakEven independentes, Trailing Stop e Trailing TP    |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version     "2.48"
+#property version     "2.49"
 #property strict
 
 #include <OmniB3/Defines.mqh>
@@ -554,7 +554,7 @@ void CSingleOrder::ManageTrailing(string symbol, double current_bid, double curr
                     }
                 } else {
                     if(m_logger != NULL) {
-                        m_logger.Error("SingleOrder", StringFormat("â?Œ Falha ao modificar Trailing COMPRA. Código: %d", m_trade.ResultRetcode()));
+                        m_logger.Error("SingleOrder", StringFormat(" Falha ao modificar Trailing COMPRA. Código: %d", m_trade.ResultRetcode()));
                     }
                 }
             }
@@ -618,7 +618,7 @@ void CSingleOrder::ManageTrailing(string symbol, double current_bid, double curr
                     }
                 } else {
                     if(m_logger != NULL) {
-                        m_logger.Error("SingleOrder", StringFormat("â?Œ Falha ao modificar Trailing VENDA. Código: %d", m_trade.ResultRetcode()));
+                        m_logger.Error("SingleOrder", StringFormat(" Falha ao modificar Trailing VENDA. Código: %d", m_trade.ResultRetcode()));
                     }
                 }
             }

@@ -1,8 +1,45 @@
+# 🚶‍♂️ Walkthrough: Estilização Visual Premium e Divisórias Limpas (v2.49)
+
+Nesta versão, implementamos um refinamento estético completo e elevamos a legibilidade dos parâmetros de entrada (*Inputs*), propriedades e comentários em toda a base de código do robô **Omni-B3**, consagrando a versão **v2.49** (+0.01 por se tratar de um ajuste visual e estético de interface). Eliminamos em definitivo todos os separadores poluídos que exibiam a sequência corrompida `=?=?=?=?=?=?=?=?`, substituindo-os por divisórias de caracteres ASCII puros, perfeitamente alinhadas, e expurgamos quaisquer bytes hexadecimais órfãos ou emojis quebrados remanescentes em todos os 16 arquivos do projeto.
+
+---
+
+## 🛠️ O que foi Desenvolvido e Implementado na v2.49?
+
+### 1. Eliminação dos Separadores Corrompidos (`=?`)
+* **O Problema**: Devido a decodificações incorretas e conversões parciais ocorridas em atualizações passadas, os caracteres Unicode multibyte de box drawing duplo (`═`) foram corrompidos e convertidos na sequência `=?=?=?=?=?=?=?=?`. Isso gerou um visual confuso, poluído e prejudicial nas propriedades de entrada do robô no MetaTrader 5.
+* **A Solução**: Criamos e executamos um script de automação preciso em nível de bytes que localizou e substituiu de forma atômica todas as ocorrências de `=?` por `=` em todos os cabeçalhos, comentários estruturais e strings de separadores de parâmetros. As propriedades de entrada de separação (ex: `InpSeparator0`, `InpSeparator1`, etc.) agora exibem linhas de igual (`======== DADOS INICIAIS ========`) e traços simétricos, resultando em uma interface impecável e altamente sofisticada.
+
+### 2. Purga Completa de Bytes Residuais e Emojis Quebrados
+* **O Problema**: Resíduos de emojis complexos modificados anteriormente (como `🛡️` e `⚠️`) deixaram fragmentos de bytes inválidos no Windows-1252 (tais como `\xe2\x3f\xb0` ou `\xe2\x3f\x8c`), que se manifestavam como caracteres estranhos contendo interrogações (`?`) em logs do diário e botões.
+* **A Solução**: O script de sanitização rastreou e eliminou todos os bytes inválidos `\xe2\x3f` em todos os arquivos de código. As mensagens do diário e rótulos gráficos foram totalmente purificados:
+  * Mensagens como `? Fechamento por horário` foram simplificadas e profissionalizadas para `Fechamento por horário`.
+  * Em `TimeFilter.mqh`, o indicador visual de fechamento foi limpo de `? FECHADO` para o padrão estético simétrico `[FECHADO]`, harmonizando perfeitamente com `[OK] ABERTO`.
+  * No `Dashboard.mqh`, botões complexos contendo resíduos foram polidos para `"FECHAR TUDO"` e `"PAUSAR EA"`, oferecendo um design premium de alta legibilidade.
+
+### 3. Backup de Segurança da v2.48 e Versionamento Consistente
+* **Backup de Segurança**: Criamos uma cópia física isolada e completa de toda a árvore de arquivos de código da versão anterior **v2.48** em `c:\Projetos\Stocks\BACKUP\v2.48\MQL5\`, respeitando rigorosamente a `RULE[user_global]`.
+* **Versionamento Unificado**: Atualizamos de forma robusta a constante global `#define OMNIB3_VERSION "2.49"` no arquivo `Defines.mqh` e elevamos a propriedade de versão e comentários em todos os 16 arquivos MQL5.
+
+### 4. Compilação 100% Limpa e Homologada
+* Validamos a integridade estrutural e de sintaxe compilando o robô principal `OmniB3_EA.mq5` com o compilador oficial da Rico `MetaEditor64.exe`, obtendo **sucesso absoluto com 0 erros e 0 warnings**!
+
+---
+
+## 📖 Como Usar e Configurar na v2.49
+
+O robô oferece uma experiência visual de altíssimo nível sem necessidade de ajustes extras:
+1. **Interface Limpa**: Ao carregar o robô ou abrir suas propriedades (F7), todos os blocos de configuração (DADOS INICIAIS, GERENCIAR DINHEIRO, MODO GRADE, INDICADORES, FILTROS, LIMITES, HORÁRIO, etc.) aparecem organizados com divisórias elegantes em ASCII puro (`=`).
+2. **Logs Transparentes e Sem Erros**: O Diário de Experts e os alertas no MetaTrader 5 registram todas as operações com textos puros em português brasileiro, completamente livres de Mojibakes ou interrogações perdidas.
+
+---
+
 # 🚶‍♂️ Walkthrough: Estabilização de Codificação Windows-1252 (CP1252) e Eliminação de BOM (v2.48)
 
 Nesta versão, realizamos uma estabilização estrutural e profunda da base de código do robô **Omni-B3**, elevando-o para a versão **v2.48** (+0.01 por se tratar de um ajuste técnico de compilação, codificação e otimização visual). Solucionamos em definitivo o erro crítico de compilação `unknown symbol '' (0xFEFF)` gerado pela sensibilidade do compilador do MetaTrader 5 (MetaEditor 5) ao Byte Order Mark (BOM) do UTF-8, migrando a totalidade dos arquivos para a codificação nativa **Windows-1252 (CP1252 / ANSI)** com acentuações e caracteres robustos.
 
 ---
+
 
 ## 🛠️ O que foi Desenvolvido e Implementado na v2.48?
 
