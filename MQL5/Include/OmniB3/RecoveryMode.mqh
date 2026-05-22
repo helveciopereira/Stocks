@@ -1,31 +1,31 @@
-﻿//+------------------------------------------------------------------+
+﻿﻿//+------------------------------------------------------------------+
 //|                                               RecoveryMode.mqh   |
-//|            Omni-B3 EA v2.47 â€” Modo de RecuperaÃ§Ã£o                 |
-//|    Altera comportamento da grade quando DD estÃ¡ alto              |
+//|            Omni-B3 EA v2.48 — Modo de Recuperação                 |
+//|    Altera comportamento da grade quando DD está alto              |
 //+------------------------------------------------------------------+
 //| Copyright 2026, Projeto Omni-B3                                 |
 //| https://github.com/helveciopereira/Stocks                        |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.47"
+#property version   "2.48"
 #property strict
 
 #include "Defines.mqh"
 #include "Logger.mqh"
 
 //+------------------------------------------------------------------+
-//| Modo de RecuperaÃ§Ã£o AutomÃ¡tica                                    |
+//| Modo de Recuperação Automática                                    |
 //|                                                                   |
 //| Inspirado no "RECOVERY" do ToTheMoon v3.5:                        |
 //| Quando o drawdown da grade ultrapassa um limite (% ou quantidade  |
 //| de ordens), o EA entra em modo recovery alterando:                |
 //| - Modo de fechamento (para um mais agressivo)                    |
-//| - Passo da grid (pode adicionar espaÃ§amento extra)               |
-//| - Multiplicador de lote (pode aumentar prÃ³ximo lote)             |
-//| - TakeProfit (pode ser reduzido para sair mais rÃ¡pido)           |
+//| - Passo da grid (pode adicionar espaçamento extra)               |
+//| - Multiplicador de lote (pode aumentar próximo lote)             |
+//| - TakeProfit (pode ser reduzido para sair mais rápido)           |
 //|                                                                   |
-//| O modo recovery TRAVA â€” nÃ£o sai atÃ© fechamento completo ou       |
+//| O modo recovery TRAVA — não sai até fechamento completo ou       |
 //| reset manual, evitando que o EA fique alternando entre modos.    |
 //+------------------------------------------------------------------+
 class CRecoveryMode {
@@ -35,7 +35,7 @@ private:
     // Gatilhos para ativar recovery
     double   m_dd_trigger;          // DD% para ativar (ex: 50.0 = 50%)
     int      m_order_count_trigger; // Qtde ordens para ativar (0 = desabilitado)
-    bool     m_lock_mode;           // Se deve travar em recovery atÃ© reset
+    bool     m_lock_mode;           // Se deve travar em recovery até reset
 
     // Ajustes do modo recovery
     ENUM_CLOSE_MODE m_recovery_close_mode;  // Modo de fechamento em recovery
@@ -44,9 +44,9 @@ private:
     int      m_recovery_tp;         // TakeProfit em recovery (pontos)
 
     // Estado
-    bool     m_is_active;           // Se recovery estÃ¡ ativo
+    bool     m_is_active;           // Se recovery está ativo
     datetime m_activation_time;     // Quando foi ativado
-    int      m_activation_count;    // Quantas vezes ativou (sessÃ£o)
+    int      m_activation_count;    // Quantas vezes ativou (sessão)
 
 public:
     //+--------------------------------------------------------------+
@@ -55,7 +55,7 @@ public:
     CRecoveryMode(CLogger *logger) {
         m_logger = logger;
 
-        // Defaults â€” recovery conservador
+        // Defaults — recovery conservador
         m_dd_trigger           = 100.0;       // 100% = nunca ativa por DD
         m_order_count_trigger  = 0;           // 0 = desabilitado por ordens
         m_lock_mode            = false;
@@ -71,7 +71,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Configura gatilhos de ativaÃ§Ã£o                                |
+    //| Configura gatilhos de ativação                                |
     //+--------------------------------------------------------------+
     void SetTriggers(double dd_percent, int order_count, bool lock) {
         m_dd_trigger = dd_percent;
@@ -81,7 +81,7 @@ public:
         m_logger.Info("Recovery",
             StringFormat("Gatilhos: DD=%.0f%% | Ordens=%d | Travar=%s",
                          m_dd_trigger, m_order_count_trigger,
-                         m_lock_mode ? "Sim" : "NÃ£o"));
+                         m_lock_mode ? "Sim" : "Não"));
     }
 
     //+--------------------------------------------------------------+
@@ -102,11 +102,11 @@ public:
     //+--------------------------------------------------------------+
     //| Verifica se deve ativar/desativar recovery                   |
     //| dd_percent: drawdown atual da grade em %                     |
-    //| order_count: quantidade atual de ordens/nÃ­veis               |
+    //| order_count: quantidade atual de ordens/níveis               |
     //+--------------------------------------------------------------+
     void Evaluate(double dd_percent, int order_count) {
         if(m_is_active) {
-            // Recovery jÃ¡ ativo â€” verifica se pode desativar
+            // Recovery já ativo — verifica se pode desativar
             if(!m_lock_mode) {
                 bool below_dd = (dd_percent < m_dd_trigger * 0.5);  // Metade do gatilho
                 bool below_orders = (m_order_count_trigger == 0 ||
@@ -115,7 +115,7 @@ public:
                     Deactivate();
                 }
             }
-            // Se lock_mode = true, sÃ³ sai via Reset() manual ou ClearAllLevels()
+            // Se lock_mode = true, só sai via Reset() manual ou ClearAllLevels()
             return;
         }
 
@@ -138,7 +138,7 @@ public:
         m_activation_count++;
 
         m_logger.Warning("Recovery",
-            StringFormat("âš ï¸ RECOVERY ATIVADO! DD=%.1f%% Ordens=%d (ativaÃ§Ã£o #%d)",
+            StringFormat("âš ï¸ RECOVERY ATIVADO! DD=%.1f%% Ordens=%d (ativação #%d)",
                          dd_pct, orders, m_activation_count));
     }
 
@@ -150,11 +150,11 @@ public:
         m_is_active = false;
         int duration = (int)(TimeCurrent() - m_activation_time);
         m_logger.Info("Recovery",
-            StringFormat("âœ… Recovery desativado apÃ³s %d segundos", duration));
+            StringFormat("âœ… Recovery desativado após %d segundos", duration));
     }
 
     //+--------------------------------------------------------------+
-    //| Reset manual do recovery (botÃ£o ou fechamento total)         |
+    //| Reset manual do recovery (botão ou fechamento total)         |
     //+--------------------------------------------------------------+
     void Reset() {
         m_is_active = false;
@@ -162,7 +162,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Getters â€” verificam se estamos em recovery e obtÃ©m ajustes   |
+    //| Getters — verificam se estamos em recovery e obtém ajustes   |
     //+--------------------------------------------------------------+
     bool IsActive()                      { return m_is_active; }
     ENUM_CLOSE_MODE GetCloseMode()       { return m_recovery_close_mode; }
@@ -177,7 +177,7 @@ public:
     string GetStatusString() {
         if(!m_is_active) return "Recovery: âŒ Inativo";
         int elapsed = (int)(TimeCurrent() - m_activation_time);
-        return StringFormat("Recovery: âš ï¸ ATIVO hÃ¡ %dm | #%d",
+        return StringFormat("Recovery: âš ï¸ ATIVO há %dm | #%d",
                            elapsed / 60, m_activation_count);
     }
 };

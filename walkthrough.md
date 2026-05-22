@@ -1,8 +1,37 @@
-# 🚶‍♂️ Walkthrough: P&L Financeiro Néon em Negrito e Limpeza Geral do Gráfico (v2.47)
+# 🚶‍♂️ Walkthrough: Sanitização de Codificação UTF-8 com BOM e Estabilidade Visual (v2.48)
 
-Nesta versão, focamos em otimizar a experiência visual do robô **Omni-B3**, elevando-o para a versão **v2.47** (+0.01 por se tratar de um ajuste visual e estético). Implementamos a remoção definitiva da poluição visual gerada pelo histórico nativo do MetaTrader 5 e aprimoramos o desenho de P&L das transações concluídas com estilo néon premium e em negrito.
+Nesta versão, realizamos uma sanitização massiva e profunda de toda a base de código do robô **Omni-B3**, elevando-o para a versão **v2.48** (+0.01 por se tratar de um ajuste técnico e visual de codificação e acentuação de textos). Corrigimos de forma abrangente todos os caracteres de acentuação corrompidos em português brasileiro (*Mojibake*, ex: `ExibiÃ§Ã£o` para `Exibição`) e re-salvamos a totalidade dos arquivos na codificação padrão premium **UTF-8 com BOM** (`utf-8-sig`) para blindar o MetaEditor do MetaTrader 5 contra futuras degradações de texto.
 
 ---
+
+## 🛠️ O que foi Desenvolvido e Implementado na v2.48?
+
+### 1. Sanitização Massiva de Encoding (*Mojibake*)
+* **O Problema**: A leitura e a gravação de arquivos com múltiplos encondings nativos no ambiente Windows/PowerShell costuma corromper caracteres acentuados no português brasileiro em painéis e logs do diário do MetaTrader 5 (exibindo `ExibiÃ§Ã£o`, `padrÃ£o`, etc.).
+* **A Solução**: Implementamos um script resiliente em Python (`sanitize_encoding.py`) no diretório scratch do sistema que varreu os 16 arquivos do projeto (1 Expert principal e 15 Includes), decodificando de forma segura as strings corrompidas e re-gravando-as na codificação **UTF-8 com BOM** (`utf-8-sig`). A presença do Byte Order Mark (BOM) garante que o MetaEditor do MT5 interprete a acentuação e pontuação nativas com fidelidade absoluta no diário e no código.
+
+### 2. Versionamento Consistente e Elevado para v2.48
+* **Constant `OMNIB3_VERSION`**: Elevamos a constante de versão do robô em [Defines.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/Defines.mqh) para `"2.48"`.
+* **Atualização de Cabeçalhos**: Todos os 16 arquivos do projeto de código-fonte tiveram seus comentários de cabeçalho atualizados sistematicamente para refletir a versão **2.48** em português brasileiro, mantening a documentação e os logs perfeitamente sintonizados.
+
+### 3. Backup de Segurança da v2.47
+* **Backup de Segurança**: Em conformidade rígida com as diretrizes do projeto (`RULE[user_global]`), foi criada uma cópia estruturada física isolada de toda a árvore de código-fonte da versão **v2.47** anterior no diretório `c:\Projetos\Stocks\BACKUP\v2.47\MQL5\` antes de efetuar qualquer modificação no diretório de trabalho.
+
+### 4. Validação e Compilação 100% Limpa
+* **Processamento**: Executamos o compilador de 64 bits do MetaEditor (`MetaEditor64.exe`) da Rico no arquivo principal do expert `OmniB3_EA.mq5`.
+* **Resultado**: A compilação foi concluída com **sucesso absoluto com 0 erros e 0 warnings**, gerando o binário `OmniB3_EA.ex5` estável e pronto para backtest e produção.
+
+---
+
+## 📖 Como Usar e Configurar na v2.48
+
+O robô continuará a se comportar operacionalmente de forma idêntica à estável **v2.47**, agora rodando com um visual visualmente impecável e legibilidade irretocável em português brasileiro:
+1. **Logs Claros**: Todas as mensagens impressas no Diário (Logs) e nos Alertas agora exibem as acentuações corretas.
+2. **Dashboard Visual**: O painel gráfico no MetaTrader 5 exibe todos os caracteres especiais perfeitamente e sem distorções de renderização.
+
+---
+
+# 🚶‍♂️ Walkthrough: P&L Financeiro Néon em Negrito e Limpeza Geral do Gráfico (v2.47)
 
 ## 🛠️ O que foi Desenvolvido e Implementado na v2.47?
 

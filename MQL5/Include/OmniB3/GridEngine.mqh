@@ -1,11 +1,11 @@
-﻿//+------------------------------------------------------------------+
+﻿﻿//+------------------------------------------------------------------+
 //|                                                  GridEngine.mqh  |
-//|                  Omni-B3 EA v2.47 â€” Motor de Grade (B3/NETTING)  |
-//|   Step multiplicador, candle gigante, integraÃ§Ã£o indicadores     |
+//|                  Omni-B3 EA v2.48 — Motor de Grade (B3/NETTING)  |
+//|   Step multiplicador, candle gigante, integração indicadores     |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.47"
+#property version   "2.48"
 #property strict
 
 #include "Defines.mqh"
@@ -18,13 +18,13 @@
 //+------------------------------------------------------------------+
 //| Motor de Grade adaptado para B3 (contas NETTING)                 |
 //|                                                                   |
-//| v2.0 â€” Melhorias inspiradas no ToTheMoon v3.5:                   |
-//| - Step multiplicador (passo cresce a cada nÃ­vel)                 |
+//| v2.0 — Melhorias inspiradas no ToTheMoon v3.5:                   |
+//| - Step multiplicador (passo cresce a cada nível)                 |
 //| - Valor somado ao passo que diminui com o tempo                  |
-//| - Next Lot avanÃ§ado com fator + tempo de espera                  |
+//| - Next Lot avançado com fator + tempo de espera                  |
 //| - Controle de Candle Gigante                                      |
-//| - IntegraÃ§Ã£o com IndicatorHub para validar aberturas             |
-//| - IntegraÃ§Ã£o com RecoveryMode para ajustes dinÃ¢micos             |
+//| - Integração com IndicatorHub para validar aberturas             |
+//| - Integração com RecoveryMode para ajustes dinâmicos             |
 //+------------------------------------------------------------------+
 class CGridEngine {
 private:
@@ -36,47 +36,47 @@ private:
     string  m_symbol;
     int     m_magic_number;
     double  m_initial_lot;        // Volume inicial em contratos
-    double  m_lot_multiplier;     // Multiplicador de lote entre nÃ­veis
+    double  m_lot_multiplier;     // Multiplicador de lote entre níveis
     int     m_max_levels;
-    int     m_fixed_spacing;      // EspaÃ§amento fixo em pontos
+    int     m_fixed_spacing;      // Espaçamento fixo em pontos
 
-    // ATR para grade dinÃ¢mica
+    // ATR para grade dinâmica
     int     m_atr_period;
     ENUM_TIMEFRAMES m_atr_timeframe;
     double  m_atr_multiplier;
 
-    // Step multiplicador â€” passo crescente a cada nÃ­vel
+    // Step multiplicador — passo crescente a cada nível
     double  m_step_multiplier;    // Multiplicador do passo (ex: 1.2 = +20%)
-    int     m_step_min;           // Passo mÃ­nimo em pontos (0 = sem limite)
-    int     m_step_max;           // Passo mÃ¡ximo em pontos (0 = sem limite)
+    int     m_step_min;           // Passo mínimo em pontos (0 = sem limite)
+    int     m_step_max;           // Passo máximo em pontos (0 = sem limite)
 
     // Valor somado ao passo que diminui com o tempo
     int     m_added_step;         // Pontos extras na abertura
     int     m_added_step_decay;   // Segundos para zerar o valor somado
 
-    // Next Lot â€” controle de prÃ³ximo lote
-    double  m_next_lot_factor;    // Fator do prÃ³ximo lote (multiplicar ou somar)
+    // Next Lot — controle de próximo lote
+    double  m_next_lot_factor;    // Fator do próximo lote (multiplicar ou somar)
     int     m_next_lot_wait;      // Segundos de espera entre ordens da grid
-    int     m_next_lot_start_wait;// A partir de qual nÃ­vel comeÃ§a a esperar
-    int     m_next_lot_stop_wait; // Em qual nÃ­vel para de esperar
+    int     m_next_lot_start_wait;// A partir de qual nível começa a esperar
+    int     m_next_lot_stop_wait; // Em qual nível para de esperar
     bool    m_allow_big_lot;      // Permitir lote grande?
     bool    m_allow_smaller_bigger;// Permitir lote menor/maior que limites?
 
-    // Candle Gigante â€” proteÃ§Ã£o contra movimentos bruscos
-    int     m_giant_candle_wait_initial; // Segundos para esperar apÃ³s candle gigante (inicial)
+    // Candle Gigante — proteção contra movimentos bruscos
+    int     m_giant_candle_wait_initial; // Segundos para esperar após candle gigante (inicial)
     int     m_giant_candle_size_initial; // Tamanho em pontos do candle gigante (inicial)
     int     m_giant_candle_wait_grid;    // Segundos para esperar (grid)
     int     m_giant_candle_size_grid;    // Tamanho em pontos (grid)
-    datetime m_last_giant_candle_time;   // Ãšltimo candle gigante detectado
+    datetime m_last_giant_candle_time;   // Último candle gigante detectado
 
     // Controle de espera entre ordens
-    int     m_wait_open_same;     // Segundos entre ordens na mesma direÃ§Ã£o
-    datetime m_last_order_time;   // Ãšltimo envio de ordem
+    int     m_wait_open_same;     // Segundos entre ordens na mesma direção
+    datetime m_last_order_time;   // Último envio de ordem
 
     // Indicadores para abertura
     bool    m_use_indicator_initial;  // Usar indicador para ordem inicial?
     bool    m_use_indicator_grid;     // Usar indicador para ordens da grid?
-    bool    m_open_on_candle;         // Abrir apenas no inÃ­cio do candle?
+    bool    m_open_on_candle;         // Abrir apenas no início do candle?
 
     CTrade  m_trade;
 
@@ -86,21 +86,21 @@ private:
     CLogger          *m_logger;
 
     //+--------------------------------------------------------------+
-    //| Verifica se spread estÃ¡ aceitÃ¡vel                             |
+    //| Verifica se spread está aceitável                             |
     //+--------------------------------------------------------------+
     bool IsSpreadAcceptable() {
         double spread = (double)SymbolInfoInteger(m_symbol, SYMBOL_SPREAD);
         if(spread > MAX_SPREAD_POINTS) {
             m_logger.Warning("GridEngine",
-                StringFormat("Spread alto: %.0f pts (mÃ¡x: %d)", spread, MAX_SPREAD_POINTS));
+                StringFormat("Spread alto: %.0f pts (máx: %d)", spread, MAX_SPREAD_POINTS));
             return false;
         }
         return true;
     }
 
     //+--------------------------------------------------------------+
-    //| Verifica se Ãºltimo candle foi "gigante" (proteÃ§Ã£o)           |
-    //| Um candle gigante indica notÃ­cia ou evento inesperado        |
+    //| Verifica se último candle foi "gigante" (proteção)           |
+    //| Um candle gigante indica notícia ou evento inesperado        |
     //+--------------------------------------------------------------+
     bool IsGiantCandle(int size_points) {
         if(size_points <= 0) return false;  // Desabilitado
@@ -121,7 +121,7 @@ private:
     }
 
     //+--------------------------------------------------------------+
-    //| Verifica se estamos em perÃ­odo de espera apÃ³s candle gigante |
+    //| Verifica se estamos em período de espera após candle gigante |
     //+--------------------------------------------------------------+
     bool IsWaitingAfterGiantCandle(int wait_seconds) {
         if(wait_seconds <= 0 || m_last_giant_candle_time == 0) return false;
@@ -142,7 +142,7 @@ private:
     bool IsWaitingNextLot(int current_level) {
         if(m_next_lot_wait <= 0) return false;
 
-        // Verifica se estÃ¡ na faixa de espera
+        // Verifica se está na faixa de espera
         if(current_level < m_next_lot_start_wait) return false;
         if(m_next_lot_stop_wait > 0 && current_level >= m_next_lot_stop_wait) return false;
 
@@ -151,7 +151,7 @@ private:
     }
 
     //+--------------------------------------------------------------+
-    //| Normaliza volume para contratos inteiros vÃ¡lidos             |
+    //| Normaliza volume para contratos inteiros válidos             |
     //| B3 minicontratos: min=1, step=1, max varia por broker       |
     //+--------------------------------------------------------------+
     double NormalizeLot(double lot) {
@@ -159,7 +159,7 @@ private:
         double max_lot  = SymbolInfoDouble(m_symbol, SYMBOL_VOLUME_MAX);
         double step_lot = SymbolInfoDouble(m_symbol, SYMBOL_VOLUME_STEP);
 
-        // Arredonda para o step mais prÃ³ximo (para baixo)
+        // Arredonda para o step mais próximo (para baixo)
         lot = MathFloor(lot / step_lot) * step_lot;
         if(lot < min_lot) lot = min_lot;
         if(lot > max_lot) lot = max_lot;
@@ -168,13 +168,13 @@ private:
     }
 
     //+--------------------------------------------------------------+
-    //| Detecta modo de preenchimento aceito pelo sÃ­mbolo            |
-    //| B3 geralmente usa RETURN ou IOC, nÃ£o FOK                     |
+    //| Detecta modo de preenchimento aceito pelo símbolo            |
+    //| B3 geralmente usa RETURN ou IOC, não FOK                     |
     //+--------------------------------------------------------------+
     ENUM_ORDER_TYPE_FILLING DetectFillingMode() {
         long filling = SymbolInfoInteger(m_symbol, SYMBOL_FILLING_MODE);
 
-        // Testa cada modo na ordem de preferÃªncia para B3
+        // Testa cada modo na ordem de preferência para B3
         if((filling & SYMBOL_FILLING_IOC) != 0)
             return ORDER_FILLING_IOC;
         if((filling & SYMBOL_FILLING_FOK) != 0)
@@ -184,7 +184,7 @@ private:
     }
 
     //+--------------------------------------------------------------+
-    //| Gera comentÃ¡rio padronizado para a ordem                     |
+    //| Gera comentário padronizado para a ordem                     |
     //+--------------------------------------------------------------+
     string BuildComment(int level, string dir) {
         return StringFormat("%s_v%s_%s_L%d", OMNIB3_COMMENT_PREFIX,
@@ -192,7 +192,7 @@ private:
     }
 
     //+--------------------------------------------------------------+
-    //| Abre ordem de COMPRA (em NETTING, soma Ã  posiÃ§Ã£o existente)  |
+    //| Abre ordem de COMPRA (em NETTING, soma à posição existente)  |
     //+--------------------------------------------------------------+
     bool OpenBuyOrder(int level) {
         double lot = CalculateLotSize(level);
@@ -205,7 +205,7 @@ private:
 
         bool result = m_trade.Buy(lot, m_symbol, ask, 0, 0, comment);
         if(result) {
-            // Registra nÃ­vel virtual no PositionManager
+            // Registra nível virtual no PositionManager
             m_pos_manager.RegisterLevel(ask, lot, 1, is_recovery);
             m_last_order_time = TimeCurrent();
             m_logger.Info("GridEngine",
@@ -220,7 +220,7 @@ private:
     }
 
     //+--------------------------------------------------------------+
-    //| Abre ordem de VENDA (em NETTING, soma Ã  posiÃ§Ã£o existente)   |
+    //| Abre ordem de VENDA (em NETTING, soma à posição existente)   |
     //+--------------------------------------------------------------+
     bool OpenSellOrder(int level) {
         double lot = CalculateLotSize(level);
@@ -274,7 +274,7 @@ public:
         m_recovery       = NULL;
         m_max_levels     = MathMin(max_levels, GRID_MAX_ABSOLUTE);
 
-        // Defaults para novos parÃ¢metros
+        // Defaults para novos parâmetros
         m_next_lot_mode      = NEXT_LOT_MULTIPLY;
         m_next_lot_factor    = 1.3;
         m_next_lot_wait      = 0;
@@ -283,7 +283,7 @@ public:
         m_allow_big_lot      = false;
         m_allow_smaller_bigger = true;
 
-        m_step_multiplier    = 1.0;  // Sem multiplicaÃ§Ã£o por padrÃ£o
+        m_step_multiplier    = 1.0;  // Sem multiplicação por padrão
         m_step_min           = 0;
         m_step_max           = 0;
         m_added_step         = 0;
@@ -308,13 +308,13 @@ public:
         m_trade.SetTypeFilling(DetectFillingMode());
 
         m_logger.Info("GridEngine",
-            StringFormat("Init: %s | Tipo=%s | Dir=%s | Vol=%.0f | MaxNÃ­veis=%d",
+            StringFormat("Init: %s | Tipo=%s | Dir=%s | Vol=%.0f | MaxNíveis=%d",
                          m_symbol, EnumToString(m_grid_type),
                          EnumToString(m_direction), m_initial_lot, m_max_levels));
     }
 
     //+--------------------------------------------------------------+
-    //| Define referÃªncia ao Recovery Mode                            |
+    //| Define referência ao Recovery Mode                            |
     //+--------------------------------------------------------------+
     void SetRecoveryMode(CRecoveryMode *recovery) { m_recovery = recovery; }
 
@@ -339,7 +339,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Configura Next Lot avanÃ§ado                                   |
+    //| Configura Next Lot avançado                                   |
     //+--------------------------------------------------------------+
     void SetNextLot(ENUM_NEXT_LOT_MODE mode, double factor, int wait_seconds,
                     int start_wait, int stop_wait, bool allow_big, bool allow_sm_bg) {
@@ -382,17 +382,17 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Calcula volume para o nÃ­vel especificado                     |
+    //| Calcula volume para o nível especificado                     |
     //| Considera modo de lote, next lot e recovery                  |
     //+--------------------------------------------------------------+
     double CalculateLotSize(int level) {
         double lot;
 
         if(level == 0) {
-            // Primeiro nÃ­vel â€” sempre lote inicial
+            // Primeiro nível — sempre lote inicial
             lot = m_initial_lot;
         } else {
-            // NÃ­veis da grid â€” aplica modo de cÃ¡lculo
+            // Níveis da grid — aplica modo de cálculo
             switch(m_next_lot_mode) {
                 case NEXT_LOT_FIXED:
                     lot = m_initial_lot;
@@ -419,7 +419,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Calcula espaÃ§amento da grade para um nÃ­vel especÃ­fico        |
+    //| Calcula espaçamento da grade para um nível específico        |
     //| Considera step multiplier, valor somado e recovery           |
     //+--------------------------------------------------------------+
     double CalculateGridSpacing(int level = 0) {
@@ -429,7 +429,7 @@ public:
             double point = SymbolInfoDouble(m_symbol, SYMBOL_POINT);
             base_spacing = m_fixed_spacing * point;
         } else {
-            // Grade dinÃ¢mica â€” usa ATR do IndicatorHub
+            // Grade dinâmica — usa ATR do IndicatorHub
             double atr = (m_ind_hub != NULL) ? m_ind_hub.GetATRValue() : 0.0;
             if(atr <= 0.0) {
                 m_logger.Warning("GridEngine", "ATR=0, usando fallback fixo");
@@ -439,7 +439,7 @@ public:
             }
         }
 
-        // Aplica step multiplier (passo cresce a cada nÃ­vel)
+        // Aplica step multiplier (passo cresce a cada nível)
         if(m_step_multiplier > 1.0 && level > 0) {
             base_spacing *= MathPow(m_step_multiplier, level - 1);
         }
@@ -481,7 +481,7 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Processa lÃ³gica de grade a cada tick                         |
+    //| Processa lógica de grade a cada tick                         |
     //| Integra com indicadores, candle gigante, espera e recovery   |
     //+--------------------------------------------------------------+
     void ProcessGrid(int signal = 0) {
@@ -490,7 +490,7 @@ public:
         int current_levels = m_pos_manager.CountLevels();
         int safe_max = MathMin(m_max_levels, GRID_MAX_ABSOLUTE);
 
-        // Trava de seguranÃ§a
+        // Trava de segurança
         if(current_levels >= safe_max) return;
 
         // Espera entre ordens
@@ -499,7 +499,7 @@ public:
         double spacing = CalculateGridSpacing(current_levels);
         if(spacing <= 0.0) return;
 
-        // Se nÃ£o hÃ¡ nÃ­veis, abre o primeiro (nÃ­vel 0)
+        // Se não há níveis, abre o primeiro (nível 0)
         if(current_levels == 0) {
             // Verifica candle gigante para ordem inicial
             if(m_giant_candle_wait_initial > 0) {
@@ -510,12 +510,12 @@ public:
             // Verifica indicador para ordem inicial (se configurado)
             if(m_use_indicator_initial && signal == 0) return;
 
-            // Determina direÃ§Ã£o
+            // Determina direção
             if(m_direction == GRID_BUY_ONLY) {
-                if(m_use_indicator_initial && signal < 0) return;  // Sinal de venda â†’ nÃ£o compra
+                if(m_use_indicator_initial && signal < 0) return;  // Sinal de venda â†’ não compra
                 OpenBuyOrder(0);
             } else {
-                if(m_use_indicator_initial && signal > 0) return;  // Sinal de compra â†’ nÃ£o vende
+                if(m_use_indicator_initial && signal > 0) return;  // Sinal de compra â†’ não vende
                 OpenSellOrder(0);
             }
             return;
@@ -535,7 +535,7 @@ public:
             if(!m_ind_hub.PassAllFilters()) return;
         }
 
-        // ObtÃ©m preÃ§o do Ãºltimo nÃ­vel
+        // Obtém preço do último nível
         double last_price = m_pos_manager.GetLastLevelPrice();
         if(last_price <= 0.0) return;
 
@@ -543,12 +543,12 @@ public:
         double bid = SymbolInfoDouble(m_symbol, SYMBOL_BID);
 
         if(m_direction == GRID_BUY_ONLY) {
-            // COMPRA: abre novo nÃ­vel quando preÃ§o CAI spacing pontos
+            // COMPRA: abre novo nível quando preço CAI spacing pontos
             if(last_price - ask >= spacing) {
                 OpenBuyOrder(current_levels);
             }
         } else {
-            // VENDA: abre novo nÃ­vel quando preÃ§o SOBE spacing pontos
+            // VENDA: abre novo nível quando preço SOBE spacing pontos
             if(bid - last_price >= spacing) {
                 OpenSellOrder(current_levels);
             }
@@ -556,18 +556,18 @@ public:
     }
 
     //+--------------------------------------------------------------+
-    //| Retorna referÃªncia ao CTrade para uso pelo SmartClose        |
+    //| Retorna referência ao CTrade para uso pelo SmartClose        |
     //+--------------------------------------------------------------+
     CTrade *GetTradeObject() { return &m_trade; }
 
     //+--------------------------------------------------------------+
-    //| Info do espaÃ§amento para log                                  |
+    //| Info do espaçamento para log                                  |
     //+--------------------------------------------------------------+
     string GetSpacingInfo() {
         double spacing = CalculateGridSpacing(0);
         double point = SymbolInfoDouble(m_symbol, SYMBOL_POINT);
         double pts = (point > 0) ? spacing / point : 0;
-        return StringFormat("EspaÃ§amento: %.2f (%.0f pts) | StepMult=%.2f",
+        return StringFormat("Espaçamento: %.2f (%.0f pts) | StepMult=%.2f",
                            spacing, pts, m_step_multiplier);
     }
 };
