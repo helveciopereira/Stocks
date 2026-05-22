@@ -424,3 +424,303 @@ bool CDashboard::CreateButton(string name, string text, int x, int y, int w, int
 
     return true;
 }
+
+//+------------------------------------------------------------------+
+//| CLASSE CRecentTradesPanel                                        |
+//| Gerencia um painel flutuante independente para listar trades     |
+//+------------------------------------------------------------------+
+class CRecentTradesPanel {
+private:
+    long                 m_chart_id;        // ID do Gráfico atual
+    int                  m_sub_window;      // Sub-janela (0 = gráfico principal)
+    string               m_prefix;          // Prefixo para objetos gráficos únicos
+    ENUM_DASHBOARD_THEME m_theme;           // Tema de cores ativo
+    bool                 m_is_visible;      // Visibilidade do painel
+    CLogger             *m_logger;          // Ponteiro para o Logger
+    int                  m_magic_number;    // Número mágico do robô
+    string               m_symbol;          // Ativo operado
+
+    // Cores de acordo com o tema
+    color                m_color_bg;        
+    color                m_color_border;    
+    color                m_color_text;      
+    color                m_color_positive;  
+    color                m_color_negative;  
+    color                m_color_accent;    
+
+    // Dimensões e posicionamento
+    int                  m_x_offset;        
+    int                  m_y_offset;        
+    int                  m_width;           
+    int                  m_height;          
+
+    // Métodos auxiliares para criação rápida de objetos
+    bool                 CreateLabel(string name, string text, int x, int y, int size, color clr, string font="Outfit");
+    bool                 CreateRect(string name, int x, int y, int w, int h, color bg, color border, int border_width=1);
+    void                 ApplyTheme();
+
+public:
+                         CRecentTradesPanel();
+                        ~CRecentTradesPanel();
+
+    // Inicialização do Painel Flutuante
+    bool                 Init(CLogger *logger, ENUM_DASHBOARD_THEME theme, int x, int y, int magic, string symbol);
+    // Destrói objetos gráficos
+    void                 Deinit();
+    // Renderiza e atualiza o histórico na tabela flutuante
+    void                 Update();
+    // Define visibilidade
+    void                 SetVisibility(bool visible);
+    bool                 IsVisible() const { return m_is_visible; }
+};
+
+//+------------------------------------------------------------------+
+//| Construtor Padrão                                                |
+//+------------------------------------------------------------------+
+CRecentTradesPanel::CRecentTradesPanel() {
+    m_chart_id     = 0;
+    m_sub_window   = 0;
+    m_prefix       = "OmniB3_RT_";
+    m_theme        = THEME_DARK_MODERN;
+    m_is_visible   = true;
+    m_x_offset     = 360; // Posicionado ao lado do dashboard principal (largura 320 + offset 40)
+    m_y_offset     = 40;
+    m_width        = 330;
+    m_height       = 175;
+    m_logger       = NULL;
+    m_magic_number = 0;
+    m_symbol       = "";
+}
+
+//+------------------------------------------------------------------+
+//| Destrutor                                                        |
+//+------------------------------------------------------------------+
+CRecentTradesPanel::~CRecentTradesPanel() {
+    Deinit();
+}
+
+//+------------------------------------------------------------------+
+//| Inicialização                                                    |
+//+------------------------------------------------------------------+
+bool CRecentTradesPanel::Init(CLogger *logger, ENUM_DASHBOARD_THEME theme, int x, int y, int magic, string symbol) {
+    m_logger       = logger;
+    m_chart_id     = ChartID();
+    m_sub_window   = 0;
+    m_theme        = theme;
+    m_x_offset     = x;
+    m_y_offset     = y;
+    m_magic_number = magic;
+    m_symbol       = symbol;
+
+    ApplyTheme();
+    Deinit(); // Limpa resíduos antigos antes de iniciar
+
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Deinicialização e Limpeza                                        |
+//+------------------------------------------------------------------+
+void CRecentTradesPanel::Deinit() {
+    int total = ObjectsTotal(m_chart_id, m_sub_window, -1);
+    for(int i = total - 1; i >= 0; i--) {
+        string name = ObjectName(m_chart_id, i, m_sub_window, -1);
+        if(StringFind(name, m_prefix) == 0) {
+            ObjectDelete(m_chart_id, name);
+        }
+    }
+    ChartRedraw(m_chart_id);
+}
+
+//+------------------------------------------------------------------+
+//| Aplica o tema de cores                                           |
+//+------------------------------------------------------------------+
+void CRecentTradesPanel::ApplyTheme() {
+    switch(m_theme) {
+        case THEME_LIGHT_CLEAN:
+            m_color_bg       = C'245,247,250';
+            m_color_border   = C'210,215,223';
+            m_color_text     = C'44,53,64';
+            m_color_positive = C'40,167,69';
+            m_color_negative = C'220,53,69';
+            m_color_accent   = C'0,123,255';
+            break;
+            
+        case THEME_GLASSMORPHISM:
+            m_color_bg       = C'15,20,30';
+            m_color_border   = C'100,120,150';
+            m_color_text     = C'220,230,242';
+            m_color_positive = C'80,240,120';
+            m_color_negative = C'255,100,120';
+            m_color_accent   = C'0,229,255';
+            break;
+            
+        case THEME_DARK_MODERN:
+        default:
+            m_color_bg       = C'10,13,18';
+            m_color_border   = C'35,42,54';
+            m_color_text     = C'240,242,245';
+            m_color_positive = C'0,230,180';
+            m_color_negative = C'255,80,100';
+            m_color_accent   = C'0,162,255';
+            break;
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Atualiza as informações do Painel Flutuante                     |
+//+------------------------------------------------------------------+
+void CRecentTradesPanel::Update() {
+    if(!m_is_visible) return;
+
+    // 1. Cria o Retângulo de Fundo Flutuante
+    CreateRect("Panel_BG", m_x_offset, m_y_offset, m_width, m_height, m_color_bg, m_color_border, 2);
+
+    // Título do painel flutuante
+    CreateLabel("Title", " 📊 MONITOR DE OPERAÇÕES RECENTES", m_x_offset + 15, m_y_offset + 12, 9, m_color_accent, "Outfit");
+    CreateRect("Title_Separator", m_x_offset + 15, m_y_offset + 30, m_width - 30, 2, m_color_border, m_color_border);
+
+    // Cabeçalho da Tabela
+    int y = m_y_offset + 38;
+    CreateLabel("H_Ticket", "TICKET", m_x_offset + 20, y, 8, m_color_border);
+    CreateLabel("H_Type", "TIPO", m_x_offset + 100, y, 8, m_color_border);
+    CreateLabel("H_Vol", "VOL", m_x_offset + 170, y, 8, m_color_border);
+    CreateLabel("H_Profit", "LUCRO (BRL)", m_x_offset + 220, y, 8, m_color_border);
+
+    // Varre o histórico de deals para pegar os últimos 5 trades finalizados
+    if(!HistorySelect(0, TimeCurrent())) return;
+
+    int total_deals = HistoryDealsTotal();
+    int rows_drawn = 0;
+    y += 18;
+
+    // Percorre do mais recente para o mais antigo buscando saídas
+    for(int i = total_deals - 1; i >= 0 && rows_drawn < 5; i--) {
+        ulong ticket = HistoryDealGetTicket(i);
+        if(ticket == 0) continue;
+
+        string deal_symbol = HistoryDealGetString(ticket, DEAL_SYMBOL);
+        long   deal_magic  = HistoryDealGetInteger(ticket, DEAL_MAGIC);
+        long   entry_type  = HistoryDealGetInteger(ticket, DEAL_ENTRY);
+        long   pos_id      = HistoryDealGetInteger(ticket, DEAL_POSITION_ID);
+
+        if(deal_symbol != m_symbol || deal_magic != m_magic_number) continue;
+
+        // Filtra estritamente deals que são de fechamento (saída) para listar a operação consolidada
+        if(entry_type == DEAL_ENTRY_OUT || entry_type == DEAL_ENTRY_OUT_BY) {
+            double exit_price = HistoryDealGetDouble(ticket, DEAL_PRICE);
+            double profit     = HistoryDealGetDouble(ticket, DEAL_PROFIT);
+            double commission = HistoryDealGetDouble(ticket, DEAL_COMMISSION);
+            double swap       = HistoryDealGetDouble(ticket, DEAL_SWAP);
+            double net_profit = profit + commission + swap;
+            double volume     = HistoryDealGetDouble(ticket, DEAL_VOLUME);
+            long   deal_type  = HistoryDealGetInteger(ticket, DEAL_TYPE);
+
+            // A direção original da posição é inversa ao tipo do deal de saída (Netting)
+            string dir_str = "";
+            color dir_clr = m_color_text;
+            if(deal_type == DEAL_TYPE_SELL) {
+                dir_str = "COMPRA";
+                dir_clr = m_color_positive;
+            } else {
+                dir_str = "VENDA";
+                dir_clr = m_color_negative;
+            }
+
+            // Exibe a linha na tabela
+            string row_suf = "_" + IntegerToString(rows_drawn);
+            CreateLabel("R_Tkt" + row_suf, "#" + IntegerToString(pos_id), m_x_offset + 20, y, 8, m_color_text);
+            CreateLabel("R_Typ" + row_suf, dir_str, m_x_offset + 100, y, 8, dir_clr);
+            CreateLabel("R_Vol" + row_suf, DoubleToString(volume, 0), m_x_offset + 170, y, 8, m_color_text);
+
+            color profit_clr = (net_profit >= 0.0) ? m_color_positive : m_color_negative;
+            string sign = (net_profit >= 0.0) ? "+" : "";
+            CreateLabel("R_Prf" + row_suf, sign + "R$ " + DoubleToString(net_profit, 2), m_x_offset + 220, y, 8, profit_clr);
+
+            y += 20;
+            rows_drawn++;
+        }
+    }
+
+    // Limpa linhas excedentes antigas que possam ter ficado caso tenhamos menos de 5 deals no histórico
+    for(int r = rows_drawn; r < 5; r++) {
+        string row_suf = "_" + IntegerToString(r);
+        ObjectDelete(m_chart_id, m_prefix + "R_Tkt" + row_suf);
+        ObjectDelete(m_chart_id, m_prefix + "R_Typ" + row_suf);
+        ObjectDelete(m_chart_id, m_prefix + "R_Vol" + row_suf);
+        ObjectDelete(m_chart_id, m_prefix + "R_Prf" + row_suf);
+    }
+
+    ChartRedraw(m_chart_id);
+}
+
+//+------------------------------------------------------------------+
+//| Visibilidade                                                     |
+//+------------------------------------------------------------------+
+void CRecentTradesPanel::SetVisibility(bool visible) {
+    m_is_visible = visible;
+    if(!visible) {
+        Deinit();
+    }
+}
+
+//+------------------------------------------------------------------+
+//| AUXILIAR: Criação de Retângulo preenchido                        |
+//+------------------------------------------------------------------+
+bool CRecentTradesPanel::CreateRect(string name, int x, int y, int w, int h, color bg, color border, int border_width) {
+    string obj_name = m_prefix + name;
+
+    if(ObjectFind(m_chart_id, obj_name) >= 0) {
+        ObjectDelete(m_chart_id, obj_name);
+    }
+
+    if(!ObjectCreate(m_chart_id, obj_name, OBJ_RECTANGLE_LABEL, m_sub_window, 0, 0)) {
+        return false;
+    }
+
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_XDISTANCE, x);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_YDISTANCE, y);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_XSIZE, w);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_YSIZE, h);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_BGCOLOR, bg);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_COLOR, border);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_BORDER_TYPE, BORDER_FLAT);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_WIDTH, border_width);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_CORNER, CORNER_LEFT_UPPER);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_BACK, false);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_SELECTABLE, false);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_SELECTED, false);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_HIDDEN, true);
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| AUXILIAR: Criação de Texto                                       |
+//+------------------------------------------------------------------+
+bool CRecentTradesPanel::CreateLabel(string name, string text, int x, int y, int size, color clr, string font) {
+    string obj_name = m_prefix + name;
+
+    if(ObjectFind(m_chart_id, obj_name) >= 0) {
+        ObjectDelete(m_chart_id, obj_name);
+    }
+
+    if(!ObjectCreate(m_chart_id, obj_name, OBJ_LABEL, m_sub_window, 0, 0)) {
+        return false;
+    }
+
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_XDISTANCE, x);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_YDISTANCE, y);
+    ObjectSetString(m_chart_id, obj_name, OBJPROP_TEXT, text);
+    ObjectSetString(m_chart_id, obj_name, OBJPROP_FONT, font);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_FONTSIZE, size);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_COLOR, clr);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_CORNER, CORNER_LEFT_UPPER);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_BACK, false);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_SELECTABLE, false);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_SELECTED, false);
+    ObjectSetInteger(m_chart_id, obj_name, OBJPROP_HIDDEN, true);
+
+    return true;
+}
+

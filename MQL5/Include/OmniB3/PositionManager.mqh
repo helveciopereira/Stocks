@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                              PositionManager.mqh |
-//|                 Omni-B3 EA v2.35 — Gerenciador de Posições        |
+//|                 Omni-B3 EA v2.45 — Gerenciador de Posições        |
 //|       Rastreamento virtual de níveis para contas NETTING (B3)    |
 //|       Com persistência de estado e integração com Recovery       |
 //+------------------------------------------------------------------+
@@ -9,7 +9,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.35"
+#property version   "2.45"
 #property strict
 
 #include "Defines.mqh"

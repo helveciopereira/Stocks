@@ -1,23 +1,23 @@
 //+------------------------------------------------------------------+
 //|                                                  OmniB3_EA.mq5   |
-//|                  Omni-B3 EA v2.35 — Minicontratos B3             |
+//|                  Omni-B3 EA v2.45 — Minicontratos B3             |
 //|                                                                   |
 //|  Grid Trading Avançado para WIN/WDO (contas NETTING)             |
 //|  12+ modos de fechamento | 12+ indicadores | Recovery Mode      |
 //|  Persistência de estado | Money Management | Filtros avançados   |
-//|  NOVO v2.35: Trailing Stop & Trailing TP Físico e Virtual        |
+//|  NOVO v2.45: Janela Flutuante de Trades e Alvos Gráficos Néon     |
 //|  Inspirado na metodologia Daniel Moraes (ToTheMoon v3.5)         |
 //|  Adaptado para Real Brasileiro e minicontratos da Bovespa        |
 //+------------------------------------------------------------------+
 #property copyright   "Projeto Omni-B3"
 #property link        "https://github.com/helveciopereira/Stocks"
-#property version     "2.35"
+#property version     "2.45"
 #property description "Grid Trading Avançado para Minicontratos B3 (WIN/WDO)"
 #property description "12+ modos de fechamento | 12+ indicadores técnicos"
 #property description "Persistência de estado | Recovery | Money Management"
-#property description "NOVO v2.35: Gain e Stop Gain Moveis (Trailing Stop / Trailing TP)"
+#property description "NOVO v2.45: Painel Flutuante de Operações e Alvos Virtuais Néon"
 #property description "Adaptado para contas NETTING em Real (BRL)"
-#property description "Versao 2.35 com Trailing Stop/TP fisicos (Single) e virtuais (Grade)"
+#property description "Versao 2.45 com Painel de Operacoes Recentes e Desenhos Graficos"
 
 //+------------------------------------------------------------------+
 //| INCLUDES                                                          |
@@ -36,6 +36,7 @@
 #include <OmniB3/Dashboard.mqh>
 #include <OmniB3/SingleOrder.mqh>
 #include <OmniB3/NewsFilter.mqh>
+#include <OmniB3/Visuals.mqh>
 
 //+------------------------------------------------------------------+
 //| ═══════════════ DADOS INICIAIS ═══════════════                    |
@@ -268,6 +269,11 @@ input ENUM_DASHBOARD_THEME InpDashboardTheme = THEME_DARK_MODERN; // Tema do Pai
 input int              InpDashboardX     = 20;       // Posição X do Painel (pixels)
 input int              InpDashboardY     = 40;       // Posição Y do Painel (pixels)
 
+input string           InpSeparatorVisuals = "════════ CONFIGURAÇÕES VISUAIS v2.45 ════════"; // ═══════════════════
+input bool             InpShowTargetLines       = true;  // Exibir Linhas de Alvos Virtuais?
+input bool             InpShowTradeHistory     = true;  // Exibir Mapa Histórico de Trades?
+input bool             InpShowRecentTradesPanel = true;  // Exibir Painel de Trades Recentes?
+
 input string           InpSeparator9 = "════════ FASE 2: ORDEM ÚNICA (SINGLE) ════════"; // ═══════════════════
 input ENUM_SINGLE_ORDER_MODE InpSingleOrderMode = SINGLE_DISABLED; // Modo de Operação (Ordem Única)
 input double           InpSingleSLPoints = 200.0;    // StopLoss do Trade (pontos)
@@ -312,6 +318,8 @@ CTimeFilter       *TFilter;
 CDashboard        *Dash;
 CSingleOrder      *Single;
 CNewsFilter       *News;
+CVisuals           *Visuals;
+CRecentTradesPanel *RecentPanel;
 
 bool               g_initialized = false;
 bool               g_ea_paused = false;     // Controle interativo de pausa via dashboard
@@ -471,6 +479,20 @@ int OnInit() {
         Dash.Init(Logger, InpDashboardTheme, InpDashboardX, InpDashboardY);
     }
 
+    // ═══ 14. OMNI-B3 v2.45: Módulo Visual e Painel de Operações Recentes ═══
+    Visuals = new CVisuals();
+    if(InpShowTradeHistory || InpShowTargetLines) {
+        Visuals.Init(Logger, InpMagicNumber, _Symbol);
+    }
+
+    RecentPanel = new CRecentTradesPanel();
+    if(InpShowRecentTradesPanel) {
+        int recent_x = InpDashboardX + 340; // Posicionado ao lado do dashboard principal (largura 320 + folga 20)
+        int recent_y = InpDashboardY;
+        RecentPanel.Init(Logger, InpDashboardTheme, recent_x, recent_y, InpMagicNumber, _Symbol);
+        RecentPanel.Update();
+    }
+
     // Timer periódico de persistência e redesenho
     EventSetTimer(SMART_CLOSE_COOLDOWN); // Reduzido de 30 para 5 segundos para dashboard mais dinâmico
 
@@ -497,6 +519,8 @@ void OnDeinit(const int reason) {
 
     // Limpeza de objetos da Fase 2
     if(Dash        != NULL) { Dash.Deinit(); delete Dash; Dash = NULL; }
+    if(RecentPanel != NULL) { RecentPanel.Deinit(); delete RecentPanel; RecentPanel = NULL; }
+    if(Visuals     != NULL) { Visuals.Deinit(); delete Visuals; Visuals = NULL; }
     if(Single      != NULL) { delete Single;        Single = NULL; }
     if(News        != NULL) { delete News;          News = NULL; }
 
@@ -702,6 +726,36 @@ void OnTick() {
     else {
         Grid.ProcessGrid(signal);
     }
+
+    // ═══ OMNI-B3 v2.45: Atualização em Tempo Real de Linhas Horizontais de Alvos e Histórico ═══
+    if(g_initialized) {
+        if(InpShowTargetLines && Visuals != NULL) {
+            int levels_cnt = PosManager.CountLevels();
+            bool is_active = (levels_cnt > 0);
+            double avg_prc = 0.0;
+            double tp_prc = 0.0;
+            double sl_prc = 0.0;
+            int pos_type = POSITION_TYPE_BUY;
+
+            if(is_active) {
+                SGridState state = PosManager.GetGridState();
+                avg_prc = state.avg_price;
+                tp_prc = Smart.GetTakeProfitPrice();
+                sl_prc = Smart.GetStopLossPrice();
+                
+                if(InpSingleOrderMode == SINGLE_ENABLED) {
+                    pos_type = (Single.GetPositionDirection() == 1) ? POSITION_TYPE_BUY : POSITION_TYPE_SELL;
+                } else {
+                    pos_type = (InpDirection == GRID_BUY_ONLY) ? POSITION_TYPE_BUY : POSITION_TYPE_SELL;
+                }
+            }
+            Visuals.DrawTargetLines(is_active, avg_prc, tp_prc, sl_prc, pos_type);
+        }
+
+        if(InpShowTradeHistory && Visuals != NULL) {
+            Visuals.OnTickVisual();
+        }
+    }
 }
 
 //+------------------------------------------------------------------+
@@ -723,6 +777,11 @@ void OnTimer() {
         SNewsState n_state = News.GetNextNewsState();
 
         Dash.Update(g_state, balance, equity, d_profit, d_max_dd, g_status_msg, g_ea_paused, n_state);
+    }
+
+    // FASE 2: ATUALIZAÇÃO DO MONITOR DE OPERAÇÕES RECENTES (v2.45)
+    if(InpShowRecentTradesPanel && RecentPanel != NULL) {
+        RecentPanel.Update();
     }
 }
 

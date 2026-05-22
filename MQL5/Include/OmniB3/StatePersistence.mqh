@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                           StatePersistence.mqh   |
-//|           Omni-B3 EA v2.35 — Persistência de Estado               |
+//|           Omni-B3 EA v2.45 — Persistência de Estado               |
 //|     Salva/carrega estado da grade para sobreviver restarts       |
 //+------------------------------------------------------------------+
 //| Copyright 2026, Projeto Omni-B3                                 |
@@ -8,7 +8,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.35"
+#property version   "2.45"
 #property strict
 
 #include "Defines.mqh"
