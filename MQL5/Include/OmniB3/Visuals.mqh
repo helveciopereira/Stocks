@@ -1,6 +1,6 @@
-﻿//+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
 //|                                                      Visuals.mqh |
-//|                     Omni-B3 EA v2.46 â€” MÃ³dulo Visual AvanÃ§ado     |
+//|                     Omni-B3 EA v2.47 â€” MÃ³dulo Visual AvanÃ§ado     |
 //|        Desenho de Alvos Virtuais e HistÃ³rico de Trades no GrÃ¡fico|
 //+------------------------------------------------------------------+
 //| Copyright 2026, Projeto Omni-B3                                 |
@@ -8,7 +8,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version     "2.46"
+#property version     "2.47"
 #property strict
 
 #include <OmniB3/Defines.mqh>
@@ -99,13 +99,17 @@ bool CVisuals::Init(CLogger *logger, int magic_number, string symbol) {
     m_chart_id     = ChartID();
     m_sub_window   = 0;
 
-    // Ativa exibiÃ§Ã£o de descriÃ§Ãµes de objetos no grÃ¡fico para podermos ver as legendas das linhas
+    // Ativa exibição de descrições de objetos no gráfico para podermos ver as legendas das linhas
     ChartSetInteger(m_chart_id, CHART_SHOW_OBJECT_DESCR, true);
 
-    // Desenha o histÃ³rico inicial acumulado de todos os dias operados
+    // Desativa a exibição automática do histórico de transações nativo do MetaTrader 5
+    // para evitar poluição visual e conflito com o nosso histórico de trades premium.
+    ChartSetInteger(m_chart_id, CHART_SHOW_TRADE_HISTORY, false);
+
+    // Desenha o histórico inicial acumulado de todos os dias operados
     DrawTradeHistory();
 
-    if(m_logger != NULL) m_logger.Info("Visuals", "MÃ³dulo de desenho grÃ¡fico premium inicializado para v2.46.");
+    if(m_logger != NULL) m_logger.Info("Visuals", "Módulo de desenho gráfico premium inicializado para v2.47.");
     return true;
 }
 
@@ -304,9 +308,9 @@ void CVisuals::DrawTradeHistory() {
                     ObjectSetInteger(m_chart_id, trend_line_name, OBJPROP_HIDDEN, true);
                 }
 
-                // 4. Texto Flutuante com o Valor MonetÃ¡rio Obtido
+                // 4. Texto Flutuante com o Valor Monetário Obtido (P&L Formatado Néon em Negrito)
                 if(ObjectFind(m_chart_id, text_lbl_name) < 0) {
-                    // Calcula um offset vertical leve para o texto nÃ£o sobrepor a seta (ex: 20 pontos de WIN)
+                    // Calcula um offset vertical leve para o texto não sobrepor a seta (ex: 25 pontos de WIN)
                     double offset = 0.0;
                     double point_val = SymbolInfoDouble(m_symbol, SYMBOL_POINT);
                     if(point_val > 0.0) {
@@ -316,13 +320,23 @@ void CVisuals::DrawTradeHistory() {
                     
                     ObjectCreate(m_chart_id, text_lbl_name, OBJ_TEXT, m_sub_window, exit_time, exit_price + offset);
                     
-                    string sign = (net_profit >= 0.0) ? "+" : "";
-                    string text_out = sign + "R$ " + DoubleToString(net_profit, 2);
+                    // Formatação premium do resultado da operação conforme especificação:
+                    // Lucro: +R$ X.XX em Azul Néon (C'0,229,255') e em negrito.
+                    // Prejuízo: -R$ X.XX em Vermelho (C'255,0,0') e em negrito.
+                    string text_out = "";
+                    color text_color;
+                    if(net_profit >= 0.0) {
+                        text_out = "+R$ " + DoubleToString(net_profit, 2);
+                        text_color = C'0,229,255'; // Azul Néon vibrante
+                    } else {
+                        text_out = "-R$ " + DoubleToString(MathAbs(net_profit), 2);
+                        text_color = C'255,0,0'; // Vermelho vibrante
+                    }
                     
                     ObjectSetString(m_chart_id, text_lbl_name, OBJPROP_TEXT, text_out);
-                    ObjectSetString(m_chart_id, text_lbl_name, OBJPROP_FONT, "Outfit");
-                    ObjectSetInteger(m_chart_id, text_lbl_name, OBJPROP_FONTSIZE, 8);
-                    ObjectSetInteger(m_chart_id, text_lbl_name, OBJPROP_COLOR, (net_profit >= 0.0) ? m_color_tp : m_color_sl);
+                    ObjectSetString(m_chart_id, text_lbl_name, OBJPROP_FONT, "Trebuchet MS Bold"); // Fonte em negrito premium
+                    ObjectSetInteger(m_chart_id, text_lbl_name, OBJPROP_FONTSIZE, 9); // Fonte um pouco maior para clareza
+                    ObjectSetInteger(m_chart_id, text_lbl_name, OBJPROP_COLOR, text_color);
                     ObjectSetInteger(m_chart_id, text_lbl_name, OBJPROP_ANCHOR, ANCHOR_BOTTOM);
                     ObjectSetInteger(m_chart_id, text_lbl_name, OBJPROP_BACK, false);
                     ObjectSetInteger(m_chart_id, text_lbl_name, OBJPROP_SELECTABLE, false);

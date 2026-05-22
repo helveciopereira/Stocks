@@ -1,11 +1,11 @@
 ﻿//+------------------------------------------------------------------+
 //|                                               MoneyManager.mqh   |
-//|              Omni-B3 EA v2.46 â€” GestÃ£o de Capital                 |
+//|              Omni-B3 EA v2.47 â€” GestÃ£o de Capital                 |
 //|       Saldo do RobÃ´, preset multiplier, ajuste de moeda          |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.46"
+#property version   "2.47"
 #property strict
 
 #include "Defines.mqh"

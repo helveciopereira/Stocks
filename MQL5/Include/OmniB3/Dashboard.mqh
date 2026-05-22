@@ -171,7 +171,7 @@ void CDashboard::ApplyTheme() {
             m_color_positive = C'0,230,180';    // Turquesa NÃ©on brilhante
             m_color_negative = C'255,80,100';   // Coral NÃ©on brilhante
             m_color_accent   = C'0,162,255';    // Azul NÃ©on dinÃ¢mico
-            m_color_button   = C'25,32.46';     // Fundo botÃ£o escuro
+            m_color_button   = C'25,32.47';     // Fundo botÃ£o escuro
             m_color_btn_text = C'240,242,245';
             break;
     }

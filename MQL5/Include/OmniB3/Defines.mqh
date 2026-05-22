@@ -1,173 +1,173 @@
-//+------------------------------------------------------------------+
+﻿//+------------------------------------------------------------------+
 //|                                                     Defines.mqh  |
-//|                         Omni-B3 EA v2.46 — Definições Centrais    |
-//|          Adaptado para B3 (NETTING) — Minicontratos WIN/WDO      |
-//|  Versão 2.46 com Painel de Operações Recentes e Desenhos Gráficos |
+//|                         Omni-B3 EA v2.47 â€” DefiniÃ§Ãµes Centrais    |
+//|          Adaptado para B3 (NETTING) â€” Minicontratos WIN/WDO      |
+//|  VersÃ£o 2.47 com Painel de OperaÃ§Ãµes Recentes e Desenhos GrÃ¡ficos |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version     "2.46"
+#property version     "2.47"
 #property strict
 
 //+------------------------------------------------------------------+
 //| CONSTANTES GLOBAIS DO SISTEMA                                    |
 //+------------------------------------------------------------------+
-#define OMNIB3_VERSION        "2.46"
+#define OMNIB3_VERSION        "2.47"
 #define OMNIB3_COMMENT_PREFIX "OmniB3"
 
-// Limite absoluto de níveis de grade (trava inviolável de segurança)
+// Limite absoluto de nÃ­veis de grade (trava inviolÃ¡vel de seguranÃ§a)
 #define GRID_MAX_ABSOLUTE     20
 
-// Máximo de símbolos simultâneos no modo Multi-Ativos
+// MÃ¡ximo de sÃ­mbolos simultÃ¢neos no modo Multi-Ativos
 #define MAX_SYMBOLS           6
 
-// Cooldown em segundos entre execuções do Smart Close
+// Cooldown em segundos entre execuÃ§Ãµes do Smart Close
 #define SMART_CLOSE_COOLDOWN  5
 
-// Margem de segurança padrão em ticks para o Smart Close
+// Margem de seguranÃ§a padrÃ£o em ticks para o Smart Close
 // Para WIN: 1 tick = 5 pontos = R$1,00 por contrato
 #define SMART_CLOSE_MARGIN_TICKS 3.0
 
-// Spread máximo em pontos para abrir ordens
+// Spread mÃ¡ximo em pontos para abrir ordens
 // WIN costuma ter spread de 5-15 pontos
 #define MAX_SPREAD_POINTS     30
 
 // Intervalo de auto-save do estado em segundos
 #define PERSISTENCE_INTERVAL  30
 
-// Máximo de indicadores de confirmação
+// MÃ¡ximo de indicadores de confirmaÃ§Ã£o
 #define MAX_CONFIRMATIONS     4
 
-// Nome do arquivo de persistência de estado
+// Nome do arquivo de persistÃªncia de estado
 #define PERSISTENCE_FILE_PREFIX "OmniB3_State_"
 
-// Versão do formato de persistência (para compatibilidade)
+// VersÃ£o do formato de persistÃªncia (para compatibilidade)
 #define PERSISTENCE_FORMAT_VERSION 1
 
 //+------------------------------------------------------------------+
-//| ENUMERAÇÕES — Sistema de Indicadores                             |
+//| ENUMERAÃ‡Ã•ES â€” Sistema de Indicadores                             |
 //+------------------------------------------------------------------+
 
-// Indicadores de sinal de entrada disponíveis
+// Indicadores de sinal de entrada disponÃ­veis
 // Cada indicador retorna: +1 (compra), -1 (venda), 0 (neutro)
 enum ENUM_INDICATOR_SIGNAL {
-    OB3_IND_NONE,               // Nenhum — abre sem indicador
-    OB3_IND_RSI,                // RSI — Sobrecompra/Sobrevenda
-    OB3_IND_CCI,                // CCI — Commodity Channel Index
-    OB3_IND_BOLLINGER,          // Bollinger Bands — Toque nas bandas
-    OB3_IND_ENVELOPES,          // Envelopes — Desvio percentual da média
-    OB3_IND_MOVING_AVERAGES,    // Médias Móveis — Cruzamento rápida/lenta
-    OB3_IND_VWAP,               // VWAP — Volume Weighted Average Price
-    OB3_IND_HILO,               // HILO — High-Low Activator
-    OB3_IND_PIVOT_POINT,        // Pivot Point — Suporte e Resistência
-    OB3_IND_ATR_SIGNAL,         // ATR — Sinal por volatilidade
-    OB3_IND_ADX_SIGNAL,         // ADX — Força da tendência
-    OB3_IND_CANDLE_SEQUENCE,    // Sequência de Candles — Padrão direcional
-    OB3_IND_PRICE_GAP           // GAP no Preço — Diferença entre candles
+    OB3_IND_NONE,               // Nenhum â€” abre sem indicador
+    OB3_IND_RSI,                // RSI â€” Sobrecompra/Sobrevenda
+    OB3_IND_CCI,                // CCI â€” Commodity Channel Index
+    OB3_IND_BOLLINGER,          // Bollinger Bands â€” Toque nas bandas
+    OB3_IND_ENVELOPES,          // Envelopes â€” Desvio percentual da mÃ©dia
+    OB3_IND_MOVING_AVERAGES,    // MÃ©dias MÃ³veis â€” Cruzamento rÃ¡pida/lenta
+    OB3_IND_VWAP,               // VWAP â€” Volume Weighted Average Price
+    OB3_IND_HILO,               // HILO â€” High-Low Activator
+    OB3_IND_PIVOT_POINT,        // Pivot Point â€” Suporte e ResistÃªncia
+    OB3_IND_ATR_SIGNAL,         // ATR â€” Sinal por volatilidade
+    OB3_IND_ADX_SIGNAL,         // ADX â€” ForÃ§a da tendÃªncia
+    OB3_IND_CANDLE_SEQUENCE,    // SequÃªncia de Candles â€” PadrÃ£o direcional
+    OB3_IND_PRICE_GAP           // GAP no PreÃ§o â€” DiferenÃ§a entre candles
 };
 
-// Estratégia de compra/venda para cada indicador
+// EstratÃ©gia de compra/venda para cada indicador
 enum ENUM_INDICATOR_STRATEGY {
     STRAT_DISABLED,         // Desabilitado
-    STRAT_STANDARD,         // Padrão — lógica original do indicador
-    STRAT_REVERSE,          // Reverso — inverte o sinal
-    STRAT_FILTER_ONLY       // Apenas Filtro — não gera sinal, só filtra
+    STRAT_STANDARD,         // PadrÃ£o â€” lÃ³gica original do indicador
+    STRAT_REVERSE,          // Reverso â€” inverte o sinal
+    STRAT_FILTER_ONLY       // Apenas Filtro â€” nÃ£o gera sinal, sÃ³ filtra
 };
 
 //+------------------------------------------------------------------+
-//| ENUMERAÇÕES — Filtros de Indicadores                             |
+//| ENUMERAÃ‡Ã•ES â€” Filtros de Indicadores                             |
 //+------------------------------------------------------------------+
 
-// Filtros que NÃO geram sinal, apenas bloqueiam abertura
+// Filtros que NÃƒO geram sinal, apenas bloqueiam abertura
 enum ENUM_INDICATOR_FILTER {
     FILTER_NONE,            // Nenhum filtro
-    FILTER_ADX,             // Filtro ADX — mínimo de força
-    FILTER_ATR,             // Filtro ATR — faixa de volatilidade
-    FILTER_VOLUME,          // Filtro Volume — volume mínimo
-    FILTER_CANDLE_SIZE,     // Filtro Tamanho Candle — corpo mínimo/máximo
-    FILTER_PRICE_GAP,       // Filtro GAP — distância mínima entre preços
-    FILTER_BOLLINGER,       // Filtro Bollinger — dentro/fora das bandas
-    FILTER_ENVELOPES        // Filtro Envelopes — dentro/fora dos envelopes
+    FILTER_ADX,             // Filtro ADX â€” mÃ­nimo de forÃ§a
+    FILTER_ATR,             // Filtro ATR â€” faixa de volatilidade
+    FILTER_VOLUME,          // Filtro Volume â€” volume mÃ­nimo
+    FILTER_CANDLE_SIZE,     // Filtro Tamanho Candle â€” corpo mÃ­nimo/mÃ¡ximo
+    FILTER_PRICE_GAP,       // Filtro GAP â€” distÃ¢ncia mÃ­nima entre preÃ§os
+    FILTER_BOLLINGER,       // Filtro Bollinger â€” dentro/fora das bandas
+    FILTER_ENVELOPES        // Filtro Envelopes â€” dentro/fora dos envelopes
 };
 
 //+------------------------------------------------------------------+
-//| ENUMERAÇÕES — Grade (Grid)                                       |
+//| ENUMERAÃ‡Ã•ES â€” Grade (Grid)                                       |
 //+------------------------------------------------------------------+
 
-// Tipo de espaçamento da grade
+// Tipo de espaÃ§amento da grade
 enum ENUM_GRID_TYPE {
-    GRID_FIXED,             // Grade Fixa — espaçamento constante em pontos
-    GRID_DYNAMIC_ATR        // Grade Dinâmica — espaçamento baseado no ATR
+    GRID_FIXED,             // Grade Fixa â€” espaÃ§amento constante em pontos
+    GRID_DYNAMIC_ATR        // Grade DinÃ¢mica â€” espaÃ§amento baseado no ATR
 };
 
-// Direção da grade (NETTING: sem bi-direcional simultâneo)
+// DireÃ§Ã£o da grade (NETTING: sem bi-direcional simultÃ¢neo)
 enum ENUM_GRID_DIRECTION {
-    GRID_BUY_ONLY,          // Apenas Compra — grade de compra (média para baixo)
-    GRID_SELL_ONLY          // Apenas Venda — grade de venda (média para cima)
+    GRID_BUY_ONLY,          // Apenas Compra â€” grade de compra (mÃ©dia para baixo)
+    GRID_SELL_ONLY          // Apenas Venda â€” grade de venda (mÃ©dia para cima)
 };
 
 // Modo de gerenciamento de lotes (volume em contratos inteiros)
 enum ENUM_LOT_MODE {
-    LOT_FIXED,              // Fixo — mesmo volume em todos os níveis
-    LOT_MULTIPLIER          // Multiplicador — Vol_n = Vol₀ × Mult^(n-1)
+    LOT_FIXED,              // Fixo â€” mesmo volume em todos os nÃ­veis
+    LOT_MULTIPLIER          // Multiplicador â€” Vol_n = Volâ‚€ Ã— Mult^(n-1)
 };
 
-// Modo de cálculo do próximo lote da grid
+// Modo de cÃ¡lculo do prÃ³ximo lote da grid
 enum ENUM_NEXT_LOT_MODE {
-    NEXT_LOT_FIXED,         // Fixo — sempre o mesmo lote
-    NEXT_LOT_MULTIPLY,      // Multiplicar — lote × fator a cada nível
-    NEXT_LOT_ADD,           // Somar — lote + incremento a cada nível
-    NEXT_LOT_WAIT_MULTIPLY, // Aguardar + Multiplicar — espera tempo entre ordens
-    NEXT_LOT_WAIT_ADD       // Aguardar + Somar — espera tempo entre ordens
+    NEXT_LOT_FIXED,         // Fixo â€” sempre o mesmo lote
+    NEXT_LOT_MULTIPLY,      // Multiplicar â€” lote Ã— fator a cada nÃ­vel
+    NEXT_LOT_ADD,           // Somar â€” lote + incremento a cada nÃ­vel
+    NEXT_LOT_WAIT_MULTIPLY, // Aguardar + Multiplicar â€” espera tempo entre ordens
+    NEXT_LOT_WAIT_ADD       // Aguardar + Somar â€” espera tempo entre ordens
 };
 
 //+------------------------------------------------------------------+
-//| ENUMERAÇÕES — Smart Close / Fechamento                           |
+//| ENUMERAÃ‡Ã•ES â€” Smart Close / Fechamento                           |
 //+------------------------------------------------------------------+
 
-// Alvo do Smart Close (qual nível fechar)
+// Alvo do Smart Close (qual nÃ­vel fechar)
 enum ENUM_CLOSE_TARGET {
-    CLOSE_WORST,            // Pior Nível — maior prejuízo virtual
-    CLOSE_OLDEST            // Mais Antigo — primeiro nível da grade
+    CLOSE_WORST,            // Pior NÃ­vel â€” maior prejuÃ­zo virtual
+    CLOSE_OLDEST            // Mais Antigo â€” primeiro nÃ­vel da grade
 };
 
 // Modos de fechamento da grade (expandido do ToTheMoon)
 enum ENUM_CLOSE_MODE {
-    CMODE_SMART_WORST,      // Smart Close — fecha pior nível com lucro dos demais
-    CMODE_SMART_OLDEST,     // Smart Close — fecha mais antigo com lucro dos demais
-    CMODE_TP_TOTAL,         // TakeProfit Total — fecha tudo quando P&L total > TP
-    CMODE_TP_MONETARY,      // TakeProfit Monetário — fecha quando lucro > R$ X
-    CMODE_HALF_CLOSE,       // Fechar Metade — fecha 50% dos lucrativos
-    CMODE_LOT_SUM_TOTAL,    // Soma de Lotes — fecha quando lote total > limite
-    CMODE_LOT_SUM_HALF,     // Soma de Lotes (metade) — fecha 50% se lote > limite
-    CMODE_LOT_AVG_TOTAL,    // Média de Lotes — fecha quando média > limite
-    CMODE_ORDER_COUNT,      // Qtde Ordens — fecha quando qtde > limite
-    CMODE_ORDER_COUNT_HALF, // Qtde Ordens (metade) — fecha 50% se qtde > limite
-    CMODE_ACCEPT_LOSS,      // Aceitar Prejuízo — fecha com perda se DD baixo
-    CMODE_BREAKEVEN         // BreakEven — fecha quando preço atinge média ± margem
+    CMODE_SMART_WORST,      // Smart Close â€” fecha pior nÃ­vel com lucro dos demais
+    CMODE_SMART_OLDEST,     // Smart Close â€” fecha mais antigo com lucro dos demais
+    CMODE_TP_TOTAL,         // TakeProfit Total â€” fecha tudo quando P&L total > TP
+    CMODE_TP_MONETARY,      // TakeProfit MonetÃ¡rio â€” fecha quando lucro > R$ X
+    CMODE_HALF_CLOSE,       // Fechar Metade â€” fecha 50% dos lucrativos
+    CMODE_LOT_SUM_TOTAL,    // Soma de Lotes â€” fecha quando lote total > limite
+    CMODE_LOT_SUM_HALF,     // Soma de Lotes (metade) â€” fecha 50% se lote > limite
+    CMODE_LOT_AVG_TOTAL,    // MÃ©dia de Lotes â€” fecha quando mÃ©dia > limite
+    CMODE_ORDER_COUNT,      // Qtde Ordens â€” fecha quando qtde > limite
+    CMODE_ORDER_COUNT_HALF, // Qtde Ordens (metade) â€” fecha 50% se qtde > limite
+    CMODE_ACCEPT_LOSS,      // Aceitar PrejuÃ­zo â€” fecha com perda se DD baixo
+    CMODE_BREAKEVEN         // BreakEven â€” fecha quando preÃ§o atinge mÃ©dia Â± margem
 };
 
 //+------------------------------------------------------------------+
-//| ENUMERAÇÕES — TakeProfit Avançado                                |
+//| ENUMERAÃ‡Ã•ES â€” TakeProfit AvanÃ§ado                                |
 //+------------------------------------------------------------------+
 
 // Modo do TakeProfit
 enum ENUM_TP_MODE {
     TP_FIXED_POINTS,        // Fixo em pontos
     TP_ATR_BASED,           // Baseado no ATR
-    TP_MONETARY             // Valor monetário (BRL)
+    TP_MONETARY             // Valor monetÃ¡rio (BRL)
 };
 
-// Modo de redução do TakeProfit com o tempo
+// Modo de reduÃ§Ã£o do TakeProfit com o tempo
 enum ENUM_TP_REDUCE_TYPE {
-    TP_REDUCE_NONE,         // Sem redução
+    TP_REDUCE_NONE,         // Sem reduÃ§Ã£o
     TP_REDUCE_BY_TIME,      // Reduzir por tempo (minutos)
     TP_REDUCE_BY_DD,        // Reduzir por drawdown (%)
-    TP_REDUCE_BY_SEARCH     // Reduzir quando preço se aproxima
+    TP_REDUCE_BY_SEARCH     // Reduzir quando preÃ§o se aproxima
 };
 
 //+------------------------------------------------------------------+
-//| ENUMERAÇÕES — BreakEven                                          |
+//| ENUMERAÃ‡Ã•ES â€” BreakEven                                          |
 //+------------------------------------------------------------------+
 
 // Modo do BreakEven
@@ -179,79 +179,79 @@ enum ENUM_BE_MODE {
 
 // Tipo do BreakEven
 enum ENUM_BE_TYPE {
-    BE_STATIC,              // Estático — move SL para entrada e para
-    BE_TRAILING             // Trailing — segue o preço com distância
+    BE_STATIC,              // EstÃ¡tico â€” move SL para entrada e para
+    BE_TRAILING             // Trailing â€” segue o preÃ§o com distÃ¢ncia
 };
 
 //+------------------------------------------------------------------+
-//| ENUMERAÇÕES — Perfil e Gestão                                    |
+//| ENUMERAÃ‡Ã•ES â€” Perfil e GestÃ£o                                    |
 //+------------------------------------------------------------------+
 
-// Perfis de risco pré-configurados para B3
+// Perfis de risco prÃ©-configurados para B3
 enum ENUM_RISK_PROFILE {
-    PROFILE_CONSERVADOR,    // Conservador — poucos níveis, sem multiplicador
-    PROFILE_MODERADO,       // Moderado — mais níveis, multiplicador leve
-    PROFILE_AGRESSIVO,      // Agressivo — muitos níveis, multiplicador alto
-    PROFILE_CUSTOM          // Personalizado — usuário define tudo
+    PROFILE_CONSERVADOR,    // Conservador â€” poucos nÃ­veis, sem multiplicador
+    PROFILE_MODERADO,       // Moderado â€” mais nÃ­veis, multiplicador leve
+    PROFILE_AGRESSIVO,      // Agressivo â€” muitos nÃ­veis, multiplicador alto
+    PROFILE_CUSTOM          // Personalizado â€” usuÃ¡rio define tudo
 };
 
-// Modo de cálculo do saldo do robô
+// Modo de cÃ¡lculo do saldo do robÃ´
 enum ENUM_BALANCE_MODE {
-    BAL_FULL_ACCOUNT,       // Saldo Total — usa todo o saldo da conta
-    BAL_PERCENTAGE,         // Porcentagem — % do saldo da conta
-    BAL_FIXED_VALUE         // Valor Fixo — valor fixo em BRL
+    BAL_FULL_ACCOUNT,       // Saldo Total â€” usa todo o saldo da conta
+    BAL_PERCENTAGE,         // Porcentagem â€” % do saldo da conta
+    BAL_FIXED_VALUE         // Valor Fixo â€” valor fixo em BRL
 };
 
 // Modo do preset multiplier (xPreset)
 enum ENUM_PRESET_MODE {
-    PRESET_DISABLED,        // Desabilitado — usa lotes fixos
-    PRESET_BY_BALANCE,      // Por Saldo — ajusta lotes pelo saldo
-    PRESET_BY_EQUITY        // Por Capital Líquido — ajusta pelo equity
+    PRESET_DISABLED,        // Desabilitado â€” usa lotes fixos
+    PRESET_BY_BALANCE,      // Por Saldo â€” ajusta lotes pelo saldo
+    PRESET_BY_EQUITY        // Por Capital LÃ­quido â€” ajusta pelo equity
 };
 
-// Níveis de log
+// NÃ­veis de log
 enum ENUM_LOG_LEVEL {
-    LOG_DEBUG,              // Debug — tudo (muito verboso)
-    LOG_INFO,               // Info — operações normais
-    LOG_WARNING,            // Aviso — situações anormais
-    LOG_ERROR,              // Erro — falhas de operação
-    LOG_CRITICAL            // Crítico — falhas graves
+    LOG_DEBUG,              // Debug â€” tudo (muito verboso)
+    LOG_INFO,               // Info â€” operaÃ§Ãµes normais
+    LOG_WARNING,            // Aviso â€” situaÃ§Ãµes anormais
+    LOG_ERROR,              // Erro â€” falhas de operaÃ§Ã£o
+    LOG_CRITICAL            // CrÃ­tico â€” falhas graves
 };
 
-// Modo de redução por tempo para fechamento
+// Modo de reduÃ§Ã£o por tempo para fechamento
 enum ENUM_TIME_REDUCE_TYPE {
-    TIME_REDUCE_NONE,       // Sem redução
+    TIME_REDUCE_NONE,       // Sem reduÃ§Ã£o
     TIME_REDUCE_TP,         // Reduzir apenas TakeProfit
     TIME_REDUCE_TP_BE,      // Reduzir TakeProfit e BreakEven
-    TIME_REDUCE_ALL         // Reduzir TakeProfit, BreakEven e Monetário
+    TIME_REDUCE_ALL         // Reduzir TakeProfit, BreakEven e MonetÃ¡rio
 };
 
-// Modo de fechamento no horário limite
+// Modo de fechamento no horÃ¡rio limite
 enum ENUM_TIME_CLOSE_MODE {
-    TCLOSE_NONE,            // Não fechar — manter posição aberta
-    TCLOSE_IMMEDIATE,       // Fechar imediatamente — a mercado
-    TCLOSE_IF_PROFIT,       // Fechar só se lucrativo
+    TCLOSE_NONE,            // NÃ£o fechar â€” manter posiÃ§Ã£o aberta
+    TCLOSE_IMMEDIATE,       // Fechar imediatamente â€” a mercado
+    TCLOSE_IF_PROFIT,       // Fechar sÃ³ se lucrativo
     TCLOSE_REDUCE_TP        // Reduzir TP e aguardar
 };
 
 //+------------------------------------------------------------------+
-//| ESTRUTURA — Nível Virtual da Grade                               |
+//| ESTRUTURA â€” NÃ­vel Virtual da Grade                               |
 //|                                                                   |
-//| Em contas NETTING existe apenas 1 posição por símbolo. Para      |
-//| rastrear cada nível da grade individualmente, mantemos um array  |
-//| interno de "níveis virtuais" com preço de entrada e volume.      |
-//| O P&L de cada nível é calculado em tempo real.                   |
+//| Em contas NETTING existe apenas 1 posiÃ§Ã£o por sÃ­mbolo. Para      |
+//| rastrear cada nÃ­vel da grade individualmente, mantemos um array  |
+//| interno de "nÃ­veis virtuais" com preÃ§o de entrada e volume.      |
+//| O P&L de cada nÃ­vel Ã© calculado em tempo real.                   |
 //+------------------------------------------------------------------+
 struct SVirtualLevel {
-    double   entry_price;       // Preço de entrada deste nível
+    double   entry_price;       // PreÃ§o de entrada deste nÃ­vel
     double   volume;            // Volume em contratos
     int      direction;         // +1 = compra, -1 = venda
-    int      level_index;       // Índice do nível (0, 1, 2, ...)
+    int      level_index;       // Ãndice do nÃ­vel (0, 1, 2, ...)
     datetime open_time;         // Data/hora de abertura
-    bool     is_active;         // Se está ativo
+    bool     is_active;         // Se estÃ¡ ativo
     bool     is_recovery;       // Se foi aberto em modo recovery
-    double   accumulated_profit;// Lucro acumulado neste nível (para tracking)
-    datetime last_update_time;  // Última atualização do P&L
+    double   accumulated_profit;// Lucro acumulado neste nÃ­vel (para tracking)
+    datetime last_update_time;  // Ãšltima atualizaÃ§Ã£o do P&L
 
     // Inicializa zerado
     void Reset() {
@@ -266,8 +266,8 @@ struct SVirtualLevel {
         last_update_time  = 0;
     }
 
-    // Calcula P&L virtual deste nível em moeda da conta (BRL)
-    // current_price: preço atual (bid para compra, ask para venda)
+    // Calcula P&L virtual deste nÃ­vel em moeda da conta (BRL)
+    // current_price: preÃ§o atual (bid para compra, ask para venda)
     // tick_size: SYMBOL_TRADE_TICK_SIZE (ex: 5 para WIN)
     // tick_value: SYMBOL_TRADE_TICK_VALUE (ex: 1.00 para WIN)
     double CalculateProfit(double current_price, double tick_size, double tick_value) {
@@ -278,24 +278,24 @@ struct SVirtualLevel {
 };
 
 //+------------------------------------------------------------------+
-//| ESTRUTURA — Estado Consolidado da Grade                          |
+//| ESTRUTURA â€” Estado Consolidado da Grade                          |
 //+------------------------------------------------------------------+
 struct SGridState {
     string  symbol;
-    int     total_levels;           // Níveis virtuais ativos
+    int     total_levels;           // NÃ­veis virtuais ativos
     double  total_volume;           // Volume total em contratos
     double  total_profit;           // P&L total virtual em BRL
-    double  avg_price;              // Preço médio ponderado
+    double  avg_price;              // PreÃ§o mÃ©dio ponderado
     double  worst_profit;           // Pior P&L individual
-    int     worst_index;            // Índice do pior nível no array
-    double  worst_volume;           // Volume do pior nível
+    int     worst_index;            // Ãndice do pior nÃ­vel no array
+    double  worst_volume;           // Volume do pior nÃ­vel
     double  best_profit;            // Melhor P&L individual
-    int     best_index;             // Índice do melhor nível
+    int     best_index;             // Ãndice do melhor nÃ­vel
     double  positive_profit_sum;    // Soma dos P&L positivos
-    int     positive_count;         // Quantidade de níveis lucrativos
-    int     negative_count;         // Quantidade de níveis perdedores
+    int     positive_count;         // Quantidade de nÃ­veis lucrativos
+    int     negative_count;         // Quantidade de nÃ­veis perdedores
     double  max_drawdown_pct;       // Drawdown % da grade
-    datetime oldest_level_time;     // Tempo do nível mais antigo
+    datetime oldest_level_time;     // Tempo do nÃ­vel mais antigo
 
     void Reset() {
         symbol              = "";
@@ -317,17 +317,17 @@ struct SGridState {
 };
 
 //+------------------------------------------------------------------+
-//| ESTRUTURA — Configuração de Indicador                            |
+//| ESTRUTURA â€” ConfiguraÃ§Ã£o de Indicador                            |
 //+------------------------------------------------------------------+
 struct SIndicatorConfig {
     ENUM_INDICATOR_SIGNAL   type;       // Tipo do indicador
-    ENUM_INDICATOR_STRATEGY strategy;   // Estratégia (padrão, reverso, filtro)
-    int                     period;     // Período principal
+    ENUM_INDICATOR_STRATEGY strategy;   // EstratÃ©gia (padrÃ£o, reverso, filtro)
+    int                     period;     // PerÃ­odo principal
     ENUM_TIMEFRAMES         timeframe;  // Timeframe
-    int                     price_type; // Tipo de preço (PRICE_CLOSE, etc.)
-    double                  param1;     // Parâmetro extra 1 (ex: nível superior)
-    double                  param2;     // Parâmetro extra 2 (ex: nível inferior)
-    double                  param3;     // Parâmetro extra 3 (ex: desvio)
+    int                     price_type; // Tipo de preÃ§o (PRICE_CLOSE, etc.)
+    double                  param1;     // ParÃ¢metro extra 1 (ex: nÃ­vel superior)
+    double                  param2;     // ParÃ¢metro extra 2 (ex: nÃ­vel inferior)
+    double                  param3;     // ParÃ¢metro extra 3 (ex: desvio)
 
     void Reset() {
         type      = OB3_IND_NONE;
@@ -342,12 +342,12 @@ struct SIndicatorConfig {
 };
 
 //+------------------------------------------------------------------+
-//| ESTRUTURA — Resultado diário para tracking                       |
+//| ESTRUTURA â€” Resultado diÃ¡rio para tracking                       |
 //+------------------------------------------------------------------+
 struct SDailyResult {
     datetime date;              // Data do dia
     double   profit;            // Lucro total do dia
-    double   max_dd;            // Drawdown máximo do dia
+    double   max_dd;            // Drawdown mÃ¡ximo do dia
     int      total_orders;      // Total de ordens do dia
     int      winning_orders;    // Ordens ganhadoras
     int      losing_orders;     // Ordens perdedoras
@@ -363,62 +363,62 @@ struct SDailyResult {
 };
 
 //+------------------------------------------------------------------+
-//| ENUMERAÇÕES — Modo Ordem Única (Single Order)                    |
+//| ENUMERAÃ‡Ã•ES â€” Modo Ordem Ãšnica (Single Order)                    |
 //+------------------------------------------------------------------+
 
-// Modo de operação: Grade tradicional ou Ordem Única
+// Modo de operaÃ§Ã£o: Grade tradicional ou Ordem Ãšnica
 enum ENUM_SINGLE_ORDER_MODE {
-    SINGLE_DISABLED,        // Grade Tradicional — abre novos níveis virtuais
-    SINGLE_ENABLED          // Ordem Única — apenas uma ordem por vez com SL/TP
+    SINGLE_DISABLED,        // Grade Tradicional â€” abre novos nÃ­veis virtuais
+    SINGLE_ENABLED          // Ordem Ãšnica â€” apenas uma ordem por vez com SL/TP
 };
 
-// Modo de Martingale em sequência de trades (para Ordem Única)
+// Modo de Martingale em sequÃªncia de trades (para Ordem Ãšnica)
 enum ENUM_MARTINGALE_MODE {
-    MARTINGALE_NONE,        // Sem martingale — lotes sempre iguais ao inicial
-    MARTINGALE_STANDARD,    // Martingale — multiplica lote após perda
-    ANTI_MARTINGALE         // Anti-Martingale — multiplica lote após ganho
+    MARTINGALE_NONE,        // Sem martingale â€” lotes sempre iguais ao inicial
+    MARTINGALE_STANDARD,    // Martingale â€” multiplica lote apÃ³s perda
+    ANTI_MARTINGALE         // Anti-Martingale â€” multiplica lote apÃ³s ganho
 };
 
 //+------------------------------------------------------------------+
-//| ENUMERAÇÕES — Filtro de Notícias (News Filter)                   |
+//| ENUMERAÃ‡Ã•ES â€” Filtro de NotÃ­cias (News Filter)                   |
 //+------------------------------------------------------------------+
 
-// Importância das notícias no calendário econômico
+// ImportÃ¢ncia das notÃ­cias no calendÃ¡rio econÃ´mico
 enum ENUM_NEWS_IMPORTANCE {
     NEWS_IMPORTANCE_NONE,   // Desabilitado
     NEWS_IMPORTANCE_LOW,    // Baixo impacto
-    NEWS_IMPORTANCE_MEDIUM, // Médio impacto
+    NEWS_IMPORTANCE_MEDIUM, // MÃ©dio impacto
     NEWS_IMPORTANCE_HIGH,   // Alto impacto (2 ou 3 estrelas)
     NEWS_IMPORTANCE_ALL     // Qualquer impacto
 };
 
-// Ação do robô durante período de notícias bloqueadas
+// AÃ§Ã£o do robÃ´ durante perÃ­odo de notÃ­cias bloqueadas
 enum ENUM_NEWS_ACTION {
-    NEWS_ACTION_NONE,           // Nenhuma ação
-    NEWS_ACTION_STOP_ALL,       // Bloquear Tudo — não abre ordem inicial nem novas grades
-    NEWS_ACTION_STOP_INITIAL,   // Bloquear Inicial — não abre nova série, mas permite grade gerenciar
-    NEWS_ACTION_CLOSE_ALL       // Fechar Tudo — fecha posições e limpa ordens pendentes
+    NEWS_ACTION_NONE,           // Nenhuma aÃ§Ã£o
+    NEWS_ACTION_STOP_ALL,       // Bloquear Tudo â€” nÃ£o abre ordem inicial nem novas grades
+    NEWS_ACTION_STOP_INITIAL,   // Bloquear Inicial â€” nÃ£o abre nova sÃ©rie, mas permite grade gerenciar
+    NEWS_ACTION_CLOSE_ALL       // Fechar Tudo â€” fecha posiÃ§Ãµes e limpa ordens pendentes
 };
 
 //+------------------------------------------------------------------+
-//| CONSTANTES E ENUMS — Dashboard Visual                            |
+//| CONSTANTES E ENUMS â€” Dashboard Visual                            |
 //+------------------------------------------------------------------+
 
 // Paleta de cores para o dashboard
 enum ENUM_DASHBOARD_THEME {
-    THEME_DARK_MODERN,      // Moderno Escuro (preto/cinza e azul néon)
+    THEME_DARK_MODERN,      // Moderno Escuro (preto/cinza e azul nÃ©on)
     THEME_LIGHT_CLEAN,      // Limpo Claro (branco e azul suave)
-    THEME_GLASSMORPHISM     // Glassmorphism translúcido
+    THEME_GLASSMORPHISM     // Glassmorphism translÃºcido
 };
 
-// Estrutura para estado das notícias no dashboard
+// Estrutura para estado das notÃ­cias no dashboard
 struct SNewsState {
-    string   event_name;    // Nome do evento econômico
+    string   event_name;    // Nome do evento econÃ´mico
     datetime event_time;    // Hora do evento
     string   currency;      // Moeda do evento
-    int      importance;    // Nível de importância (1, 2, 3)
-    int      seconds_to;    // Segundos para o evento (negativo se já passou)
-    bool     is_active;     // Se está ativo no momento
+    int      importance;    // NÃ­vel de importÃ¢ncia (1, 2, 3)
+    int      seconds_to;    // Segundos para o evento (negativo se jÃ¡ passou)
+    bool     is_active;     // Se estÃ¡ ativo no momento
 
     void Clear() {
         event_name = "";

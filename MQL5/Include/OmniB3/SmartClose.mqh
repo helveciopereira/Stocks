@@ -1,11 +1,11 @@
 ﻿//+------------------------------------------------------------------+
 //|                                                  SmartClose.mqh  |
-//|              Omni-B3 EA v2.46 â€” Smart Close para B3/NETTING       |
+//|              Omni-B3 EA v2.47 â€” Smart Close para B3/NETTING       |
 //|   12+ modos de fechamento inspirados no ToTheMoon v3.5          |
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version   "2.46"
+#property version   "2.47"
 #property strict
 
 #include "Defines.mqh"
@@ -888,7 +888,7 @@ public:
         return false;
     }
 
-    //--- Getters para trailing stop virtual da grade (OmniB3 v2.46)
+    //--- Getters para trailing stop virtual da grade (OmniB3 v2.47)
     bool   IsTrailingActive() const { return m_trail_active; }
     double GetStopLossPrice() const { return m_virtual_sl; }
     double GetTakeProfitPrice() const { return m_virtual_tp; }
