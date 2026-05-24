@@ -1,3 +1,40 @@
+# 🚶‍♂️ Walkthrough: Grade Bidirecional e Correção de Fechamento por Horário (v2.50)
+
+Nesta versão, realizamos uma atualização lógica estrutural e altamente importante, elevando o robô **Omni-B3** para a versão **v2.50** (+0.1 de incremento por ser uma atualização lógica de alta relevância). Introduzimos o **Modo Bidirecional de Exclusividade Mútua** (`GRID_BOTH`), permitindo ao robô operar tanto comprado quanto vendido dinamicamente sem ferir a conformidade na B3, e solucionamos o bug crítico do **Fechamento Automático de Fim de Dia** (Day Trade), que impedia a liquidação das ordens no prejuízo.
+
+---
+
+## 🛠️ O que foi Desenvolvido e Implementado na v2.50?
+
+### 1. Modo Bidirecional de Exclusividade Mútua (`GRID_BOTH`)
+* **O Problema**: A Bolsa brasileira (B3) opera sob o ecossistema de contas **NETTING** para minicontratos (WIN/WDO), o que impede e anula a manutenção de posições simultâneas de compra e venda no mesmo ativo. Por isso, a direção operacional clássica precisava de uma inteligência bidirecional, mas que garantisse exclusividade de ponta ativa.
+* **A Solução**: Adicionamos a opção `GRID_BOTH` no parâmetro de entrada `InpDirection` (Defines.mqh). Quando habilitado:
+  * Se a grade estiver limpa (sem posições), o robô aguarda o sinal composto dos indicadores: um sinal de alta abre COMPRA (`OpenBuyOrder(0)`) e um de baixa abre VENDA (`OpenSellOrder(0)`).
+  * No momento em que a primeira ordem (nível 0) é aberta (ex: Compra), a grade inteira assume essa direção ativa.
+  * Todas as decisões de novos níveis subsequentes da grade respeitam a direção da grade aberta por meio do novo método de verificação `m_pos_manager.GetGridDirection()`.
+  * Sinais opostos (venda) são estritamente ignorados até que a grade de compra seja 100% liquidada pelo Smart Close, garantindo total conformidade operacional e de margem na B3.
+
+### 2. Correção de Fechamento Incondicional de Fim de Dia (Day Trade)
+* **O Problema**: Nas versões anteriores, quando o horário limite (ex: 16:40 ou 16:45) era atingido, o robô tentava fechar a grade chamando `Smart.CheckAndExecute(CMODE_TP_TOTAL)`. Este modo avaliava se o P&L atingiu o Take Profit monetário ou pontos configurado. Se a operação estivesse no prejuízo (drawdown flutuante comum em fins de dia), a função **rejeitava o fechamento** e a flag `m_close_executed` ficava travada em `true`, impedindo novas tentativas. As posições perduravam abertas para o dia seguinte, forçando Swing Trade de alto risco.
+* **A Solução**:
+  * Implementamos o método público `Smart.CloseAllPositions()` em [SmartClose.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/SmartClose.mqh), que executa a liquidação física a mercado **100% incondicional e síncrona** da grade, independentemente do P&L (lucro ou prejuízo).
+  * No arquivo [TimeFilter.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/TimeFilter.mqh), adicionamos o método público `ResetCloseExecuted()`.
+  * No loop central de ticks em [OmniB3_EA.mq5](file:///c:/Projetos/Stocks/MQL5/Experts/OmniB3/OmniB3_EA.mq5), se o horário for atingido, chamamos `Smart.CloseAllPositions()`. Caso a corretora enfrente lentidão ou rejeição de rede temporária no fechamento, o robô chama `TFilter.ResetCloseExecuted()` e continua tentando fechar a cada novo tick de forma síncrona até obter sucesso absoluto (níveis = 0), blindando a conta.
+
+### 3. Backup de Segurança da v2.49 e Versionamento
+* **Backup de Segurança**: Criamos uma cópia física completa de todos os arquivos de código da versão anterior **v2.49** na pasta dedicada `c:\Projetos\Stocks\BACKUP\v2.49\MQL5\`, em total conformidade com a `RULE[user_global]`.
+* **Versionamento**: Elevamos as referências de cabeçalho nos 16 arquivos do projeto e atualizamos a constante global `#define OMNIB3_VERSION "2.50"` em [Defines.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/Defines.mqh).
+
+---
+
+## 📖 Como Usar e Configurar na v2.50
+
+Acesse a nova aba de parâmetros e configure:
+1. **Direção Bidirecional Exclusiva** (`InpDirection` = `GRID_BOTH`): O robô operará tanto comprado quanto vendido com base nos sinais, mas só iniciará uma direção se não houver posições ativas da outra.
+2. **Day Trade Blindado** (`InpEndHour` = `16`, `InpEndMinute` = `40`): O robô liquidará **incondicionalmente** a mercado todas as posições da grade às 16:40 e travará novas entradas, repetindo a tentativa em todos os ticks até que o fechamento total seja confirmado na corretora.
+
+---
+
 # 🚶‍♂️ Walkthrough: Estilização Visual Premium e Divisórias Limpas (v2.49)
 
 Nesta versão, implementamos um refinamento estético completo e elevamos a legibilidade dos parâmetros de entrada (*Inputs*), propriedades e comentários em toda a base de código do robô **Omni-B3**, consagrando a versão **v2.49** (+0.01 por se tratar de um ajuste visual e estético de interface). Eliminamos em definitivo todos os separadores poluídos que exibiam a sequência corrompida `=?=?=?=?=?=?=?=?`, substituindo-os por divisórias de caracteres ASCII puros, perfeitamente alinhadas, e expurgamos quaisquer bytes hexadecimais órfãos ou emojis quebrados remanescentes em todos os 16 arquivos do projeto.

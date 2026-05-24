@@ -1,6 +1,6 @@
 //+------------------------------------------------------------------+
 //|                                                      Visuals.mqh |
-//|                     Omni-B3 EA v2.50 — Módulo Visual Avançado     |
+//|                     Omni-B3 EA v2.49 — Módulo Visual Avançado     |
 //|        Desenho de Alvos Virtuais e Histórico de Trades no Gráfico|
 //+------------------------------------------------------------------+
 //| Copyright 2026, Projeto Omni-B3                                 |
@@ -8,7 +8,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Projeto Omni-B3"
 #property link      "https://github.com/helveciopereira/Stocks"
-#property version     "2.50"
+#property version     "2.49"
 #property strict
 
 #include <OmniB3/Defines.mqh>
@@ -109,7 +109,7 @@ bool CVisuals::Init(CLogger *logger, int magic_number, string symbol) {
     // Desenha o histórico inicial acumulado de todos os dias operados
     DrawTradeHistory();
 
-    if(m_logger != NULL) m_logger.Info("Visuals", "Módulo de desenho gráfico premium inicializado para v2.50.");
+    if(m_logger != NULL) m_logger.Info("Visuals", "Módulo de desenho gráfico premium inicializado para v2.49.");
     return true;
 }
 
