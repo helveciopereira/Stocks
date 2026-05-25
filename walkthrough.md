@@ -1,6 +1,40 @@
+# 🚶‍♂️ Walkthrough: Grade sob Bloqueio Diário, Priorização de Day Trade e Compactação Estética (v2.60)
+
+Nesta versão, realizamos uma atualização lógica estrutural e altamente importante, elevando o robô **Omni-B3** para a versão **v2.60** (+0.1 de incremento por se tratar de correções lógicas de alta criticidade e arquitetura de riscos). Solucionamos os problemas operacionais revelados nos backtests de rebaixamento diário e aplicamos uma compactação estética e remoção de tabulações em toda a base de código, deixando o editor extremamente limpo, profissional e legível.
+
+---
+
+## 🛠️ O que foi Desenvolvido e Implementado na v2.60?
+
+### 1. Desvio de Grade sob Bloqueio Diário no RiskManager (`RiskManager.mqh`)
+* **O Problema**: O limite de Drawdown Diário (5.0%), ao ser atingido flutuante no mercado, ativava a trava e bloqueava **toda e qualquer** ordem subsequente do robô. No modo grade (preço médio), isso impedia o robô de enviar novas ordens para gerenciar e recuperar a posição de compra/venda aberta no Nível 0. A grade ficava congelada enquanto o mercado caía, resultando no acionamento catastrófico do Equity Stop com perdas severas de 38% do saldo.
+* **A Solução**: Reformulamos o método `IsSafeToTrade(int current_levels)`. Agora, todas as travas diárias operacionais (drawdown diário, limite de perdas, limite de lucros e limites de overtrading) **bloqueiam apenas o início de novas séries** (`current_levels == 0`). Se já existirem posições abertas na grade (`current_levels > 0`), o robô **terá permissão de continuar a abrir os níveis subsequentes** para gerenciar e liquidar a operação com segurança.
+* **Preservação de Limites**: Assim que o limite é violado, o robô ativa imediatamente a flag `m_daily_locked = true` incondicionalmente em memória, impedindo de forma absoluta a abertura de quaisquer novas séries operacionais após a atual ser liquidada.
+
+### 2. Cooldown de 10 Minutos nos Logs de Risco (`RiskManager.mqh`)
+* **O Problema**: Quando o robô entrava em modo bloqueado por algum limite de risco, a função `IsSafeToTrade` emitia avisos explicativos a cada tick de mercado, gerando gigabytes de logs de texto repetitivos e poluição nos diários do MetaTrader.
+* **A Solução**: Implementamos controle de tempo estático (`static datetime`) em todos os logs de aviso repetitivos no `RiskManager.mqh`. Agora, as mensagens de aviso só serão impressas no diário a cada **10 minutos (600 segundos)** de bloqueio, poupando espaço em disco e garantindo um log de experts limpo e legível.
+
+### 3. Prioridade Atômica de Salvaguardas no Topo de OnTick (`OmniB3_EA.mq5`)
+* **O Problema**: A verificação de risco `IsSafeToTrade` ficava posicionada antes do filtro de horário operacional e do fechamento Day Trade no pipeline do tick. Ao bloquear por drawdown, o robô abortava a execução de `OnTick()` de forma precoce via `return;`. Por causa disso, a verificação de horário às 15:40 **nunca era executada**, fazendo a posição aberta durar ativa até o dia seguinte em modo Swing Trade de altíssimo risco.
+* **A Solução**: Deslocamos a **Salvaguarda Estrita de Day Trade B3** (fechamento de posições de dias anteriores) e o **Filtro de Horário B3** para o **topo absoluto** do pipeline de execução no método `OnTick()`. O robô agora liquidará e fechará as posições físicas do pregão mesmo que esteja sob bloqueios operacionais diários ou restrições de risco, blindando a conta contra Swing Trades indesejados.
+
+### 4. Compactação Estética e Limpeza Geral de Enters e Tabulações (Todos os 16 arquivos)
+* **O Problema**: Nas edições e conversões passadas, gerou-se uma grande quantidade de quebras de linha em branco consecutivas e tabulações redundantes em todos os arquivos de código, inflando artificialmente o script principal para quase 7.000 linhas e degradando a estética.
+* **A Solução**: Varremos os 16 arquivos do projeto, colapsando qualquer sequência consecutiva de 3 ou mais quebras de linha em uma única linha em branco limpa (`\n\n`), removendo caracteres Unicode não-CP1252 (como emojis e setas multibytes, substituídos por tags seguras como `[PROTECAO]` e `[ALERTA]`) e salvando em CP1252 no formato Windows (CRLF). O código agora está incrivelmente compacto, sofisticado e rápido de navegar.
+
+---
+
+## 📖 Como Usar e Configurar na v2.60
+
+1. **Gestão de Risco Inteligente**: Configure o Drawdown Diário Máximo (`InpMaxDailyDDPercent` = `5.0`) ou limite de perda monetária (`InpLimitLossDaily`). Se a operação inicial entrar em prejuízo flutuante maior que 5.0%, o robô continuará a gerenciar as ordens da grade de preço médio perfeitamente para recuperar a operação. Porém, assim que a grade for fechada a mercado (lucro ou prejuízo), o EA não abrirá nenhuma nova série no dia.
+2. **Day Trade Inviolável**: As posições de fim de dia serão incondicionalmente liquidadas às 16:40 e travadas, independentemente do EA estar sob bloqueio diário de risco, mantendo total proteção da conta.
+
+---
+
 # 🚶‍♂️ Walkthrough: Grade Bidirecional e Correção de Fechamento por Horário (v2.50)
 
-Nesta versão, realizamos uma atualização lógica estrutural e altamente importante, elevando o robô **Omni-B3** para a versão **v2.50** (+0.1 de incremento por ser uma atualização lógica de alta relevância). Introduzimos o **Modo Bidirecional de Exclusividade Mútua** (`GRID_BOTH`), permitindo ao robô operar tanto comprado quanto vendido dinamicamente sem ferir a conformidade na B3, e solucionamos o bug crítico do **Fechamento Automático de Fim de Dia** (Day Trade), que impedia a liquidação das ordens no prejuízo.
+Nesta versão, realizamos uma atualização lógica estrutural e altamente importante, elevando o robô **Omni-B3** para a versão **v2.50** (+0.1 de incremento por se tratar de uma atualização lógica de alta relevância). Introduzimos o **Modo Bidirecional de Exclusividade Mútua** (`GRID_BOTH`), permitindo ao robô operar tanto comprado quanto vendido dinamicamente sem ferir a conformidade na B3, e solucionamos o bug crítico do **Fechamento Automático de Fim de Dia** (Day Trade), que impedia a liquidação das ordens no prejuízo.
 
 ---
 
@@ -18,7 +52,7 @@ Nesta versão, realizamos uma atualização lógica estrutural e altamente impor
 * **O Problema**: Nas versões anteriores, quando o horário limite (ex: 16:40 ou 16:45) era atingido, o robô tentava fechar a grade chamando `Smart.CheckAndExecute(CMODE_TP_TOTAL)`. Este modo avaliava se o P&L atingiu o Take Profit monetário ou pontos configurado. Se a operação estivesse no prejuízo (drawdown flutuante comum em fins de dia), a função **rejeitava o fechamento** e a flag `m_close_executed` ficava travada em `true`, impedindo novas tentativas. As posições perduravam abertas para o dia seguinte, forçando Swing Trade de alto risco.
 * **A Solução**:
   * Implementamos o método público `Smart.CloseAllPositions()` em [SmartClose.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/SmartClose.mqh), que executa a liquidação física a mercado **100% incondicional e síncrona** da grade, independentemente do P&L (lucro ou prejuízo).
-  * No arquivo [TimeFilter.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/TimeFilter.mqh), adicionamos o método público `ResetCloseExecuted()`.
+  * No arquivo [TimeFilter.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/TimeFilter.mqh), adicionamos the método público `ResetCloseExecuted()`.
   * No loop central de ticks em [OmniB3_EA.mq5](file:///c:/Projetos/Stocks/MQL5/Experts/OmniB3/OmniB3_EA.mq5), se o horário for atingido, chamamos `Smart.CloseAllPositions()`. Caso a corretora enfrente lentidão ou rejeição de rede temporária no fechamento, o robô chama `TFilter.ResetCloseExecuted()` e continua tentando fechar a cada novo tick de forma síncrona até obter sucesso absoluto (níveis = 0), blindando a conta.
 
 ### 3. Backup de Segurança da v2.49 e Versionamento
@@ -77,7 +111,6 @@ Nesta versão, realizamos uma estabilização estrutural e profunda da base de c
 
 ---
 
-
 ## 🛠️ O que foi Desenvolvido e Implementado na v2.48?
 
 ### 1. Remoção do BOM (0xFEFF) e Conversão de Codificação para Windows-1252
@@ -117,7 +150,7 @@ Nesta versão, realizamos uma estabilização estrutural e profunda da base de c
 
 O robô está pronto para uso e com legibilidade impecável nas propriedades do EA e no diário:
 1. **Properties**: Abra a tela de propriedades do robô (F7). Os títulos e separadores de parâmetros agora aparecem limpos e organizados com traços (`-`) e iguais (`=`).
-2. **Logs Limpos**: Todas as mensagens do Diário (Logs) e Alertas de Expert exibem os status do robô em tags limpas como `[OK]`, `[ALERTA]`, `[ALVO]`, etc.
+2. **Logs Limpos**: Todas as mensagens do Diário (Logs) e Alertas de Expert exibem os status do robô in tags limpas como `[OK]`, `[ALERTA]`, `[ALVO]`, etc.
 
 ---
 
@@ -158,7 +191,7 @@ O robô executará toda a lógica visual automaticamente. Não há novos parâme
 
 # 🚶‍♂️ Walkthrough: Correções de Compilação e Estabilização do Módulo Visual Premium (v2.46)
 
-Nesta sessão, realizamos ajustes refinados e correções estruturais essenciais no robô **Omni-B3**, elevando-o para a versão **v2.46** (+0.01 por ser uma pequena correção e estabilização de compilação). Resolvemos gargalos remanescentes de sintaxe e declarações no compilador de 64 bits do MetaEditor da corretora Rico, obtendo compilação limpa com **sucesso absoluto (0 erros, 0 warnings)** e sincronizando os arquivos no GitHub.
+Nessa sessão, realizamos ajustes refinados e correções estruturais essenciais no robô **Omni-B3**, elevando-o para a versão **v2.46** (+0.01 por ser uma pequena correção e estabilização de compilação). Resolvemos gargalos remanescentes de sintaxe e declarações no compilador de 64 bits do MetaEditor da corretora Rico, obtendo compilação limpa com **sucesso absoluto (0 erros, 0 warnings)** e sincronizando os arquivos no GitHub.
 
 ---
 
@@ -186,7 +219,7 @@ Nesta sessão, realizamos ajustes refinados e correções estruturais essenciais
 
 ## 📖 Como Usar e Configurar na v2.46
 
-Esta versão não removeu parâmetros nem modificou lógicas operacionais de mercado, servindo estritamente para **estabilizar o robô e garantir que ele compile perfeitamente**.
+Esta versão não removeu parâmetros ni modificou lógicas operacionais de mercado, servindo estritamente para **estabilizar o robô e garantir que ele compile perfeitamente**.
 * Continue utilizando os parâmetros de linhas dinâmicas de alvos virtuais néon (`InpShowTargetLines`) e histórico de todos os dias operados (`InpShowTradeHistory`) introduzidos na v2.45, agora rodando sobre uma estrutura 100% livre de bugs de compilação.
 
 ---
@@ -239,245 +272,3 @@ Nas propriedades do Expert Advisor (tecla F7 ou no Testador de Estratégias do M
 1. **Exibir Linhas de Alvos Virtuais** (`InpShowTargetLines` = `true`): Desenha as linhas horizontais pontilhadas néon no gráfico representando o preço médio, take profit e stop loss virtuais do robô à medida que a grade caminha.
 2. **Exibir Mapa Histórico de Trades** (`InpShowTradeHistory` = `true`): Desenha setas de entrada (Buy/Sell), X de saída, conector de tendência e os textos de lucro/prejuízo financeiro real de **todos os dias já operados**.
 3. **Exibir Painel de Trades Recentes** (`InpShowRecentTradesPanel` = `true`): Abre a janela flutuante estilo glassmorphism que lista os últimos 5 trades executados pelo robô.
-
----
-
-# 🚶‍♂️ Walkthrough: Gain Móvel e Stop Gain Móvel / Trailing Stop & Take Profit (v2.35)
-
-Nesta sessão, avançamos e concluímos com sucesso a **Fase de Implementação de Gain Móvel (Trailing Take Profit) e Stop Gain Móvel (Trailing Stop) Robustos**, elevando o Expert Advisor **Omni-B3** para a versão **v2.35**. Toda a nova lógica foi estruturada, integrada, validada por meio de compilação nativa com **sucesso absoluto (0 erros, 0 warnings)** no compilador de 64 bits do MetaEditor, comentada detalhadamente em **Português Brasileiro**, e enviada para o GitHub.
-
----
-
-
-## 🛠️ O que foi Desenvolvido e Implementado na v2.35?
-
-### 1. Gain Móvel e Stop Gain Móvel em Modo Ordem Única (SINGLE)
-* **Objetivo**: Conduzir o lucro ao longo de uma tendência de alta ou baixa quando rodando com ordens simples independentes (sem grade), movendo automaticamente o Take Profit e o Stop Loss de acordo com a movimentação favorável do mercado.
-* **A Solução (Trailing Físico síncrono)**:
-  * Implementado o método `ManageTrailing()` no arquivo `SingleOrder.mqh`.
-  * **Cálculo Preciso de Pontos**: Utiliza o sentido da operação (Compra ou Venda) para mensurar o lucro acumulado com base no preço atual de mercado (`Bid`/`Ask`).
-  * **Modificação síncrona na Corretora**: Ao atingir a distância gatilho (`InpTrailingTrigger`), o robô atualiza os níveis reais de Stop Loss e Take Profit diretamente na corretora via `m_trade.PositionModify()`.
-  * **Passo de Proteção (Step)**: Utiliza `InpTrailingStep` para filtrar pequenas flutuações e evitar rejeições de envio por spam de requisições de modificação à corretora B3.
-  * **Normalização de Ticks B3**: Todos os cálculos e novos preços de SL/TP são normalizados usando o tick size do ativo (WIN = 5 pontos, WDO = 0.5 pontos) e a quantidade de casas decimais do símbolo para evitar rejeições.
-
-### 2. Gain Móvel e Stop Gain Móvel Virtual em Modo Grade (GRID)
-* **Objetivo**: Conduzir o lucro de forma dinâmica sobre toda a grade de posições consolidadas quando trabalhando em contas **NETTING** na B3. Modificações de ordens físicas a cada tick para grades complexas causam rejeições constantes das corretoras brasileiras por limite de mensagens de rede.
-* **A Solução (Trailing 100% Virtual)**:
-  * Desenvolvido e acoplado no orquestrador `CSmartClose` (`SmartClose.mqh`) o método `CheckTrailingVirtual()`.
-  * **Rastreamento de Preço Médio Virtual**: Acompanha o preço médio flutuante acumulado de toda a grade ativa.
-  * **Ajuste Simétrico de Stop/TP Virtuais**: À medida que a pontuação líquida acumulada avança no lucro a favor da posição da grade, o robô atualiza internamente em memória (sem disparar mensagens desnecessárias à corretora) as barreiras móveis de Stop Loss virtual e Take Profit virtual.
-  * **Liquidação Síncrona a Mercado**: Se o preço sofrer uma reversão e cruzar a barreira do Stop Loss virtual móvel, ou atingir o limite superior do Take Profit virtual, a classe `CSmartClose` executa instantaneamente o fechamento em massa a mercado síncrono de todas as posições da grade, garantindo o lucro máximo e blindando o trader.
-
-### 3. Integração Centralizada no Core (`OmniB3_EA.mq5`)
-* Criados os parâmetros de entrada globais para configuração dinâmica nas propriedades do EA (F7):
-  * `InpUseTrailing`: Habilita/Desabilita o recurso global de trailing.
-  * `InpTrailingTrigger`: Pontos de lucro flutuante mínimos para acionar o trailing móvel.
-  * `InpTrailingStopDist`: Distância em pontos do Stop Loss móvel em relação ao preço atual.
-  * `InpTrailingTPDist`: Distância em pontos do Take Profit móvel em relação ao preço atual.
-  * `InpTrailingStep`: Passo mínimo de variação para atualizar a barreira móvel.
-* Os construtores de `CSmartClose` e `CSingleOrder` foram adaptados para receber os inputs estruturados.
-* Injetado no fluxo síncrono de ticks (`OnTick`) as chamadas contínuas de rastreamento e atualização móvel.
-
-### 4. Backup e Sincronização de Cabeçalhos
-* Criada a pasta de backup `c:\Projetos\Stocks\BACKUP\v2.25\` com toda a estrutura original mq5 e mqh anterior.
-* Elevados todos os 11 arquivos includes do projeto e o core principal do robô para a versão **2.35**, atualizando copyrights, descrições de versão e comentários em **Português Brasileiro**.
-
----
-
-## 📖 Como Usar e Configurar na v2.35
-
-Nas propriedades do Expert Advisor (tecla F7 ou no Testador de Estratégias do MT5), acesse a nova aba de parâmetros e configure:
-1. **Habilitar Trailing** (`InpUseTrailing` = `true`): Ativa o acompanhamento dinâmico do mercado.
-2. **Gatilho de Ativação** (`InpTrailingTrigger` = `200`): A operação ou grade precisa estar com pelo menos 200 pontos de lucro flutuante para que o acompanhamento seja iniciado.
-3. **Distância do Stop Loss** (`InpTrailingStopDist` = `150`): Mantém a barreira de saída protetora sempre a 150 pontos de distância do preço mais favorável alcançado. Se o mercado reverter 150 pontos a partir do topo, a operação/grade é finalizada de imediato garantindo os lucros acumulados.
-4. **Distância do Take Profit** (`InpTrailingTPDist` = `300`): Mantém o alvo flutuante de lucro sempre 300 pontos à frente del preço atual, permitindo que a operação surfe longas tendências.
-5. **Passo Mínimo** (`InpTrailingStep` = `10`): Atualiza as barreiras somente a cada 10 pontos de movimento a favor, otimizando o processamento do EA e a rede da corretora.
-
----
-
-# 🚶‍♂️ Walkthrough: Estabilização, Take Profit de Salvaguarda e Proteção Day Trade (v2.25)
-
-Nesta sessão, avançamos e concluímos com sucesso a **Fase de Proteção Day Trade Estrita, Take Profit de Salvaguarda Síncrono e Sincronização de Cabeçalhos**, elevando o Expert Advisor **Omni-B3** para a versão **v2.25**. Toda a lógica foi estruturada, validada, compilada com **sucesso absoluto (0 erros, 0 warnings)** no compilador de 64 bits do MetaEditor, comentada em **Português Brasileiro**, e enviada para o GitHub.
-
----
-
-## 🛠️ O que foi Desenvolvido e Implementado na v2.25?
-
-### 1. Take Profit (TP) de Salvaguarda Síncrono
-* **O Problema**: Em grades de ordens complexas, os lucros flutuantes acumulados às vezes atingiam o Take Profit monetário global, mas por causa de concorrência ou atrasos nos loops de verificação dos fechamentos parciais do Smart Close (`worst` ou `oldest`), o robô ficava preso em verificações condicionais e não liquidava a grade no momento ótimo, devolvendo lucro ao mercado.
-* **A Solução**: Implementamos uma salvaguarda síncrona direta. O sistema agora monitora em tempo real o lucro líquido acumulado de toda a grade. Ao atingir ou superar o Take Profit monetário configurado (`InpTPMonetary`), o robô aciona instantaneamente o encerramento em massa síncrono de todas as posições da grade a mercado de forma atômica e prioritária, blindando o capital do investidor.
-
-### 2. Proteção Estrita contra Swing Trade (Day Trade B3)
-* **O Problema**: No pregão da B3 (`WIN$D`), carregar posições de minicontratos de um dia para o outro (Swing Trade) pode ser desastroso devido a gaps de abertura severos, causando prejuízos extremos e drawdown terminal. A lógica anterior de horário limite tinha vulnerabilidades de concorrência que deixavam posições abertas no fechamento.
-* **A Solução**: Reformulamos e blindamos o filtro de horário operacional (`TimeFilter.mqh` e `OmniB3_EA.mq5`) para atuar com Day Trade estrito (`TCLOSE_IMMEDIATE`):
-  * **Liquidação Imediata**: Exatamente às **16:45** (horário do servidor B3), o robô liquida de forma imediata e síncrona todas as ordens e posições abertas.
-  * **Bloqueio Operacional**: Após as 16:45, qualquer envio de novas ordens é estritamente bloqueado. A flag operacional é travada e só é resetada no início do pregão do dia seguinte.
-  * **Segurança de Sincronia**: A verificação baseia-se estritamente em `TimeCurrent()` (hora do servidor da corretora), garantindo total precisão com o horário da B3, independente do fuso horário local da máquina do usuário.
-
-### 3. Sincronização Geral de Cabeçalhos e Arquivos para v2.25
-* Para garantir a consistência geral e o controle estrito de versão exigido pelas diretrizes (`RULE[user_global]`), elevamos todos os 11 arquivos de includes secundários e os 4 arquivos core para a versão **2.25**. Cabeçalhos operacionais e logs do EA agora reportam com precisão a versão unificada **2.25**.
-* Os arquivos atualizados incluem:
-  * [OmniB3_EA.mq5](file:///c:/Projetos/Stocks/MQL5/Experts/OmniB3/OmniB3_EA.mq5)
-  * [Defines.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/Defines.mqh)
-  * [SmartClose.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/SmartClose.mqh)
-  * [TimeFilter.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/TimeFilter.mqh)
-  * [Dashboard.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/Dashboard.mqh)
-  * [GridEngine.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/GridEngine.mqh)
-  * [IndicatorHub.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/IndicatorHub.mqh)
-  * [Logger.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/Logger.mqh)
-  * [MoneyManager.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/MoneyManager.mqh)
-  * [NewsFilter.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/NewsFilter.mqh)
-  * [PositionManager.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/PositionManager.mqh)
-  * [RecoveryMode.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/RecoveryMode.mqh)
-  * [RiskManager.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/RiskManager.mqh)
-  * [SingleOrder.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/SingleOrder.mqh)
-  * [StatePersistence.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/StatePersistence.mqh)
-
-### 4. Resolução dos Erros de Compilação do compilador do MetaTrader 5
-* O compilador oficial da corretora Rico (`metaeditor64.exe`) não encontrava as bibliotecas padrão do MQL5 (como `Trade\Trade.mqh`, `Object.mqh`, etc.) ao compilar o projeto em `c:\Projetos\Stocks\MQL5`.
-* Resolvemos isso de forma elegante e limpa criando links simbólicos de junção NTFS (`Trade`, `Arrays`, `Charts`, `ChartObjects`) e copiando as dependências de arquivos soltos ausentes da pasta padrão de dados do MetaTrader para a pasta do projeto.
-* Graças a isso, a compilação foi concluída com **sucesso absoluto**: **0 errors, 0 warnings**!
-
----
-
-## 📖 Como Usar e Configurar na v2.25
-
-1. **Day Trade B3 (16:45)**: O robô já vem pré-configurado para liquidar todas as posições às 16:45 no horário do servidor e bloquear novas operações. Certifique-se de que a opção de fechamento diário está ativa nas propriedades do EA.
-2. **Take Profit Monetário**: Nas propriedades (F7), defina o `InpTPMode` como `TP_MONETARY` e coloque em `InpTPMonetary` o valor de lucro desejado em Reais (ex: `20.0` para R$ 20.00). Quando a grade acumulada atingir esse valor líquido, ela fechará na hora de forma síncrona e definitiva.
-
----
-
-# 🚶‍♂️ Walkthrough: Estabilização e Refinamento do Omni-B3 (v2.15)
-
-## 🛠️ O que foi Desenvolvido e Implementado na v2.15?
-
-### 1. Resolução do Bug Crítico de Trava de Ordem Única (L0) sem Fechamento (`SmartClose.mqh` - v2.15)
-* **O Problema Identificado**:
-  * No backtest e em tempo real, quando o robô abria a ordem inicial (nível L0) e o mercado se movia fortemente a favor (como na imagem em que a compra a `193040` estava em `201205`, gerando `+8165` pontos de lucro e `+R$ 1.934,00` de ganho flutuante), a operação **nunca era encerrada** e ficava aberta por dias.
-  * **O Motivo**: O robô estava configurado no modo de fechamento padrão `CMODE_SMART_WORST` ou `CMODE_SMART_OLDEST` (os modos clássicos baseados em grade). A função correspondente `CheckSmartClose(state)` inicia com uma verificação estrita: `if(state.total_levels < 2) return false;`.
-  * Isso significa que o Smart Close clássico assume que a grade precisa de pelo menos 2 níveis para fazer o fechamento combinado de pior nível com lucros. Com apenas **1 único nível ativo (L0)**, a função retornava `false` imediatamente em todos os ticks. Como não havia outra regra paralela tratando o nível inicial sob o modo Smart, o nível L0 corria indefinidamente sem realizar lucros.
-* **A Solução Implementada**:
-  * Modificamos a lógica principal na função `CheckAndExecute()` em [SmartClose.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/SmartClose.mqh).
-  * Adicionamos um desvio inteligente: se a grade contiver apenas **1 nível ativo** (`state.total_levels == 1`) e o modo de fechamento ativo for `CMODE_SMART_WORST` ou `CMODE_SMART_OLDEST`, o robô **desvia a verificação e executa a validação pelo Take Profit Total** (`CheckTPTotal(state)`).
-  * Dessa forma, se a operação inicial for a favor do trader, ela é encerrada perfeitamente ao atingir o Take Profit fixo em pontos (`InpTPPoints`) ou monetário (`InpTPMonetary`) configurado nas propriedades, consolidando o lucro e zerando a grade.
-
-### 2. Controle Dinâmico e Alinhamento de Versões de Todos os Módulos
-* Todos os cabeçalhos de include, metadados e propriedades globais de todos os arquivos do projeto foram auditados e padronizados com precisão para a versão **v2.15**, garantindo consistência completa no sistema de compilação:
-  * [Defines.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/Defines.mqh) (v2.15)
-  * [SmartClose.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/SmartClose.mqh) (v2.15)
-  * [TimeFilter.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/TimeFilter.mqh) (v2.15)
-  * [GridEngine.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/GridEngine.mqh) (v2.15)
-  * [RiskManager.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/RiskManager.mqh) (v2.15)
-  * [Dashboard.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/Dashboard.mqh) (Atualizado de v2.10 para v2.15)
-  * [IndicatorHub.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/IndicatorHub.mqh) (Atualizado de v2.00 para v2.15)
-  * [Logger.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/Logger.mqh) (Atualizado de v2.00 para v2.15)
-  * [MoneyManager.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/MoneyManager.mqh) (Atualizado de v2.00 para v2.15)
-  * [NewsFilter.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/NewsFilter.mqh) (Atualizado de v2.12 para v2.15)
-  * [PositionManager.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/PositionManager.mqh) (Atualizado de v2.00 para v2.15)
-  * [RecoveryMode.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/RecoveryMode.mqh) (Atualizado de v2.00 para v2.15)
-  * [SingleOrder.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/SingleOrder.mqh) (Atualizado de v2.10 para v2.15)
-  * [StatePersistence.mqh](file:///c:/Projetos/Stocks/MQL5/Include/OmniB3/StatePersistence.mqh) (Atualizado de v2.00 para v2.15)
-  * [OmniB3_EA.mq5](file:///c:/Projetos/Stocks/MQL5/Experts/OmniB3/OmniB3_EA.mq5) (v2.15)
-
----
-
-## 📖 Como Usar e Configurar o Parâmetro de Gain (Take Profit) na v2.15
-
-Para definir o ganho esperado para fechar a operação inicial L0 ou a grade inteira:
-1. Abra as propriedades do Expert Advisor no gráfico (F7) ou no Testador de Estratégias.
-2. Na seção **---- TakeProfit ----**, ajuste os seguintes parâmetros de acordo com o seu perfil operacional:
-   * **InpTPMode** = `TP_FIXED_POINTS` *(Modo padrão: fecha a operação inicial após ela percorrer o número fixo de pontos a favor)* ou `TP_MONETARY` *(Fecha a operação inicial/grade após atingir um valor financeiro em R$)*.
-   * **InpTPPoints** = `100.0` *(Se estiver em modo fixo por pontos, define quantos pontos de ganho são necessários. Por exemplo: 100 ou 150 pontos na B3)*.
-   * **InpTPMonetary** = `20.0` *(Se estiver em modo monetário, define quantos Reais de lucro líquido acumulado fecham a grade. Por exemplo: R$ 20.00)*.
-3. Se o robô entrar na operação `L0` e o mercado se mover na direção a favor atingindo a pontuação/lucro configurada, o robô disparará o fechamento automático a mercado de imediato e registrará o lucro.
-
----
-
-## 🔍 Resolução de Erros de Compilação & Estabilização da v2.15
-* **Compilação 100% Limpa**: O EA compilado diretamente no compilador nativo de 64 bits do MetaEditor (`metaeditor64.exe`) da Rico-DEMO gerou o binário executável **com sucesso absoluto**: **0 errors, 0 warnings**.
-* **Controle de Versão**: Todos os arquivos do projeto agora contêm e referenciam a versão estável **v2.15**.
-
----
-
-## 🚀 Status de Deploy no Git
-* **Git Push**: Commits executados e sincronizados com 100% de sucesso no repositório oficial do GitHub em: `https://github.com/helveciopereira/Stocks.git`.
-* **Binário Sincronizado**: O arquivo `OmniB3_EA.ex5` foi compilado com a lógica atualizada e está disponível na árvore de diretórios do repositório.
-
----
-
-# Histórico de Versões Anteriores
-
-## 🚶‍♂️ Walkthrough: Estabilização e Refinamento do Omni-B3 (v2.14)
-
-Nesta sessão, avançamos e concluímos com sucesso a **Fase de Fechamento por Horário Limite (Day Trade B3) e Correção de Concorrência Lógica**, elevando o Expert Advisor **Omni-B3** para a versão **v2.14**. Toda a lógica foi estruturada, validada, compilada sem erros e sem warnings no compilador de 64 bits do MetaEditor, comentada em **Português Brasileiro**, e enviada para o GitHub.
-
----
-
-## 🛠️ O que foi Desenvolvido e Implementado na v2.14?
-
-### 1. Correção do Bug Crítico de Concorrência e Sincronização Lógica (`TimeFilter.mqh` - v2.14)
-* **O Problema Identificado**:
-  * O robô possui parâmetros nativos para fechamento forçado por horário limite para evitar carregar posições de um dia para o outro (Day Trade estrito na B3). No entanto, um bug lógico silencioso de race condition impedia sua execução.
-  * A função `IsTradeAllowed()` detectava que o horário havia encerrado e marcava precocemente a flag `m_close_executed = true`.
-  * Logo em seguida, `ShouldCloseOnTime()` era chamado por `OmniB3_EA.mq5`. Como `m_close_executed` já era `true`, ele retornava `false` precocemente, abortando o encerramento das ordens e deixando as posições abertas para o dia seguinte (swing trade involuntário).
-* **A Solução Implementada**:
-  * Removemos a alteração da flag `m_close_executed = true` de dentro de `IsTradeAllowed()`. A função agora apenas detecta o fim do horário e emite o log explicativo.
-  * Transferimos a alteração da flag `m_close_executed = true` diretamente para a função `ShouldCloseOnTime()`. No exato tick em que o horário atinge ou ultrapassa o limite e a flag `m_close_executed` é `false`, ela marca instantaneamente a si mesma como `true` e retorna `true` apenas uma única vez para fechar todas as posições da grade a mercado imediatamente.
-  * O reset da flag para `false` ocorre de forma segura no início do dia de negociação seguinte (ou ao reativar), na transição de fora para dentro do horário operacional (`is_inside && !m_was_inside`).
-  * Isso garante a robustez absoluta do fechamento automático de Day Trade às 16:45 na B3.
-
----
-
-## 🚶‍♂️ Walkthrough: Estabilização e Refinamento do Omni-B3 (v2.12 & v2.13)
-
-Nesta sessão, avançamos e concluímos com sucesso a **Fase de Refinamento Estratégico, Robustez de Risco e Sanitização de Inputs** do Expert Advisor **Omni-B3**, elevando o projeto para a versão **v2.13**. Toda a lógica foi estruturada, validada, compilada sem erros e sem warnings no compilador de 64 bits do MetaEditor, comentada em **Português Brasileiro**, e enviada para o GitHub.
-
----
-
-## 🛠️ O que foi Desenvolvido e Implementado?
-
-### 1. Sanitização e Proteção de Inputs (`OmniB3_EA.mq5` - v2.13)
-* **Validação Estrita de Direção (`InpDirection`)**:
-  * Adicionada validação de segurança na inicialização (`OnInit()`) para o enumerador de direção da grade.
-  * Se o usuário fornecer um valor inválido ou fora dos limites do enumerador (por exemplo, um valor incorreto que possa ter sido importado de presets antigos), o EA agora intercepta, corrige o valor automaticamente para `GRID_BUY_ONLY` (Compra) e emite um alerta claro e explícito no diário do MetaTrader 5.
-  * Isso evita comportamentos indefinidos no pipeline de execução da grade e previne "Single-Trade Blowouts" como o observado no backtest em que a grade travava.
-
-### 2. Logs Verbosos e Autoexplicativos de Risco (`RiskManager.mqh` - v2.13)
-* **Transparência no Bloqueio de Operações**:
-  * Reescrevemos e expandimos todas as validações da função `IsSafeToTrade()`, adicionando logs detalhados e em **Português Brasileiro** para cada regra de proteção.
-  * Agora, se o robô parar de operar ou de abrir novos níveis da grade, o usuário saberá exatamente o motivo no log de "Experts":
-    * **Kill-Switch**: *"Operação bloqueada pelo Kill-Switch ativo (EA desativado)."*
-    * **Bloqueios Diários**: *"Operação bloqueada devido a algum limite diário de proteção atingido hoje."*
-    * **Tempo de Espera (Cooldown)**: *"Cooldown ativo. Aguardando tempo regulamentar de X segundos após limite."*
-    * **Equity Stop**: *"🚨 EQUITY STOP! Capital Líquido (R$ X) caiu abaixo do limite de Y% do Saldo..."*
-    * **Drawdown Diário**: *"⚠️ DD Diário Atingido: X% de drawdown (Limite Máximo: Y%). Bloqueando operações diárias para preservar capital..."*
-    * **Limite Diário de Perda (BRL)**: *"⚠️ Perda diária limite atingida: R$ X de perda flutuante/realizada (Limite Máximo: R$ Y)."*
-    * **Meta Diária de Lucro (BRL)**: *"✅ Meta diária de lucro atingida! Lucro acumulado hoje: R$ X (Meta: R$ Y)."*
-    * **Limite Diário de Ordens (Overtrading)**: *"⚠️ Limite diário de ordens atingido: X ordens executadas hoje..."*
-    * **Níveis Máximos da Grade**: *"[BLOQUEIO] Limite de níveis simultâneos alcançado: X níveis ativos (Limite Máximo: Y)."*
-    * **Margem Livre Insuficiente**: *"🚨 Margem Livre Insuficiente na Corretora! Margem livre calculada em X% do capital garantido, inferior ao limite de Y%..."*
-
-### 3. Dashboard Gráfico Premium (`Dashboard.mqh` - v2.12)
-* **Aparência e Temas**: Suporte a temas de cores e fundos semi-transparentes (*glassmorphism*). O tema padrão é o **Moderno Escuro Néon** com azul néon (destaques de sistema), turquesa (dados positivos) e coral (drawdowns e dados negativos).
-* **Métricas em Tempo Real**: Mostra o saldo dinâmico do robô, capital líquido, lucro flutuante e diário, drawdown percentual, níveis ativos e status da próxima notícia.
-* **Botões Interativos no Gráfico**:
-  * `🚨 PANICO (KILL)`: Zera tudo instantaneamente e bloqueia o EA de novas aberturas.
-  * `❌ FECHAR TUDO`: Fecha a mercado todas as posições abertas.
-  * `⏸ PAUSAR EA`: Pausa novas entradas mantendo as posições de grid rodando.
-  * `🔄 RESET DIARIO`: Redefine o Kill-Switch e contadores de limites.
-
-### 4. Modo Ordem Única (`SingleOrder.mqh` - v2.12)
-* **SL/TP/BE Tradicional**: Trabalha com ordens simples independentes (sem grade) com StopLoss, TakeProfit e ativação de BreakEven individuais.
-* **Martingale & Anti-Martingale**:
-  * Em perdas consecutivas, multiplica o lote de acordo com o fator para recuperar o capital.
-  * Em ganhos consecutivos (Anti-Martingale), potencializa o lucro surfando streaks vitoriosas.
-  * Removidos caracteres Unicode multibyte (emojis) que quebravam o parsing de strings do compilador do MetaEditor.
-* **Cooldown de Proteção**: Aguarda N segundos configurados pelo usuário após ganho ou perda para evitar novas entradas em mercados voláteis.
-
-### 5. Filtro de Notícias Calendário (`NewsFilter.mqh` - v2.12)
-* **Nativo do MT5**: Consome os dados de calendário econômico nativo sem depender de WebRequest.
-* **Moeda e Impacto**: Suporta filtragem por moeda (BRL/USD/ALL) e impacto de notícias (Baixo, Médio, Alto).
-* **Ações Protetivas**:
-  * `NEWS_ACTION_STOP_INITIAL`: Impede novos níveis 0, mas permite que a grade se movimente para gerenciar ordens abertas.
-  * `NEWS_ACTION_STOP_ALL`: Bloqueia totalmente o envio de qualquer nova ordem.
-  * `NEWS_ACTION_CLOSE_ALL`: Fecha todas as posições abertas preventivamente.
