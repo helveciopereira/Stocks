@@ -1,0 +1,341 @@
+2026.05.25 12:59:22.944	Core 01	login (build 5833)
+2026.05.25 12:59:22.944	Core 01	account info found with currency BRL
+2026.05.25 12:59:22.944	Core 01	expert file added: Experts\OmniB3\OmniB3_EA.ex5. 477736 bytes loaded
+2026.05.25 12:59:22.944	Core 01	4561 Mb available, 56 blocks set for ticks generating
+2026.05.25 12:59:22.944	Core 01	calculate profit in pips, initial deposit 10000, leverage 1:1
+2026.05.25 12:59:22.944	Core 01	successfully initialized
+2026.05.25 12:59:22.944	Core 01	448 Kb of total initialization data received
+2026.05.25 12:59:22.944	Core 01	AMD Ryzen AI 9 HX 370 w/ Radeon 890M, 30328 MB
+2026.05.25 12:59:22.944	Core 01	WIN$D: symbol to be synchronized
+2026.05.25 12:59:22.944	Core 01	WIN$D: symbol synchronized already, 16 bytes received
+2026.05.25 12:59:22.944	Core 01	WIN$D: load 25 bytes of history data to synchronize in 0:00:00.000
+2026.05.25 12:59:22.944	Core 01	WIN$D: history synchronized from 2025.01.02 to 2026.05.21
+2026.05.25 12:59:22.944	Core 01	WIN$D,M5: history cache allocated for 44721 bars and contains 32536 bars from 2025.01.02 09:00 to 2026.02.27 18:20
+2026.05.25 12:59:22.944	Core 01	WIN$D,M5: history begins from 2025.01.02 09:00
+2026.05.25 12:59:22.944	Core 01	WIN$D,M5 (Rico-DEMO): 1 minutes OHLC ticks generating
+2026.05.25 12:59:22.944	Core 01	testing with execution delay 71 milliseconds
+2026.05.25 12:59:22.944	Core 01	WIN$D,M5: testing of Experts\OmniB3\OmniB3_EA.ex5 from 2026.03.01 00:00 to 2026.04.28 00:00 started with inputs:
+2026.05.25 12:59:22.944	Core 01	  InpSeparator0=════════ DADOS INICIAIS ════════
+2026.05.25 12:59:22.944	Core 01	  InpMagicNumber=202605
+2026.05.25 12:59:22.944	Core 01	  InpLogLevel=1
+2026.05.25 12:59:22.944	Core 01	  InpLogToFile=false
+2026.05.25 12:59:22.944	Core 01	  InpComment=
+2026.05.25 12:59:22.944	Core 01	  InpSpreadMax=30
+2026.05.25 12:59:22.944	Core 01	  InpSeparator1=════════ GERENCIAR DINHEIRO ════════
+2026.05.25 12:59:22.944	Core 01	  InpBalanceMode=0
+2026.05.25 12:59:22.944	Core 01	  InpBalanceValue=1000.0
+2026.05.25 12:59:22.944	Core 01	  InpMaxBalance=0.0
+2026.05.25 12:59:22.944	Core 01	  InpSepPreset=---- Multiplicador de Preset ----
+2026.05.25 12:59:22.944	Core 01	  InpPresetMode=0
+2026.05.25 12:59:22.944	Core 01	  InpPresetFactor=1000.0
+2026.05.25 12:59:22.944	Core 01	  InpSepStopMM=---- StopLoss do Robô ----
+2026.05.25 12:59:22.944	Core 01	  InpMMStopAmount=0.0
+2026.05.25 12:59:22.944	Core 01	  InpMMStopPercent=0
+2026.05.25 12:59:22.944	Core 01	  InpMMMaxLoss=0.0
+2026.05.25 12:59:22.944	Core 01	  InpMMWaitLoss=0
+2026.05.25 12:59:22.944	Core 01	  InpMMStopLoss=false
+2026.05.25 12:59:22.944	Core 01	  InpSeparator2=════════ ABERTURA ════════
+2026.05.25 12:59:22.944	Core 01	  InpRiskProfile=0
+2026.05.25 12:59:22.944	Core 01	  InpDirection=0
+2026.05.25 12:59:22.944	Core 01	  InpSepIndicator=---- Indicador de Sinal ----
+2026.05.25 12:59:22.944	Core 01	  InpSignalInd=1
+2026.05.25 12:59:22.944	Core 01	  InpSignalStrat=1
+2026.05.25 12:59:22.944	Core 01	  InpConfirm1=0
+2026.05.25 12:59:22.944	Core 01	  InpConfStrat1=0
+2026.05.25 12:59:22.944	Core 01	  InpConfirm2=0
+2026.05.25 12:59:22.944	Core 01	  InpConfStrat2=0
+2026.05.25 12:59:22.944	Core 01	  InpConfirm3=0
+2026.05.25 12:59:22.944	Core 01	  InpConfStrat3=0
+2026.05.25 12:59:22.944	Core 01	  InpConfirm4=0
+2026.05.25 12:59:22.944	Core 01	  InpConfStrat4=0
+2026.05.25 12:59:22.944	Core 01	  InpUseIndInitial=true
+2026.05.25 12:59:22.944	Core 01	  InpUseIndGrid=false
+2026.05.25 12:59:22.944	Core 01	  InpOpenOnCandle=true
+2026.05.25 12:59:22.944	Core 01	  InpSepLots=---- Lotes ----
+2026.05.25 12:59:22.944	Core 01	  InpInitialLot=1
+2026.05.25 12:59:22.944	Core 01	  InpLotMin=1.0
+2026.05.25 12:59:22.944	Core 01	  InpLotMax=3
+2026.05.25 12:59:22.944	Core 01	  InpSepWait=---- Espera ----
+2026.05.25 12:59:22.944	Core 01	  InpWaitSameDir=30
+2026.05.25 12:59:22.944	Core 01	  InpGiantCandleWaitInit=0
+2026.05.25 12:59:22.944	Core 01	  InpGiantCandleSizeInit=100
+2026.05.25 12:59:22.944	Core 01	  InpGiantCandleWaitGrid=0
+2026.05.25 12:59:22.944	Core 01	  InpGiantCandleSizeGrid=100
+2026.05.25 12:59:22.944	Core 01	  InpMaxDDNoOpen=50
+2026.05.25 12:59:22.944	Core 01	  InpSeparator3=════════ MODO GRADE (GRID) ════════
+2026.05.25 12:59:22.944	Core 01	  InpGridType=1
+2026.05.25 12:59:22.944	Core 01	  InpCloseMode=0
+2026.05.25 12:59:22.944	Core 01	  InpMaxLevels=5
+2026.05.25 12:59:22.944	Core 01	  InpMinProfit=0.0
+2026.05.25 12:59:22.944	Core 01	  InpSepTP=---- TakeProfit ----
+2026.05.25 12:59:22.944	Core 01	  InpTPMode=0
+2026.05.25 12:59:22.944	Core 01	  InpTPPoints=1000.0
+2026.05.25 12:59:22.944	Core 01	  InpTPMonetary=0.0
+2026.05.25 12:59:22.944	Core 01	  InpTPAcceptable=0.0
+2026.05.25 12:59:22.944	Core 01	  InpTPMultiplier=1.0
+2026.05.25 12:59:22.944	Core 01	  InpTPReduceType=0
+2026.05.25 12:59:22.944	Core 01	  InpTPReduceDD=100.0
+2026.05.25 12:59:22.944	Core 01	  InpTPReduceTime=0
+2026.05.25 12:59:22.944	Core 01	  InpSepBE=---- BreakEven ----
+2026.05.25 12:59:22.944	Core 01	  InpBEMode=0
+2026.05.25 12:59:22.944	Core 01	  InpBEPoints=0.0
+2026.05.25 12:59:22.944	Core 01	  InpBEAcceptable=0.0
+2026.05.25 12:59:22.944	Core 01	  InpBEType=0
+2026.05.25 12:59:22.944	Core 01	  InpBETrailFactor=1.0
+2026.05.25 12:59:22.944	Core 01	  InpSepStep=---- Passo da Grade ----
+2026.05.25 12:59:22.944	Core 01	  InpFixedSpacing=100
+2026.05.25 12:59:22.944	Core 01	  InpStepMultiplier=1.0
+2026.05.25 12:59:22.944	Core 01	  InpStepMin=0
+2026.05.25 12:59:22.944	Core 01	  InpStepMax=0
+2026.05.25 12:59:22.944	Core 01	  InpAddedStep=0
+2026.05.25 12:59:22.944	Core 01	  InpAddedStepDecay=0
+2026.05.25 12:59:22.944	Core 01	  InpSepATR=---- ATR (Grade Dinâmica) ----
+2026.05.25 12:59:22.944	Core 01	  InpATRPeriod=14
+2026.05.25 12:59:22.944	Core 01	  InpATRTimeframe=5
+2026.05.25 12:59:22.944	Core 01	  InpATRMult=1.5
+2026.05.25 12:59:22.944	Core 01	  InpSepNext=---- Próximo Lote ----
+2026.05.25 12:59:22.944	Core 01	  InpNextLotMode=3
+2026.05.25 12:59:22.944	Core 01	  InpNextLotFactor=1.3
+2026.05.25 12:59:22.944	Core 01	  InpNextLotWait=600
+2026.05.25 12:59:22.944	Core 01	  InpNextLotStartWait=1
+2026.05.25 12:59:22.944	Core 01	  InpNextLotStopWait=100
+2026.05.25 12:59:22.944	Core 01	  InpAllowBigLot=false
+2026.05.25 12:59:22.944	Core 01	  InpSepQuantity=---- Fechamento por Quantidade ----
+2026.05.25 12:59:22.944	Core 01	  InpLotSumTotal=0.0
+2026.05.25 12:59:22.944	Core 01	  InpOrderCountTotal=0
+2026.05.25 12:59:22.944	Core 01	  InpAcceptLoss=0.0
+2026.05.25 12:59:22.944	Core 01	  InpDDAcceptLoss=0.0
+2026.05.25 12:59:22.944	Core 01	  InpSepRecov=---- Recovery ----
+2026.05.25 12:59:22.944	Core 01	  InpRecoveryDD=100.0
+2026.05.25 12:59:22.944	Core 01	  InpRecoveryOrders=0
+2026.05.25 12:59:22.944	Core 01	  InpRecoveryLock=false
+2026.05.25 12:59:22.944	Core 01	  InpRecoveryCloseMode=10
+2026.05.25 12:59:22.944	Core 01	  InpRecoveryExtraStep=0
+2026.05.25 12:59:22.944	Core 01	  InpRecoveryExtraLot=0.0
+2026.05.25 12:59:22.944	Core 01	  InpRecoveryTP=100
+2026.05.25 12:59:22.944	Core 01	  InpSeparator4=════════ INDICADORES ════════
+2026.05.25 12:59:22.944	Core 01	  InpSepRSI=---- RSI ----
+2026.05.25 12:59:22.944	Core 01	  InpRSIPeriod=14
+2026.05.25 12:59:22.944	Core 01	  InpRSITimeframe=5
+2026.05.25 12:59:22.944	Core 01	  InpRSIUpper=70.0
+2026.05.25 12:59:22.944	Core 01	  InpRSILower=30.0
+2026.05.25 12:59:22.944	Core 01	  InpSepCCI=---- CCI ----
+2026.05.25 12:59:22.944	Core 01	  InpCCIPeriod=14
+2026.05.25 12:59:22.944	Core 01	  InpCCITimeframe=5
+2026.05.25 12:59:22.944	Core 01	  InpCCIUpper=100.0
+2026.05.25 12:59:22.944	Core 01	  InpCCILower=-100.0
+2026.05.25 12:59:22.944	Core 01	  InpSepBB=---- Bollinger Bands ----
+2026.05.25 12:59:22.944	Core 01	  InpBBPeriod=20
+2026.05.25 12:59:22.944	Core 01	  InpBBTimeframe=5
+2026.05.25 12:59:22.944	Core 01	  InpBBDeviation=2.0
+2026.05.25 12:59:22.944	Core 01	  InpSepEnv=---- Envelopes ----
+2026.05.25 12:59:22.944	Core 01	  InpEnvPeriod=14
+2026.05.25 12:59:22.944	Core 01	  InpEnvTimeframe=5
+2026.05.25 12:59:22.944	Core 01	  InpEnvDeviation=0.1
+2026.05.25 12:59:22.944	Core 01	  InpSepMA=---- Médias Móveis ----
+2026.05.25 12:59:22.944	Core 01	  InpMAFastPeriod=9
+2026.05.25 12:59:22.944	Core 01	  InpMASlowPeriod=21
+2026.05.25 12:59:22.944	Core 01	  InpMATimeframe=5
+2026.05.25 12:59:22.944	Core 01	  InpMAMethod=0
+2026.05.25 12:59:22.944	Core 01	  InpSepHILO=---- HILO ----
+2026.05.25 12:59:22.944	Core 01	  InpHILOPeriod=3
+2026.05.25 12:59:22.944	Core 01	  InpHILOTimeframe=5
+2026.05.25 12:59:22.944	Core 01	  InpSepADX=---- ADX ----
+2026.05.25 12:59:22.944	Core 01	  InpADXPeriod=14
+2026.05.25 12:59:22.944	Core 01	  InpADXTimeframe=5
+2026.05.25 12:59:22.944	Core 01	  InpADXMin=22.0
+2026.05.25 12:59:22.944	Core 01	  InpSeparator5=════════ FILTROS ════════
+2026.05.25 12:59:22.944	Core 01	  InpATRFilterMin=0.0
+2026.05.25 12:59:22.944	Core 01	  InpATRFilterMax=999999.0
+2026.05.25 12:59:22.944	Core 01	  InpVolFilterMin=0
+2026.05.25 12:59:22.944	Core 01	  InpSeparator6=════════ LIMITES (STOP) ════════
+2026.05.25 12:59:22.944	Core 01	  InpSepCurrent=---- Atual ----
+2026.05.25 12:59:22.944	Core 01	  InpLimitProfitCurrent=0.0
+2026.05.25 12:59:22.944	Core 01	  InpLimitLossCurrent=0
+2026.05.25 12:59:22.944	Core 01	  InpWaitAfterLimit=0
+2026.05.25 12:59:22.944	Core 01	  InpStopAfterLimit=false
+2026.05.25 12:59:22.944	Core 01	  InpSepDaily=---- Diário ----
+2026.05.25 12:59:22.944	Core 01	  InpLimitProfitDaily=0.0
+2026.05.25 12:59:22.944	Core 01	  InpLimitLossDaily=0.0
+2026.05.25 12:59:22.944	Core 01	  InpMaxDailyDDPct=5.0
+2026.05.25 12:59:22.944	Core 01	  InpMaxOrdersDaily=0
+2026.05.25 12:59:22.944	Core 01	  InpMaxWinsDaily=0
+2026.05.25 12:59:22.944	Core 01	  InpMaxLossesDaily=0
+2026.05.25 12:59:22.944	Core 01	  InpSepAccount=---- Conta ----
+2026.05.25 12:59:22.944	Core 01	  InpEquityStopPct=70.0
+2026.05.25 12:59:22.944	Core 01	  InpMaxPositions=20
+2026.05.25 12:59:22.944	Core 01	  InpMinMarginPct=20.0
+2026.05.25 12:59:22.944	Core 01	  InpMinBalance=0.0
+2026.05.25 12:59:22.944	Core 01	  InpMinEquity=0.0
+2026.05.25 12:59:22.944	Core 01	  InpSeparator7=════════ HORÁRIO PERMITIDO ════════
+2026.05.25 12:59:22.944	Core 01	  InpStartHour=10
+2026.05.25 12:59:22.944	Core 01	  InpStartMinute=0
+2026.05.25 12:59:22.944	Core 01	  InpEndHour=15
+2026.05.25 12:59:22.944	Core 01	  InpEndMinute=40
+2026.05.25 12:59:22.944	Core 01	  InpFridayEarly=true
+2026.05.25 12:59:22.944	Core 01	  InpFridayEndHour=15
+2026.05.25 12:59:22.944	Core 01	  InpTimeCloseMode=1
+2026.05.25 12:59:22.944	Core 01	  InpReduceMinutes=60
+2026.05.25 12:59:22.944	Core 01	  InpReduceType=0
+2026.05.25 12:59:22.944	Core 01	  InpUseServerTime=true
+2026.05.25 12:59:22.944	Core 01	  InpSepDays=---- Dias Permitidos ----
+2026.05.25 12:59:22.944	Core 01	  InpAllowMonday=true
+2026.05.25 12:59:22.944	Core 01	  InpAllowTuesday=true
+2026.05.25 12:59:22.944	Core 01	  InpAllowWednesday=true
+2026.05.25 12:59:22.944	Core 01	  InpAllowThursday=true
+2026.05.25 12:59:22.944	Core 01	  InpAllowFriday=true
+2026.05.25 12:59:22.944	Core 01	  InpSeparator8=════════ FASE 2: PAINEL E DASHBOARD ════════
+2026.05.25 12:59:22.944	Core 01	  InpUseDashboard=true
+2026.05.25 12:59:22.944	Core 01	  InpDashboardTheme=0
+2026.05.25 12:59:22.944	Core 01	  InpDashboardX=20
+2026.05.25 12:59:22.944	Core 01	  InpDashboardY=40
+2026.05.25 12:59:22.944	Core 01	  InpSeparatorVisuals========= CONFIGURAÇÕES VISUAIS v2.45 ========
+2026.05.25 12:59:22.944	Core 01	  InpShowTargetLines=true
+2026.05.25 12:59:22.944	Core 01	  InpShowTradeHistory=true
+2026.05.25 12:59:22.944	Core 01	  InpShowRecentTradesPanel=true
+2026.05.25 12:59:22.944	Core 01	  InpSeparator9=════════ FASE 2: ORDEM ÚNICA (SINGLE) ════════
+2026.05.25 12:59:22.944	Core 01	  InpSingleOrderMode=0
+2026.05.25 12:59:22.944	Core 01	  InpSingleSLPoints=200.0
+2026.05.25 12:59:22.944	Core 01	  InpSingleTPPoints=150.0
+2026.05.25 12:59:22.944	Core 01	  InpSingleBEActivation=100.0
+2026.05.25 12:59:22.944	Core 01	  InpSingleBEMargin=10.0
+2026.05.25 12:59:22.944	Core 01	  InpSingleMartMode=0
+2026.05.25 12:59:22.944	Core 01	  InpSingleMartMultiplier=2.0
+2026.05.25 12:59:22.944	Core 01	  InpSingleMartSteps=3
+2026.05.25 12:59:22.944	Core 01	  InpSingleWaitLoss=0
+2026.05.25 12:59:22.944	Core 01	  InpSingleWaitWin=0
+2026.05.25 12:59:22.944	Core 01	  InpSingleCloseOpposite=true
+2026.05.25 12:59:22.944	Core 01	  InpSeparatorTrailing=════════ TRAILING STOP & TRAILING TP (v2.35) ════════
+2026.05.25 12:59:22.944	Core 01	  InpUseTrailing=false
+2026.05.25 12:59:22.944	Core 01	  InpTrailingTrigger=150
+2026.05.25 12:59:22.944	Core 01	  InpTrailingStopDist=150
+2026.05.25 12:59:22.944	Core 01	  InpTrailingTPDist=200
+2026.05.25 12:59:22.944	Core 01	  InpTrailingStep=10.0
+2026.05.25 12:59:22.944	Core 01	  InpSeparator10=════════ FASE 2: FILTRO DE NOTÍCIAS ════════
+2026.05.25 12:59:22.944	Core 01	  InpNewsEnabled=false
+2026.05.25 12:59:22.944	Core 01	  InpNewsMinImportance=3
+2026.05.25 12:59:22.944	Core 01	  InpNewsAction=2
+2026.05.25 12:59:22.944	Core 01	  InpNewsBefore=15
+2026.05.25 12:59:22.944	Core 01	  InpNewsAfter=15
+2026.05.25 12:59:22.944	Core 01	  InpNewsCurrency=BRL
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][EA] === Omni-B3 EA v2.50 === Minicontratos B3
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][EA] Símbolo: WIN$D | Magic: 202605
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][EA] TickSize=5.00 | TickValue=R$1.00 | VolMin=1 | VolStep=1
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][IndHub] RSI: P=14 TF=PERIOD_M5 Sup=70 Inf=30
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][IndHub] ATR (filtro): P=14
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][MoneyMgr] Saldo: 100% da conta
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][Persist] Init: Arquivo=OmniB3_State_WIN$D_202605.bin | Intervalo=30s
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][Recovery] Gatilhos: DD=100% | Ordens=0 | Travar=Não
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][Recovery] Params: Fechamento=CMODE_ACCEPT_LOSS | +Passo=0 | +Lote=0.00 | TP=100
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][Persist] Estado restaurado: 1 níveis | Checksum=61515349
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][PosManager] Posição real não existe — descartando estado salvo
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][Persist] Arquivo de estado removido
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][PosManager] Nenhuma posição existente — grade limpa
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][GridEngine] Init: WIN$D | Tipo=GRID_DYNAMIC_ATR | Dir=GRID_BUY_ONLY | Vol=1 | MaxNíveis=5
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][GridEngine] Step Mult: x1.00 | Min=0 | Max=0 pts
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][GridEngine] Next Lot: Modo=NEXT_LOT_WAIT_MULTIPLY | Fator=1.30 | Espera=600s
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][SmartClose] Init: WIN$D | Modo=CMODE_SMART_WORST | Margem=3.0 ticks
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][SmartClose] Trailing Grade: Habilitado=Nao | Gatilho=150 pts | StopDist=150 pts | TPDist=200 pts | Passo=10 pts
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][RiskManager] Init: EquityStop=70% | DDDiário=5.0% | MaxPos=20 | MargemMin=20%
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][TimeFilter] Init: Janela=10:00-15:40 | SextaAntecip=Sim(15:00) | Hora=Servidor
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][SingleOrder] Stats: Ultimo Lucro: R$0.00, Perdas Seguidas: 0, Ganhos Seguidos: 0, Multiplicador Atual: x1.00
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][Visuals] Módulo de desenho gráfico premium inicializado para v2.50.
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][EA] [OK] Inicialização completa! v2.50
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][EA] Espaçamento: 353.04 (353 pts) | StepMult=1.00
+2026.05.25 12:59:22.944	Core 01	2026.03.01 00:00:00   [2026.03.01 00:00:00][INFO][EA] Saldo Robô: R$0.00 | xPreset: 1.00x | Moeda: 1.00
+2026.05.25 12:59:22.944	Core 01	2026.03.02 09:00:00   [2026.03.02 09:00:00][INFO][RiskManager] [RESET] Novo dia — Saldo=R$10000.00 | Equity=R$10000.00
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:00:00   [2026.03.02 10:00:00][INFO][TimeFilter] Início do horário de operação. Resetando controle de fechamento.
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:00:00   exchange buy 1 WIN$D at 194120 (194115 / 194120 / 194115)
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:00:00   deal #2 buy 1 WIN$D at 194120 done (based on order #2)
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:00:00   deal performed [#2 buy 1 WIN$D at 194120]
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:00:00   order performed buy 1 at 194120 [#2 buy 1 WIN$D at 194120]
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:00:00   CTrade::OrderSend: exchange buy 1.00 WIN$D [done]
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:00:00   [2026.03.02 10:00:00][INFO][GridEngine] [COMPRA] Nivel=0 | 1 contratos @ 194120.00
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:23:40   [2026.03.02 10:23:40][INFO][SmartClose] ðŸ›¡ï¸? Salvaguarda TP Total atingida! P&L=R$244.00 | TP=R$200.00. Fechando toda a grade por segurança.
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:23:40   exchange sell 1 WIN$D at 195340, close #2 (195340 / 195345 / 195340)
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:23:40   deal #3 sell 1 WIN$D at 195340 done (based on order #3)
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:23:40   deal performed [#3 sell 1 WIN$D at 195340]
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:23:40   order performed sell 1 at 195340 [#3 sell 1 WIN$D at 195340]
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:23:40   CTrade::OrderSend: exchange sell 1.00 WIN$D [done]
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:23:40   [2026.03.02 10:23:40][INFO][SmartClose] [OK] Fechamento TOTAL! Vol=1 | P&L=R$244.00 | 1 niveis
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:23:40   [2026.03.02 10:23:40][INFO][PosManager] Todos os níveis virtuais removidos
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:23:40   [2026.03.02 10:23:40][INFO][Persist] Arquivo de estado removido
+2026.05.25 12:59:22.944	Core 01	2026.03.02 10:23:40   [2026.03.02 10:23:40][INFO][EA] [ALVO] Smart Close executado
+2026.05.25 12:59:22.944	Core 01	2026.03.02 15:40:00   [2026.03.02 15:40:00][INFO][TimeFilter] Fim do horário de operação
+2026.05.25 12:59:22.944	Core 01	2026.03.03 09:02:00   [2026.03.03 09:02:00][INFO][RiskManager] [RESET] Novo dia — Saldo=R$11220.00 | Equity=R$11220.00
+2026.05.25 12:59:22.944	Core 01	2026.03.03 10:00:00   [2026.03.03 10:00:00][INFO][TimeFilter] Início do horário de operação. Resetando controle de fechamento.
+2026.05.25 12:59:22.944	Core 01	2026.03.03 10:00:00   exchange buy 1 WIN$D at 191510 (191505 / 191510 / 191505)
+2026.05.25 12:59:22.944	Core 01	2026.03.03 10:00:00   deal #4 buy 1 WIN$D at 191510 done (based on order #4)
+2026.05.25 12:59:22.944	Core 01	2026.03.03 10:00:00   deal performed [#4 buy 1 WIN$D at 191510]
+2026.05.25 12:59:22.944	Core 01	2026.03.03 10:00:00   order performed buy 1 at 191510 [#4 buy 1 WIN$D at 191510]
+2026.05.25 12:59:22.944	Core 01	2026.03.03 10:00:00   CTrade::OrderSend: exchange buy 1.00 WIN$D [done]
+2026.05.25 12:59:22.944	Core 01	2026.03.03 10:00:00   [2026.03.03 10:00:00][INFO][GridEngine] [COMPRA] Nivel=0 | 1 contratos @ 191510.00
+2026.05.25 12:59:22.944	Core 01	2026.03.03 10:03:40   [2026.03.03 10:03:40][AVISO][RiskManager] âš ï¸? DD Diário Atingido: 5.17% de drawdown (Limite Máximo: 5.00%). Bloqueando operações diárias para preservar capital inicial de R$11220.00.
+2026.05.25 12:59:22.944	Core 01	2026.03.03 10:03:59   [2026.03.03 10:03:59][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.03 10:04:00   [2026.03.03 10:04:00][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.03 10:04:20   [2026.03.03 10:04:20][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.03 10:04:40   [2026.03.03 10:04:40][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.03 10:04:59   [2026.03.03 10:04:59][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.03 10:05:00   [2026.03.03 10:05:00][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.03 10:05:20   [2026.03.03 10:05:20][AVISO][RiskManager] [BLOQUEIO] Operação 
+
+(trechos apagados por ser excesso de repetição)
+
+bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.04 18:24:20   [2026.03.04 18:24:20][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.04 18:24:40   [2026.03.04 18:24:40][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.04 18:24:59   [2026.03.04 18:24:59][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.05 09:03:00   [2026.03.05 09:03:00][INFO][RiskManager] [RESET] Novo dia — Saldo=R$12370.00 | Equity=R$12370.00
+2026.05.25 12:59:22.944	Core 01	2026.03.05 09:03:00   [2026.03.05 09:03:00][INFO][TimeFilter] Fim do horário de operação
+2026.05.25 12:59:22.944	Core 01	2026.03.05 10:00:00   [2026.03.05 10:00:00][INFO][TimeFilter] Início do horário de operação. Resetando controle de fechamento.
+2026.05.25 12:59:22.944	Core 01	2026.03.05 11:18:40   exchange buy 1 WIN$D at 189585 (189580 / 189585 / 189580)
+2026.05.25 12:59:22.944	Core 01	2026.03.05 11:18:40   deal #6 buy 1 WIN$D at 189585 done (based on order #6)
+2026.05.25 12:59:22.944	Core 01	2026.03.05 11:18:40   deal performed [#6 buy 1 WIN$D at 189585]
+2026.05.25 12:59:22.944	Core 01	2026.03.05 11:18:40   order performed buy 1 at 189585 [#6 buy 1 WIN$D at 189585]
+2026.05.25 12:59:22.944	Core 01	2026.03.05 11:18:40   CTrade::OrderSend: exchange buy 1.00 WIN$D [done]
+2026.05.25 12:59:22.944	Core 01	2026.03.05 11:18:40   [2026.03.05 11:18:40][INFO][GridEngine] [COMPRA] Nivel=0 | 1 contratos @ 189585.00
+2026.05.25 12:59:22.944	Core 01	2026.03.05 11:39:40   [2026.03.05 11:39:40][AVISO][RiskManager] âš ï¸? DD Diário Atingido: 7.40% de drawdown (Limite Máximo: 5.00%). Bloqueando operações diárias para preservar capital inicial de R$12370.00.
+2026.05.25 12:59:22.944	Core 01	2026.03.05 11:39:59   [2026.03.05 11:39:59][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.05 11:40:00   [2026.03.05 11:40:00][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.05 11:40:20   [2026.03.05 11:40:20][AVISO][RiskManager] [BLOQUEIO] Operação 
+
+(trechos apagados por ser excesso de repetição)
+
+bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.05 18:23:59   [2026.03.05 18:23:59][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.05 18:24:00   [2026.03.05 18:24:00][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.05 18:24:20   [2026.03.05 18:24:20][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.05 18:24:40   [2026.03.05 18:24:40][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.05 18:24:59   [2026.03.05 18:24:59][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada devido a algum limite diário de proteção atingido hoje.
+2026.05.25 12:59:22.944	Core 01	2026.03.06 09:03:00   [2026.03.06 09:03:00][INFO][RiskManager] [RESET] Novo dia — Saldo=R$12370.00 | Equity=R$8525.00
+2026.05.25 12:59:22.944	Core 01	2026.03.06 09:03:00   [2026.03.06 09:03:00][CRÃ?TICO][RiskManager] [ALERTA] EQUITY STOP! Capital Líquido (R$8525.00) caiu abaixo do limite de 70.0% do Saldo (R$12370.00) — Atual: 68.9%. Ativando Kill-Switch!
+2026.05.25 12:59:22.944	Core 01	2026.03.06 09:03:00   [2026.03.06 09:03:00][CRÃ?TICO][RiskManager] [PANICO] KILL-SWITCH! Fechando tudo...
+2026.05.25 12:59:22.944	Core 01	2026.03.06 09:03:00   exchange sell 1 WIN$D at 185740, close #6 (185740 / 185745 / 185740)
+2026.05.25 12:59:22.944	Core 01	2026.03.06 09:03:00   deal #7 sell 1 WIN$D at 185740 done (based on order #7)
+2026.05.25 12:59:22.944	Core 01	2026.03.06 09:03:00   deal performed [#7 sell 1 WIN$D at 185740]
+2026.05.25 12:59:22.944	Core 01	2026.03.06 09:03:00   order performed sell 1 at 185740 [#7 sell 1 WIN$D at 185740]
+2026.05.25 12:59:22.944	Core 01	2026.03.06 09:03:00   CTrade::OrderSend: exchange sell 1.00 WIN$D [done]
+2026.05.25 12:59:22.944	Core 01	2026.03.06 09:03:00   [2026.03.06 09:03:00][CRÃ?TICO][RiskManager] [PANICO] Kill-Switch executado. EA DESLIGADO.
+2026.05.25 12:59:22.944	Core 01	2026.03.06 09:03:20   [2026.03.06 09:03:20][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada pelo Kill-Switch ativo (EA desativado).
+2026.05.25 12:59:22.944	Core 01	2026.03.06 09:03:40   [2026.03.06 09:03:40][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada pelo Kill-Switch ativo (EA desativado).
+2026.05.25 12:59:22.944	Core 01	2026.03.06 09:03:59   [2026.03.06 09:03:59][AVISO][RiskManager] [BLOQUEIO] Operação 
+
+(trechos apagados por ser excesso de repetição)
+
+
+bloqueada pelo Kill-Switch ativo (EA desativado).
+2026.05.25 12:59:22.944	Core 01	2026.03.06 18:23:40   [2026.03.06 18:23:40][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada pelo Kill-Switch ativo (EA desativado).
+2026.05.25 12:59:22.944	Core 01	2026.03.06 18:23:59   [2026.03.06 18:23:59][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada pelo Kill-Switch ativo (EA desativado).
+2026.05.25 12:59:22.944	Core 01	2026.03.06 18:24:00   [2026.03.06 18:24:00][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada pelo Kill-Switch ativo (EA desativado).
+2026.05.25 12:59:22.944	Core 01	2026.03.06 18:24:20   [2026.03.06 18:24:20][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada pelo Kill-Switch ativo (EA desativado).
+2026.05.25 12:59:22.944	Core 01	2026.03.06 18:24:40   [2026.03.06 18:24:40][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada pelo Kill-Switch ativo (EA desativado).
+2026.05.25 12:59:22.944	Core 01	2026.03.06 18:24:59   [2026.03.06 18:24:59][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada pelo Kill-Switch ativo (EA desativado).
+2026.05.25 12:59:29.051	Core 01	2026.03.09 09:00:00   [2026.03.09 09:00:00][INFO][RiskManager] [RESET] Novo dia — Saldo=R$8525.00 | Equity=R$8525.00
+2026.05.25 12:59:29.051	Core 01	2026.03.09 09:00:00   [2026.03.09 09:00:00][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada pelo Kill-Switch ativo (EA desativado).
+2026.05.25 12:59:29.051	Core 01	2026.03.09 09:00:20   [2026.03.09 09:00:20][AVISO][RiskManager] [BLOQUEIO] Operação 
+
+(trechos apagados por ser excesso de repetição)
+
+bloqueada pelo Kill-Switch ativo (EA desativado).
+2026.05.25 12:59:29.051	Core 01	2026.03.09 13:50:20   [2026.03.09 13:50:20][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada pelo Kill-Switch ativo (EA desativado).
+2026.05.25 12:59:29.051	Core 01	2026.03.09 13:50:40   [2026.03.09 13:50:40][AVISO][RiskManager] [BLOQUEIO] Operação bloqueada pelo Kill-Switch ativo (EA desativado).
