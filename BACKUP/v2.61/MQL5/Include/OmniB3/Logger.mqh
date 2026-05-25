@@ -6,7 +6,7 @@
 
 
 
-//|                         Omni-B3 EA v2.62 — Sistema de Logging     |
+//|                         Omni-B3 EA v2.61 — Sistema de Logging     |
 
 
 
@@ -26,7 +26,7 @@
 
 
 
-#property version     "2.62"
+#property version     "2.61"
 
 
 

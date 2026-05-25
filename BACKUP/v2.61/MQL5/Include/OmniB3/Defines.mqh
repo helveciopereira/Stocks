@@ -6,7 +6,7 @@
 
 
 
-//|                         Omni-B3 EA v2.62 — Definições Centrais    |
+//|                         Omni-B3 EA v2.61 — Definições Centrais    |
 
 
 
@@ -30,7 +30,7 @@
 
 
 
-#property version     "2.62"
+#property version     "2.61"
 
 
 
@@ -50,7 +50,7 @@
 
 
 
-#define OMNIB3_VERSION        "2.62"
+#define OMNIB3_VERSION        "2.61"
 
 
 

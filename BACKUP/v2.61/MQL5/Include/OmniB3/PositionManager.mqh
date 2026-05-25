@@ -6,7 +6,7 @@
 
 
 
-//|                 Omni-B3 EA v2.62 — Gerenciador de Posições        |
+//|                 Omni-B3 EA v2.61 — Gerenciador de Posições        |
 
 
 
@@ -42,7 +42,7 @@
 
 
 
-#property version     "2.62"
+#property version     "2.61"
 
 
 

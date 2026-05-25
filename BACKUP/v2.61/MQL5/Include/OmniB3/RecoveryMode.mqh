@@ -6,7 +6,7 @@
 
 
 
-//|            Omni-B3 EA v2.62 — Modo de Recuperação                 |
+//|            Omni-B3 EA v2.61 — Modo de Recuperação                 |
 
 
 
@@ -38,7 +38,7 @@
 
 
 
-#property version     "2.62"
+#property version     "2.61"
 
 
 

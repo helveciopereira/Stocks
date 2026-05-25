@@ -6,7 +6,7 @@
 
 
 
-//|                     Omni-B3 EA v2.62 — Filtro de Notícias Nativo  |
+//|                     Omni-B3 EA v2.61 — Filtro de Notícias Nativo  |
 
 
 
@@ -42,7 +42,7 @@
 
 
 
-#property version     "2.62"
+#property version     "2.61"
 
 
 

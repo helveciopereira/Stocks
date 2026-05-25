@@ -6,7 +6,7 @@
 
 
 
-//|              Omni-B3 EA v2.62 — Hub Central de Indicadores        |
+//|              Omni-B3 EA v2.61 — Hub Central de Indicadores        |
 
 
 
@@ -26,7 +26,7 @@
 
 
 
-#property version     "2.62"
+#property version     "2.61"
 
 
 

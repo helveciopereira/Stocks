@@ -6,7 +6,7 @@
 
 
 
-//|                     Omni-B3 EA v2.62 — Modo de Ordem Única        |
+//|                     Omni-B3 EA v2.61 — Modo de Ordem Única        |
 
 
 
@@ -30,7 +30,7 @@
 
 
 
-#property version     "2.62"
+#property version     "2.61"
 
 
 

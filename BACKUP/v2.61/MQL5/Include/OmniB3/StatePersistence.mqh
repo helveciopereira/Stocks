@@ -6,7 +6,7 @@
 
 
 
-//|           Omni-B3 EA v2.62 — Persistência de Estado               |
+//|           Omni-B3 EA v2.61 — Persistência de Estado               |
 
 
 
@@ -38,7 +38,7 @@
 
 
 
-#property version     "2.62"
+#property version     "2.61"
 
 
 

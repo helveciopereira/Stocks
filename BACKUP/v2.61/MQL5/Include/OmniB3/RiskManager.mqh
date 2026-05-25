@@ -6,7 +6,7 @@
 
 
 
-//|                Omni-B3 EA v2.62 — Gestão de Risco (B3/BRL)        |
+//|                Omni-B3 EA v2.61 — Gestão de Risco (B3/BRL)        |
 
 
 
@@ -38,7 +38,7 @@
 
 
 
-#property version     "2.62"
+#property version     "2.61"
 
 
 

@@ -1,3 +1,44 @@
+# 🚶‍♂️ Walkthrough: Nomenclatura Dinâmica por Versão dos Experts (v2.62)
+
+Nesta versão, implementamos uma nova política de versionamento e nomenclatura estrutural no robô **Omni-B3**, elevando-o para a versão **v2.62** (+0.01 de incremento por se tratar de uma pequena alteração nas políticas de arquivos). A partir de agora, o arquivo do Expert principal na pasta de produção incorpora a sua própria versão ativa diretamente no nome do arquivo físico. Também realizamos uma varredura retrospectiva em todos os backups anteriores para manter a consistência e a rastreabilidade total do histórico do robô, em conformidade com a `RULE[user_global]`.
+
+---
+
+## 🛠️ O que foi Desenvolvido e Implementado na v2.62?
+
+### 1. Novo Padrão de Nomenclatura dos Experts em Produção
+* **O Problema**: O arquivo do Expert principal sempre se chamava `OmniB3_EA.mq5` na pasta de produção, o que dificultava saber qual a versão exata do arquivo que estava aberta no editor de código ou carregada no terminal do MetaTrader 5 sem ter que abrir o arquivo e ler a macro `OMNIB3_VERSION`.
+* **A Solução**: Renomeamos o arquivo de produção principal de `OmniB3_EA.mq5` para `OmniB3_EA_v2.62.mq5`. Consequentemente, o compilador agora gera o arquivo executável como `OmniB3_EA_v2.62.ex5`. O usuário poderá ver a versão ativa diretamente pelo nome do arquivo no Navegador do MetaTrader 5. A partir de cada nova versão, o nome do arquivo mudará correspondentemente.
+
+### 2. Renomeação Retrospectiva Completa de Backups Anteriores
+* **O Problema**: A pasta `BACKUP/` continha os subdiretórios `v2.25` até `v2.60`, mas todos os arquivos de código-fonte dos Experts guardados nestes backups possuíam o nome genérico `OmniB3_EA.mq5` e `OmniB3_EA.ex5`, dificultando a comparação rápida ou a identificação de arquivos de backup fora de suas pastas correspondentes.
+* **A Solução**: Implementamos uma automação robusta que varreu retrospectivamente todos os subdiretórios em `BACKUP/v2.XX/` e renomeou os arquivos dos Experts para seus respectivos formatos de versão:
+  * No backup `v2.25` -> `OmniB3_EA_v2.25.mq5` e `OmniB3_EA_v2.25.ex5`
+  * No backup `v2.35` -> `OmniB3_EA_v2.35.mq5` e `OmniB3_EA_v2.35.ex5`
+  * No backup `v2.45` -> `OmniB3_EA_v2.45.mq5`
+  * No backup `v2.46` -> `OmniB3_EA_v2.46.mq5` e `OmniB3_EA_v2.46.ex5`
+  * No backup `v2.47` -> `OmniB3_EA_v2.47.mq5` e `OmniB3_EA_v2.47.ex5`
+  * No backup `v2.48` -> `OmniB3_EA_v2.48.mq5` e `OmniB3_EA_v2.48.ex5`
+  * No backup `v2.49` -> `OmniB3_EA_v2.49.mq5` e `OmniB3_EA_v2.49.ex5`
+  * No backup `v2.50` -> `OmniB3_EA_v2.50.mq5` e `OmniB3_EA_v2.50.ex5`
+  * No backup `v2.60` -> `OmniB3_EA_v2.60.mq5`
+
+### 3. Backup de Segurança da v2.61
+* **A Solução**: Realizamos a cópia de segurança completa de todos os 16 arquivos ativos da versão **v2.61** na pasta dedicada `BACKUP/v2.61/`. O Expert copiado foi devidamente nomeado como `OmniB3_EA_v2.61.mq5` e `OmniB3_EA_v2.61.ex5`, seguindo a nova política de nomenclatura estrutural.
+
+### 4. Atualização Geral de Includes e Compilação Homologada
+* **A Solução**: Atualizamos todos os 15 Includes (.mqh) para a **v2.62** (cabeçalhos, tags `#property version` e constante `#define OMNIB3_VERSION "2.62"` em `Defines.mqh`). A compilação síncrona com `MetaEditor64.exe` da Rico retornou **0 erros e 0 warnings**.
+
+---
+
+## 📖 Como Usar e Configurar na v2.62
+
+1. **Seleção no MetaTrader 5**: No painel "Navegador" do MetaTrader 5, sob a pasta "Experts/OmniB3", selecione o arquivo **OmniB3_EA_v2.62** para rodar no gráfico ou no Testador de Estratégias. Os arquivos executáveis antigos sem versão no nome podem ser removidos para manter o MetaTrader limpo.
+2. **Nova Atualização**: Sempre que houver uma progressão de versão futura, o arquivo de produção será automaticamente renomeado para refletir o número de sua nova versão (ex: `OmniB3_EA_v2.63.mq5`).
+
+---
+
+
 # 🚶‍♂️ Walkthrough: Consistência de Versão Geral e Dashboard Dinâmico (v2.61)
 
 Nesta versão, realizamos uma higienização cosmética e de consistência sistemática em toda a base de código do robô **Omni-B3**, elevando-o para a versão **v2.61** (+0.01 de incremento por se tratar de correções e alinhamento de strings de versão de baixa complexidade). Unificamos todas as diretivas de versão obsoletas que estavam dispersas pelos 16 arquivos do projeto, garantindo conformidade absoluta com a `RULE[user_global]`.
