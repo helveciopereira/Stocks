@@ -6,7 +6,7 @@
 
 
 
-//|                  Omni-B3 EA v2.63 — Motor de Grade (B3/NETTING)  |
+//|                  Omni-B3 EA v2.62 — Motor de Grade (B3/NETTING)  |
 
 
 
@@ -26,7 +26,7 @@
 
 
 
-#property version     "2.63"
+#property version     "2.62"
 
 
 
@@ -243,10 +243,6 @@ private:
 
 
     datetime m_last_giant_candle_time;   // Último candle gigante detectado
-
-    // Cooldown temporal de níveis (OmniB3 v2.63)
-    bool    m_use_time_cooldown;
-    int     m_time_cooldown_minutes;
 
 
 
@@ -470,32 +466,6 @@ private:
 
 
 
-    }
-
-    //+--------------------------------------------------------------+
-    //| Verifica se a abertura de níveis está bloqueada por cooldown|
-    //+--------------------------------------------------------------+
-    bool IsWaitingBetweenLevels(int current_level) {
-        if(!m_use_time_cooldown) return false;
-        if(current_level <= 0) return false;
-        
-        datetime last_time = m_pos_manager.GetLastLevelTime();
-        if(last_time == 0) return false;
-        
-        int elapsed_seconds = (int)(TimeCurrent() - last_time);
-        int required_seconds = m_time_cooldown_minutes * 60;
-        
-        if(elapsed_seconds < required_seconds) {
-            static datetime last_log = 0;
-            if(TimeCurrent() - last_log >= 60) {
-                m_logger.Info("GridEngine", 
-                    StringFormat("[COOLDOWN TEMPORAL] Abertura do Nível %d bloqueada por tempo. Decorrido: %d seg. Espera requerida: %d seg (%d min).",
-                                 current_level, elapsed_seconds, required_seconds, m_time_cooldown_minutes));
-                last_log = TimeCurrent();
-            }
-            return true;
-        }
-        return false;
     }
 
 
@@ -1076,10 +1046,6 @@ public:
 
 
 
-        m_use_time_cooldown     = true;
-
-        m_time_cooldown_minutes = 15;
-
         m_trade.SetTypeFilling(DetectFillingMode());
 
 
@@ -1344,14 +1310,6 @@ public:
 
 
 
-    }
-
-    //+--------------------------------------------------------------+
-    //| Configura o cooldown temporal entre aberturas de níveis       |
-    //+--------------------------------------------------------------+
-    void SetTimeCooldown(bool use_cooldown, int cooldown_minutes) {
-        m_use_time_cooldown = use_cooldown;
-        m_time_cooldown_minutes = cooldown_minutes;
     }
 
 
@@ -1750,9 +1708,6 @@ public:
 
         if(IsWaitingBetweenOrders()) return;
 
-        // Verifica cooldown temporal de níveis (v2.63)
-        if(IsWaitingBetweenLevels(current_levels)) return;
-
 
 
         double spacing = CalculateGridSpacing(current_levels);
@@ -2052,3 +2007,6 @@ public:
 
 
 //+------------------------------------------------------------------+
+
+
+

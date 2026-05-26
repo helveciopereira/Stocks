@@ -6,7 +6,7 @@
 
 
 
-//|               Omni-B3 EA v2.63 — Filtro de Horário (B3)          |
+//|               Omni-B3 EA v2.62 — Filtro de Horário (B3)          |
 
 
 
@@ -38,7 +38,7 @@
 
 
 
-#property version     "2.63"
+#property version     "2.62"
 
 
 

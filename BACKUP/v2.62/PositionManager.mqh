@@ -6,7 +6,7 @@
 
 
 
-//|                 Omni-B3 EA v2.63 — Gerenciador de Posições        |
+//|                 Omni-B3 EA v2.62 — Gerenciador de Posições        |
 
 
 
@@ -42,7 +42,7 @@
 
 
 
-#property version     "2.63"
+#property version     "2.62"
 
 
 
@@ -852,14 +852,6 @@ public:
 
     }
 
-    //+--------------------------------------------------------------+
-    //| Retorna o horário de abertura do último nível ativo na grade |
-    //+--------------------------------------------------------------+
-    datetime GetLastLevelTime() {
-        if(m_level_count <= 0) return 0;
-        return m_levels[m_level_count - 1].open_time;
-    }
-
 
 
     //+--------------------------------------------------------------+
@@ -1483,5 +1475,6 @@ int GetGridDirection() {
 
 
 //+------------------------------------------------------------------+
+
 
 

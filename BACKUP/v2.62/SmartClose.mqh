@@ -6,7 +6,7 @@
 
 
 
-//|              Omni-B3 EA v2.63 — Smart Close para B3/NETTING       |
+//|              Omni-B3 EA v2.62 — Smart Close para B3/NETTING       |
 
 
 
@@ -26,7 +26,7 @@
 
 
 
-#property version     "2.63"
+#property version     "2.62"
 
 
 

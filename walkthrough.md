@@ -1,3 +1,52 @@
+# 🚶‍♂️ Walkthrough: Cooldown Temporal de Níveis e Correção Estrita de Day Trade (v2.63)
+
+Nesta versão, realizamos uma atualização lógica e estrutural de extrema importância no robô **Omni-B3**, elevando-o para a versão **v2.63** (+0.01 de incremento por se tratar de melhoria estratégica pontual e parametrizável nas propriedades de entrada do MT5). Implementamos a proteção de **Cooldown Temporal entre Níveis** para desacelerar o acúmulo de contratos contra tendências unilaterais de baixa e a **Correção Estrita de Day Trade** para assegurar a liquidação compulsória antes das 16:00, eliminando de forma definitiva o risco catastrófico de posições abertas overnight na B3.
+
+---
+
+## 🛠️ O que foi Desenvolvido e Implementado na v2.63?
+
+### 1. Cooldown Temporal entre Níveis da Grade (`GridEngine.mqh` & `PositionManager.mqh`)
+* **O Problema**: Em tendências esticadas unidirecionais sem repiques, a grade abria todos os seus 5 níveis em intervalos de tempo curtíssimos (ex: 42 minutos em 03/03/2026), acumulando a exposição máxima de contratos muito rápido no início do movimento desfavorável.
+* **A Solução**: Criamos uma trava temporal inteligente no motor de grade. Agora, ao habilitar `InpUseTimeCooldown = true`, o robô exige um tempo mínimo (configurável em `InpTimeCooldownMinutes`, padrão de 15 minutos) entre as aberturas de níveis subsequentes da grade:
+  * O `PositionManager.mqh` expõe o método `GetLastLevelTime()` para retornar a hora da última ordem ativa.
+  * O `GridEngine.mqh` implementa `IsWaitingBetweenLevels(int current_level)` que calcula a diferença temporal e bloqueia novas ordens se o cooldown estiver ativo.
+  * *Efeito Prático:* O robô passa a dar tempo para o mercado "respirar" e formar suportes, abrindo níveis mais baixos em preços muito melhores e reduzindo sensivelmente a exposição.
+
+### 2. Horário Base Padrão de Encerramento às 16:00 (`OmniB3_EA_v2.63.mq5`)
+* **A Ajuste**: O horário padrão de fábrica do robô foi alterado para encerrar as operações às **16:00** (anteriormente 17h40). Isso dá uma excelente margem de segurança de quase duas horas antes do fechamento oficial do pregão B3 (17h55) para garantir que ocorram ticks e liquidez suficientes para o envio e a execução bem-sucedida das ordens de encerramento a mercado.
+* **Os Inputs padrão de fábrica:**
+  * `InpEndHour` = `16`
+  * `InpEndMinute` = `0`
+  * `InpFridayEndHour` = `16`
+  * `InpTimeCloseMode` = `TCLOSE_IMMEDIATE`
+
+### 3. Forçar Fechamento Compulsório de Day Trade (`OmniB3_EA_v2.63.mq5`)
+* **O Problema**: Se o usuário configurasse `InpTimeCloseMode` como `TCLOSE_NONE` (ex: esquecimento nos sets), o robô não executava o encerramento do pregão e carregava a posição overnight.
+* **A Solução**: Implementamos o input de segurança compulsório `InpForceDayTradeClose` (default `true`). Quando ativado, o robô fechará todas as posições abertas incondicionalmente a mercado às 16:00, mesmo se o parâmetro de modo de tempo estiver em `TCLOSE_NONE`.
+
+### 4. Salvaguarda Inviolável de Posição de Ontem (Abertura) (`OmniB3_EA_v2.63.mq5`)
+* **O Problema**: Caso o pregão fechasse abruptamente no dia anterior ou ocorressem erros de tick da corretora e a posição dormisse overnight, na abertura do dia seguinte ela continuava correndo a mercado e sofrendo com gaps.
+* **A Solução**: Criamos o parâmetro de input `InpForceDayTradeLiquidation` (default `true`). Se ativado, logo no primeiro tick do dia seguinte às 09h05, se o robô detectar qualquer posição de dias passados carregada, ele executa incondicionalmente `Smart.CloseAllPositions()` (caindo em resgate por ticket em caso de falha), garantindo a liquidação atômica de resgate antes que novos trades sejam iniciados.
+
+### 5. Consolidação de Metadados e Propriedades para a v2.63
+* **A Solução**: Promovemos a assinatura e versão de todos os Includes correspondentes do projeto (`Dashboard.mqh`, `Defines.mqh`, `TimeFilter.mqh`, `SmartClose.mqh` e `PositionManager.mqh`) para a versão **v2.63** (cabeçalhos, `#property version` e strings visuais de interface), unificando a identidade sistêmica em 100% da base.
+
+---
+
+## 📖 Como Usar e Configurar na v2.63
+
+1. **Gestão de Cooldown Temporal:**
+   * `InpUseTimeCooldown` [Habilitar Cooldown entre Níveis?] = `true`
+   * `InpTimeCooldownMinutes` [Minutos de Cooldown] = `15`
+   * *Uso:* Em ativos de alta volatilidade como WIN e WDO, 15 minutos é o ideal para espaçar as entradas contra fortes tendências de mercado.
+2. **Day Trade Estrito e Seguro B3:**
+   * `InpEndHour` / `InpEndMinute` = `16:00` (Limite operacional padrão)
+   * `InpForceDayTradeClose` [Forçar Fechamento Compulsório] = `true` (Garante que a grade liquida às 16:00 mesmo em modos mistos)
+   * `InpForceDayTradeLiquidation` [Liquidar Posições Antigas na Abertura] = `true` (A segurança máxima contra gaps overnight caso falhe no dia anterior)
+
+---
+
 # 🚶‍♂️ Walkthrough: Nomenclatura Dinâmica por Versão dos Experts (v2.62)
 
 Nesta versão, implementamos uma nova política de versionamento e nomenclatura estrutural no robô **Omni-B3**, elevando-o para a versão **v2.62** (+0.01 de incremento por se tratar de uma pequena alteração nas políticas de arquivos). A partir de agora, o arquivo do Expert principal na pasta de produção incorpora a sua própria versão ativa diretamente no nome do arquivo físico. Também realizamos uma varredura retrospectiva em todos os backups anteriores para manter a consistência e a rastreabilidade total do histórico do robô, em conformidade com a `RULE[user_global]`.
